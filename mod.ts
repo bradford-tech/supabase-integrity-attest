@@ -1,2 +1,16 @@
 // mod.ts — public API surface
-// Implementation will be added as modules are completed.
+
+export type {
+  AppInfo,
+  AttestationResult,
+  VerifyAttestationOptions,
+} from "./src/attestation.ts";
+export type { AssertionResult } from "./src/assertion.ts";
+export { verifyAttestation } from "./src/attestation.ts";
+export { verifyAssertion } from "./src/assertion.ts";
+export {
+  AssertionError,
+  AssertionErrorCode,
+  AttestationError,
+  AttestationErrorCode,
+} from "./src/errors.ts";
