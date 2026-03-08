@@ -86,8 +86,14 @@ export async function verifyAssertion(
     await crypto.subtle.digest("SHA-256", clientDataBytes),
   );
 
-  // Step 6: Build message = authenticatorData || clientDataHash
-  const message = concat(decoded.authenticatorData, clientDataHash);
+  // Step 6: Compute nonce = SHA-256(authenticatorData || clientDataHash)
+  // Apple signs this nonce as the message to ES256 (not authData || clientDataHash directly)
+  const nonce = new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      concat(decoded.authenticatorData, clientDataHash),
+    ),
+  );
 
   // Step 7: Convert DER signature to raw r||s
   let signatureRaw: Uint8Array;
@@ -111,12 +117,12 @@ export async function verifyAssertion(
     );
   }
 
-  // Step 9: Verify ECDSA signature
+  // Step 9: Verify ECDSA signature over nonce
   const valid = await crypto.subtle.verify(
     { name: "ECDSA", hash: "SHA-256" },
     publicKey,
     signatureRaw,
-    message,
+    nonce,
   );
 
   if (!valid) {

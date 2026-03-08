@@ -45,13 +45,19 @@ export async function generateSyntheticAssertion(
     await crypto.subtle.digest("SHA-256", opts.clientData),
   );
 
-  // Sign: authenticatorData || clientDataHash
-  const message = concat(authenticatorData, clientDataHash);
+  // Compute nonce = SHA-256(authenticatorData || clientDataHash)
+  // Apple signs this nonce as the message (not authData || clientDataHash directly)
+  const nonce = new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      concat(authenticatorData, clientDataHash),
+    ),
+  );
   const signatureRaw = new Uint8Array(
     await crypto.subtle.sign(
       { name: "ECDSA", hash: "SHA-256" },
       keyPair.privateKey,
-      message,
+      nonce,
     ),
   );
 
