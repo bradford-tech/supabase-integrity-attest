@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.3...v0.2.4) (2026-03-08)
+
+
+### Bug Fixes
+
+* **assertion:** sign nonce not raw concatenation ([596a87d](https://github.com/bradford-tech/supabase-integrity-attest/commit/596a87d1e6bfcf3da658b3b9dc611fff54341f27))
+
 ## [0.2.3](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.2...v0.2.3) (2026-03-08)
 
 
