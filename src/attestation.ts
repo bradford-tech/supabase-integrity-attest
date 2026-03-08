@@ -40,7 +40,7 @@ export interface VerifyAttestationOptions {
  * extracts values based on their CBOR type headers, which avoids relying on
  * potentially incorrect length fields for opaque byte-string values.
  */
-interface AttestationCbor {
+export interface AttestationCbor {
   fmt: string;
   attStmt: {
     x5c: Uint8Array[];
@@ -149,7 +149,7 @@ function findCborTextKey(
   return -1;
 }
 
-function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
+export function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
   // Verify top-level is a CBOR map
   const majorType = (data[0] >> 5) & 0x07;
   if (majorType !== 5) {

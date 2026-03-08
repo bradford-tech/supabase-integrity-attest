@@ -15,6 +15,7 @@
   "tasks": {
     "test": "deno test --allow-net=none",
     "fix": "deno fmt && deno lint --fix && deno test --allow-net=none",
-    "check": "deno fmt --check && deno lint && deno test --allow-net=none"
+    "check": "deno fmt --check && deno lint && deno test --allow-net=none",
+    "validate": "deno run scripts/validate-attestation.ts"
   }
 }
