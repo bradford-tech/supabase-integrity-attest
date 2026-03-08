@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "exports": "./mod.ts",
   "imports": {
+    "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
     "cborg": "npm:cborg@^4.5.8",
     "pkijs": "npm:pkijs@^3.3.3",
     "asn1js": "npm:asn1js@^3.0.7",

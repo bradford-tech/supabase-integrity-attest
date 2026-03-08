@@ -66,6 +66,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@deno/dnt@~0.42.3",
       "jsr:@std/assert@1",
       "jsr:@std/encoding@1",
       "npm:asn1js@^3.0.7",

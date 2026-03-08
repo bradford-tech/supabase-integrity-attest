@@ -1,0 +1,45 @@
+name: Deno Dependency Updates
+
+on:
+  schedule:
+    - cron: "0 8 * * *" # Daily at 8am UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Check for updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
+        with:
+          deno-version-file: ".deno-version"
+
+      - name: Update compatible dependencies
+        run: deno outdated --update
+
+      - name: Check for file changes
+        id: check
+        run: git diff --quiet && echo "has_updates=false" >> "$GITHUB_OUTPUT" || echo "has_updates=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.check.outputs.has_updates == 'true'
+        uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
+        with:
+          branch: chore/deno-dependency-updates
+          commit-message: "chore(deps): update Deno dependencies"
+          title: "chore(deps): update Deno dependencies"
+          body: |
+            Automated update of compatible Deno dependencies via `deno outdated --update`.
+
+            > This workflow is a stopgap until [dependabot-core#14364](https://github.com/dependabot/dependabot-core/pull/14364) adds native Deno support.
+          labels: dependencies
+          delete-branch: true
