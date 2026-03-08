@@ -288,14 +288,18 @@ async function verifySignature(
   // Use @noble/curves p384 to verify instead.
   if (namedCurve === "P-384" && hash === "SHA-256") {
     // Pre-hash TBS, then verify with @noble/curves.
-    // @noble/curves v2 defaults prehash to true; pass false since we hash manually.
+    // lowS: false — X.509 signatures don't enforce BIP-62 low-S normalization.
+    // prehash: false — we hash manually since the hash algorithm differs from the curve's default.
     const digest = new Uint8Array(
       await crypto.subtle.digest(hash, child.tbsCertificateDer),
     );
     const rawPubKey = extractRawPublicKeyFromSpki(
       parent.subjectPublicKeyInfoDer,
     );
-    return p384.verify(sigRaw, digest, rawPubKey, { prehash: false });
+    return p384.verify(sigRaw, digest, rawPubKey, {
+      prehash: false,
+      lowS: false,
+    });
   }
 
   // Standard pairing — WebCrypto
