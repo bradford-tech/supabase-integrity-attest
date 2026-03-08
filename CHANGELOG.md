@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.2...v0.2.3) (2026-03-08)
+
+
+### Bug Fixes
+
+* disable lowS in p384.verify for X.509 sigs ([f2a466d](https://github.com/bradford-tech/supabase-integrity-attest/commit/f2a466d6c62b7c2a68ee32fa8160cf1b30634be6))
+
 ## [0.2.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.1...v0.2.2) (2026-03-08)
 
 
