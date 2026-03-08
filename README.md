@@ -6,7 +6,11 @@ assertions using the WebCrypto API. Built for Deno and Supabase Edge Functions.
 ## Installation
 
 ```bash
-deno add jsr:@bradford/supabase-integrity-attest
+# Deno
+deno add jsr:@bradford-tech/supabase-integrity-attest
+
+# npm
+npx jsr add @bradford-tech/supabase-integrity-attest
 ```
 
 ## Usage
@@ -14,7 +18,7 @@ deno add jsr:@bradford/supabase-integrity-attest
 ### Attestation (one-time per device)
 
 ```typescript
-import { verifyAttestation } from "supabase-integrity-attest";
+import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest";
 
 const result = await verifyAttestation(
   { appId: "TEAMID.com.your.bundleid" },
@@ -29,7 +33,7 @@ const result = await verifyAttestation(
 ### Assertion (every protected request)
 
 ```typescript
-import { verifyAssertion } from "supabase-integrity-attest";
+import { verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
 
 const result = await verifyAssertion(
   { appId: "TEAMID.com.your.bundleid" },
@@ -50,7 +54,7 @@ import {
   AttestationErrorCode,
   AssertionError,
   AssertionErrorCode,
-} from "supabase-integrity-attest";
+} from "@bradford-tech/supabase-integrity-attest";
 
 try {
   await verifyAttestation(appInfo, keyId, challenge, attestation);
