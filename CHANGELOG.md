@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.1...v0.2.2) (2026-03-08)
+
+
+### Bug Fixes
+
+* replace pkijs with asn1js + WebCrypto ([bee5306](https://github.com/bradford-tech/supabase-integrity-attest/commit/bee5306c5608a56ca8adbe9fb0143c3e2d1d887d))
+
 ## [0.2.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.0...v0.2.1) (2026-03-08)
 
 
