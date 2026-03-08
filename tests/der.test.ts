@@ -190,7 +190,7 @@ Deno.test("derToRaw rejects invalid input: not a SEQUENCE", () => {
   );
 });
 
-Deno.test("derToRaw and rawToDer work with real WebCrypto signatures", async () => {
+Deno.test("derToRaw and rawToDer work with real WebCrypto P-256 signatures", async () => {
   const keyPair = await crypto.subtle.generateKey(
     { name: "ECDSA", namedCurve: "P-256" },
     true,
@@ -213,6 +213,45 @@ Deno.test("derToRaw and rawToDer work with real WebCrypto signatures", async () 
 
   const valid = await crypto.subtle.verify(
     { name: "ECDSA", hash: "SHA-256" },
+    keyPair.publicKey,
+    backToRaw,
+    data,
+  );
+  assertEquals(valid, true);
+});
+
+Deno.test("derToRaw(rawToDer(x)) round-trips for P-384 (componentSize=48)", () => {
+  for (let i = 0; i < 10; i++) {
+    const raw = crypto.getRandomValues(new Uint8Array(96));
+    const der = rawToDer(raw, 48);
+    const roundTripped = derToRaw(der, 48);
+    assertEquals(roundTripped, raw);
+  }
+});
+
+Deno.test("derToRaw and rawToDer work with real WebCrypto P-384 signatures", async () => {
+  const keyPair = await crypto.subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-384" },
+    true,
+    ["sign", "verify"],
+  );
+  const data = new TextEncoder().encode("test data for P-384");
+
+  const rawSig = new Uint8Array(
+    await crypto.subtle.sign(
+      { name: "ECDSA", hash: "SHA-384" },
+      keyPair.privateKey,
+      data,
+    ),
+  );
+  assertEquals(rawSig.length, 96);
+
+  const der = rawToDer(rawSig, 48);
+  const backToRaw = derToRaw(der, 48);
+  assertEquals(backToRaw, rawSig);
+
+  const valid = await crypto.subtle.verify(
+    { name: "ECDSA", hash: "SHA-384" },
     keyPair.publicKey,
     backToRaw,
     data,

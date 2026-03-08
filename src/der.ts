@@ -1,6 +1,9 @@
 // src/der.ts
 
-export function derToRaw(der: Uint8Array): Uint8Array {
+export function derToRaw(
+  der: Uint8Array,
+  componentSize = 32,
+): Uint8Array {
   if (der[0] !== 0x30) {
     throw new Error("Invalid DER signature: expected SEQUENCE tag (0x30)");
   }
@@ -11,7 +14,7 @@ export function derToRaw(der: Uint8Array): Uint8Array {
     offset = 2 + lengthBytes;
   }
 
-  const raw = new Uint8Array(64);
+  const raw = new Uint8Array(componentSize * 2);
 
   if (der[offset] !== 0x02) {
     throw new Error(
@@ -32,21 +35,26 @@ export function derToRaw(der: Uint8Array): Uint8Array {
   const sLen = der[offset++];
   const sBytes = der.subarray(offset, offset + sLen);
 
-  copyInteger(rBytes, raw, 0);
-  copyInteger(sBytes, raw, 32);
+  copyInteger(rBytes, raw, 0, componentSize);
+  copyInteger(sBytes, raw, componentSize, componentSize);
 
   return raw;
 }
 
-export function rawToDer(raw: Uint8Array): Uint8Array {
-  if (raw.length !== 64) {
+export function rawToDer(
+  raw: Uint8Array,
+  componentSize = 32,
+): Uint8Array {
+  if (raw.length !== componentSize * 2) {
     throw new Error(
-      `Invalid raw signature: expected 64 bytes, got ${raw.length}`,
+      `Invalid raw signature: expected ${
+        componentSize * 2
+      } bytes, got ${raw.length}`,
     );
   }
 
-  const r = encodeInteger(raw.subarray(0, 32));
-  const s = encodeInteger(raw.subarray(32, 64));
+  const r = encodeInteger(raw.subarray(0, componentSize));
+  const s = encodeInteger(raw.subarray(componentSize, componentSize * 2));
   const seqLen = r.length + s.length;
 
   const der = new Uint8Array(2 + seqLen);
@@ -61,16 +69,17 @@ function copyInteger(
   src: Uint8Array,
   dst: Uint8Array,
   dstOffset: number,
+  componentSize: number,
 ): void {
   let srcOffset = 0;
   while (srcOffset < src.length - 1 && src[srcOffset] === 0) {
     srcOffset++;
   }
   const len = src.length - srcOffset;
-  if (len > 32) {
+  if (len > componentSize) {
     throw new Error(`Integer too large: ${len} bytes`);
   }
-  dst.set(src.subarray(srcOffset), dstOffset + (32 - len));
+  dst.set(src.subarray(srcOffset), dstOffset + (componentSize - len));
 }
 
 function encodeInteger(value: Uint8Array): Uint8Array {
