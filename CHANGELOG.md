@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.0...v0.2.1) (2026-03-08)
+
+
+### Bug Fixes
+
+* add ESNext and DOM libs to dnt compiler options ([e809b2b](https://github.com/bradford-tech/supabase-integrity-attest/commit/e809b2bac651b71b4e4fdefada945dc7dcfe507d))
+
 ## [0.2.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.1.0...v0.2.0) (2026-03-08)
 
 
