@@ -15,6 +15,9 @@ await build({
     deno: { test: "dev" },
   },
   scriptModule: false,
+  compilerOptions: {
+    lib: ["ESNext", "DOM"],
+  },
   package: {
     name: "@bradford-tech/supabase-integrity-attest",
     version,
