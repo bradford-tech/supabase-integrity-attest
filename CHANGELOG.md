@@ -1,0 +1,25 @@
+# Changelog
+
+## [0.2.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.1.0...v0.2.0) (2026-03-08)
+
+
+### Features
+
+* add Apple Root CA and AAGUID constants ([9b19b39](https://github.com/bradford-tech/supabase-integrity-attest/commit/9b19b3920407300c70302bf69bbebe07270b1bdd))
+* add assertion verification ([852e750](https://github.com/bradford-tech/supabase-integrity-attest/commit/852e750a3860c0c6dc11b338f8464a2be72d1e4f))
+* add attestation validation script ([b5aff04](https://github.com/bradford-tech/supabase-integrity-attest/commit/b5aff047aae3bfc1ae5b9cfd07f4d15f372dcd41))
+* add attestation verification ([a9b1b24](https://github.com/bradford-tech/supabase-integrity-attest/commit/a9b1b2404789e5bb77da3cf62d287e68b6f2d76c))
+* add authenticatorData binary parser ([f2eb8c1](https://github.com/bradford-tech/supabase-integrity-attest/commit/f2eb8c1dae8ae37efeb38c26297f8c06ada755b0))
+* add COSE key to CryptoKey conversion ([838f55d](https://github.com/bradford-tech/supabase-integrity-attest/commit/838f55dc8e17a2b683981c30a968ef87ca978df3))
+* add DER &lt;-&gt; raw ECDSA signature conversion ([ab12073](https://github.com/bradford-tech/supabase-integrity-attest/commit/ab1207318235cb2565501647345ad3d202c5b270))
+* add test fixtures for attestation and assertion ([db3e15f](https://github.com/bradford-tech/supabase-integrity-attest/commit/db3e15ff7e9e50a574151498d9d239da72e623ff))
+* add typed error classes for attestation and assertion ([49473cb](https://github.com/bradford-tech/supabase-integrity-attest/commit/49473cb350dcf04b77961fd86f0abf055820372f))
+* add utility functions for crypto operations ([0d3e031](https://github.com/bradford-tech/supabase-integrity-attest/commit/0d3e031c8cd25e60465223ea26ecced00f0e3dd5))
+* add X.509 certificate chain validation and nonce extraction ([f2c9273](https://github.com/bradford-tech/supabase-integrity-attest/commit/f2c9273ab05996614d0f85c97eacaf6510244b3b))
+* **ci:** add release-please, CI, and npm build ([62212d6](https://github.com/bradford-tech/supabase-integrity-attest/commit/62212d6b8ad25e16b3f79f419d03fd4c8e612459))
+* wire up public API in mod.ts ([d41cec8](https://github.com/bradford-tech/supabase-integrity-attest/commit/d41cec8ad596aa08d94fe0be13b306e7702a3cdd))
+
+
+### Bug Fixes
+
+* **docs:** correct package name in README examples ([544b290](https://github.com/bradford-tech/supabase-integrity-attest/commit/544b2904f40f19b1a9dfc55b7f2cd8147ddf42d8))
