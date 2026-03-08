@@ -9,7 +9,11 @@ if (!version) {
 await emptyDir("./npm");
 
 await build({
-  entryPoints: ["./mod.ts"],
+  entryPoints: [
+    "./mod.ts",
+    { name: "./assertion", path: "./assertion.ts" },
+    { name: "./attestation", path: "./attestation.ts" },
+  ],
   outDir: "./npm",
   shims: {
     deno: { test: "dev" },
