@@ -1,7 +1,11 @@
 {
   "name": "@bradford-tech/supabase-integrity-attest",
   "version": "0.2.4",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./assertion": "./assertion.ts",
+    "./attestation": "./attestation.ts"
+  },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
     "cborg": "npm:cborg@^4.5.8",
