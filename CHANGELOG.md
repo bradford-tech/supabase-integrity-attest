@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.4...v0.3.0) (2026-03-08)
+
+
+### Features
+
+* add assertion subpath entry point ([de8afd9](https://github.com/bradford-tech/supabase-integrity-attest/commit/de8afd9fac52d125b70eb457492eba08759f62e7))
+* add attestation subpath entry point ([46e54df](https://github.com/bradford-tech/supabase-integrity-attest/commit/46e54df88bc5e78bb93c128d4d22b59fd37bee87))
+* add subpath exports to deno.json ([d8f2300](https://github.com/bradford-tech/supabase-integrity-attest/commit/d8f2300e1725cec11d46470d1878b3b6f387f113))
+* add subpath exports to npm build ([1d4a88c](https://github.com/bradford-tech/supabase-integrity-attest/commit/1d4a88cdaff893adf8c829fec7816c103a79d28e))
+
 ## [0.2.4](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.3...v0.2.4) (2026-03-08)
 
 
