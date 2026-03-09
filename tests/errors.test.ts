@@ -47,3 +47,21 @@ Deno.test("AssertionErrorCode has all expected values", () => {
   assertEquals(codes.includes("COUNTER_NOT_INCREMENTED"), true);
   assertEquals(codes.includes("SIGNATURE_INVALID"), true);
 });
+
+Deno.test("AssertionErrorCode has wrapper error codes", () => {
+  const codes: string[] = Object.values(AssertionErrorCode);
+  assertEquals(codes.includes("DEVICE_NOT_FOUND"), true);
+  assertEquals(codes.includes("INTERNAL_ERROR"), true);
+});
+
+Deno.test("AssertionError supports cause option", () => {
+  const cause = new Error("db connection failed");
+  const err = new AssertionError(
+    AssertionErrorCode.INTERNAL_ERROR,
+    "Storage callback failed",
+    { cause },
+  );
+  assertIsError(err, AssertionError);
+  assertEquals(err.code, "INTERNAL_ERROR");
+  assertEquals(err.cause, cause);
+});

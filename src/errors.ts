@@ -25,6 +25,8 @@ export enum AssertionErrorCode {
   RP_ID_MISMATCH = "RP_ID_MISMATCH",
   COUNTER_NOT_INCREMENTED = "COUNTER_NOT_INCREMENTED",
   SIGNATURE_INVALID = "SIGNATURE_INVALID",
+  DEVICE_NOT_FOUND = "DEVICE_NOT_FOUND",
+  INTERNAL_ERROR = "INTERNAL_ERROR",
 }
 
 export class AssertionError extends Error {
@@ -32,7 +34,8 @@ export class AssertionError extends Error {
   constructor(
     public readonly code: AssertionErrorCode,
     message: string,
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
   }
 }
