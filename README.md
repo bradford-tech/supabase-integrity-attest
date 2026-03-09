@@ -13,6 +13,21 @@ deno add jsr:@bradford-tech/supabase-integrity-attest
 npx jsr add @bradford-tech/supabase-integrity-attest
 ```
 
+## Subpath imports
+
+If you only need assertion verification, import from the lighter entry point:
+
+```typescript
+// Full library (attestation + assertion)
+import { verifyAttestation, verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
+
+// Assertion only — skips asn1js and @noble/curves
+import { verifyAssertion } from "@bradford-tech/supabase-integrity-attest/assertion";
+
+// Attestation only
+import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
+```
+
 ## Usage
 
 ### Attestation (one-time per device)
