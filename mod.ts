@@ -14,3 +14,16 @@ export {
   AttestationError,
   AttestationErrorCode,
 } from "./src/errors.ts";
+
+// withAssertion wrapper
+export { withAssertion } from "./src/with-assertion.ts";
+export {
+  DEFAULT_ASSERTION_HEADER,
+  DEFAULT_DEVICE_ID_HEADER,
+} from "./src/with-assertion.ts";
+export type {
+  AssertionContext,
+  DeviceKey,
+  ExtractAssertionFn,
+  WithAssertionOptions,
+} from "./src/with-assertion.ts";
