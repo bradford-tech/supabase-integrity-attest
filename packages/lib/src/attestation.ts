@@ -11,19 +11,27 @@ import { AttestationError, AttestationErrorCode } from "./errors.ts";
 import { parseAttestationAuthData } from "./authdata.ts";
 import { concat, constantTimeEqual, exportKeyToPem, toBytes } from "./utils.ts";
 
+/** Identifies the app being attested. */
 export interface AppInfo {
+  /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
+  /** Set to `true` when verifying attestations from the development environment. */
   developmentEnv?: boolean;
 }
 
+/** Successful attestation verification result. */
 export interface AttestationResult {
+  /** PEM-encoded ECDSA P-256 public key extracted from the attestation. */
   publicKeyPem: string;
+  /** Raw App Attest receipt bytes for server-side refresh. */
   receipt: Uint8Array;
+  /** Initial sign count (always `0` for attestation). */
   signCount: number;
 }
 
+/** Options for {@linkcode verifyAttestation}. */
 export interface VerifyAttestationOptions {
-  /** Override date for certificate chain validation (for testing with expired certs) */
+  /** Override date for certificate chain validation (for testing with expired certs). */
   checkDate?: Date;
 }
 
@@ -149,6 +157,7 @@ function findCborTextKey(
   return -1;
 }
 
+/** Decode an Apple App Attest attestation object from raw CBOR bytes. */
 export function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
   // Verify top-level is a CBOR map
   const majorType = (data[0] >> 5) & 0x07;
@@ -224,6 +233,16 @@ export function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
   return { fmt, attStmt: { x5c, receipt }, authData };
 }
 
+/**
+ * Verify an Apple App Attest attestation.
+ *
+ * Implements the full server-side verification described in
+ * [Apple's documentation](https://developer.apple.com/documentation/devicecheck/validating_apps_that_connect_to_your_server):
+ * CBOR decode, certificate chain validation, nonce check, key extraction,
+ * AAGUID check, and credential ID verification.
+ *
+ * @throws {AttestationError} If any verification step fails.
+ */
 export async function verifyAttestation(
   appInfo: AppInfo,
   keyId: string,

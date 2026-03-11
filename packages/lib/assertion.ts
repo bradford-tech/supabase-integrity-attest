@@ -1,4 +1,21 @@
-// assertion.ts — lightweight entry point (no asn1js / @noble/curves)
+/**
+ * Lightweight assertion-only entry point. Avoids pulling in `asn1js` and
+ * `@noble/curves`, keeping the bundle minimal for assertion-only use cases.
+ *
+ * ```ts
+ * import { verifyAssertion } from "@bradford-tech/supabase-integrity-attest/assertion";
+ *
+ * const { signCount } = await verifyAssertion(
+ *   { appId: "TEAMID.com.example.app" },
+ *   assertion,
+ *   clientData,
+ *   publicKeyPem,
+ *   previousSignCount,
+ * );
+ * ```
+ *
+ * @module
+ */
 
 export { verifyAssertion } from "./src/assertion.ts";
 export type { AppInfo, AssertionResult } from "./src/assertion.ts";

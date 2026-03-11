@@ -1,4 +1,19 @@
-// mod.ts — public API surface
+/**
+ * Verify Apple App Attest attestations and assertions using WebCrypto.
+ *
+ * ```ts
+ * import { verifyAttestation, verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
+ *
+ * const { publicKeyPem } = await verifyAttestation(
+ *   { appId: "TEAMID.com.example.app" },
+ *   keyId,
+ *   challenge,
+ *   attestation,
+ * );
+ * ```
+ *
+ * @module
+ */
 
 export type {
   AppInfo,

@@ -3,32 +3,49 @@ import { verifyAssertion } from "./assertion.ts";
 import type { AppInfo } from "./assertion.ts";
 import { AssertionError, AssertionErrorCode } from "./errors.ts";
 
+/** Default HTTP header name for the base64-encoded assertion. */
 export const DEFAULT_ASSERTION_HEADER = "X-App-Attest-Assertion";
+/** Default HTTP header name for the device identifier. */
 export const DEFAULT_DEVICE_ID_HEADER = "X-App-Attest-Device-Id";
 
+/** Stored device key material returned by the `getDeviceKey` callback. */
 export type DeviceKey = {
+  /** PEM-encoded ECDSA P-256 public key from attestation. */
   publicKeyPem: string;
+  /** Last verified sign count for this device. */
   signCount: number;
 };
 
+/** Context passed to the inner handler after successful assertion verification. */
 export type AssertionContext = {
+  /** Device identifier from the request. */
   deviceId: string;
+  /** Updated sign count after verification. */
   signCount: number;
+  /** Raw request body bytes (the client data that was signed). */
   rawBody: Uint8Array;
 };
 
+/** Custom function to extract assertion data from an incoming request. */
 export type ExtractAssertionFn = (req: Request) => Promise<{
   assertion: string;
   deviceId: string;
   clientData: Uint8Array;
 }>;
 
+/** Configuration for the {@linkcode withAssertion} middleware. */
 export type WithAssertionOptions = {
+  /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
+  /** Set to `true` for development environment attestations. */
   developmentEnv?: boolean;
+  /** Retrieve the stored device key for a given device ID. Return `null` if not found. */
   getDeviceKey: (deviceId: string) => Promise<DeviceKey | null>;
+  /** Persist the new sign count after successful verification. */
   updateSignCount: (deviceId: string, newSignCount: number) => Promise<void>;
+  /** Override the default header-based assertion extraction. */
   extractAssertion?: ExtractAssertionFn;
+  /** Custom error response handler. Defaults to JSON error responses. */
   onError?: (
     error: AssertionError,
     req: Request,
@@ -68,6 +85,13 @@ function defaultErrorResponse(error: AssertionError): Response {
   );
 }
 
+/**
+ * Request handler middleware that verifies App Attest assertions.
+ *
+ * Wraps a handler function with automatic assertion verification,
+ * device key lookup, and sign count management. Returns a new handler
+ * that rejects unauthenticated requests with appropriate HTTP error responses.
+ */
 export function withAssertion(
   options: WithAssertionOptions,
   handler: (

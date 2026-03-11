@@ -11,15 +11,29 @@ import {
   toBytes,
 } from "./utils.ts";
 
+/** Identifies the app whose assertions are being verified. */
 export interface AppInfo {
+  /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
+  /** Set to `true` when verifying assertions from the development environment. */
   developmentEnv?: boolean;
 }
 
+/** Successful assertion verification result. */
 export interface AssertionResult {
+  /** Updated sign count to persist for the next assertion. */
   signCount: number;
 }
 
+/**
+ * Verify an Apple App Attest assertion.
+ *
+ * Validates the CBOR-encoded assertion against the expected app ID,
+ * checks the monotonic sign counter, and verifies the ECDSA signature
+ * using the device's public key.
+ *
+ * @throws {AssertionError} If any verification step fails.
+ */
 export async function verifyAssertion(
   appInfo: AppInfo,
   assertion: Uint8Array | string,
