@@ -1,5 +1,17 @@
 # OS files
 .DS_Store
 
-# dnt build output
-npm/
+# Node
+node_modules/
+
+# DNT build output
+packages/lib/npm/
+
+# Next.js
+.next/
+
+# Vercel
+.vercel/
+
+# Turborepo
+.turbo/

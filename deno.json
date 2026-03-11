@@ -1,28 +1,4 @@
 {
-  "name": "@bradford-tech/supabase-integrity-attest",
-  "version": "0.3.0",
-  "exports": {
-    ".": "./mod.ts",
-    "./assertion": "./assertion.ts",
-    "./attestation": "./attestation.ts"
-  },
-  "imports": {
-    "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
-    "cborg": "npm:cborg@^4.5.8",
-    "@noble/curves": "npm:@noble/curves@^2.0.1",
-    "asn1js": "npm:asn1js@^3.0.7",
-    "@std/assert": "jsr:@std/assert@1",
-    "@std/encoding": "jsr:@std/encoding@1"
-  },
-  "fmt": {
-    "exclude": [
-      "**/*.md"
-    ]
-  },
-  "tasks": {
-    "test": "deno test --allow-net=none",
-    "fix": "deno fmt && deno lint --fix && deno test --allow-net=none",
-    "check": "deno fmt --check && deno lint && deno test --allow-net=none",
-    "validate": "deno run scripts/validate-attestation.ts"
-  }
+  "nodeModulesDir": "none",
+  "workspace": ["packages/lib"]
 }

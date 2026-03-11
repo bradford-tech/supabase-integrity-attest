@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "check": "prettier --check . --log-level warn && turbo run check --output-logs=errors-only",
+    "dev:docs": "turbo run dev --filter=docs",
+    "fix": "prettier --write . --log-level warn && turbo run fix --output-logs=new-only",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-packagejson": "^3.0.2",
+    "turbo": "^2.8.16",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "npm@11.11.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

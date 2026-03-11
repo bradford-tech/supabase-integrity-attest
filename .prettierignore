@@ -1,0 +1,9 @@
+# Deno lib uses deno fmt
+packages/lib/
+
+# Docs app handles its own prettier (has tailwind plugin)
+apps/docs/
+
+# Generated
+deno.lock
+package-lock.json

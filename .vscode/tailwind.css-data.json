@@ -1,0 +1,29 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@plugin",
+      "description": "Tailwind CSS v4: Load a plugin."
+    },
+    {
+      "name": "@custom-variant",
+      "description": "Tailwind CSS v4: Define a custom variant."
+    },
+    {
+      "name": "@theme",
+      "description": "Tailwind CSS v4: Define or extend the design theme."
+    },
+    {
+      "name": "@source",
+      "description": "Tailwind CSS v4: Explicitly specify content source paths."
+    },
+    {
+      "name": "@utility",
+      "description": "Tailwind CSS v4: Define a custom utility."
+    },
+    {
+      "name": "@variant",
+      "description": "Tailwind CSS v4: Apply a variant inline."
+    }
+  ]
+}

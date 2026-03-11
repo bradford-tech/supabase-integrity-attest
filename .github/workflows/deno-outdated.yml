@@ -2,7 +2,7 @@ name: Deno Dependency Updates
 
 on:
   schedule:
-    - cron: "0 8 * * *" # Daily at 8am UTC
+    - cron: '0 8 * * *' # Daily at 8am UTC
   workflow_dispatch: {}
 
 permissions:
@@ -13,6 +13,9 @@ jobs:
   update:
     name: Check for updates
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/lib
 
     steps:
       - name: Checkout repository
@@ -21,13 +24,14 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
         with:
-          deno-version-file: ".deno-version"
+          deno-version-file: '.deno-version'
 
       - name: Update compatible dependencies
         run: deno outdated --update
 
       - name: Check for file changes
         id: check
+        working-directory: .
         run: git diff --quiet && echo "has_updates=false" >> "$GITHUB_OUTPUT" || echo "has_updates=true" >> "$GITHUB_OUTPUT"
 
       - name: Create pull request
@@ -35,8 +39,8 @@ jobs:
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # v8.1.0
         with:
           branch: chore/deno-dependency-updates
-          commit-message: "chore(deps): update Deno dependencies"
-          title: "chore(deps): update Deno dependencies"
+          commit-message: 'chore(deps): update Deno dependencies'
+          title: 'chore(deps): update Deno dependencies'
           body: |
             Automated update of compatible Deno dependencies via `deno outdated --update`.
 

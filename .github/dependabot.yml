@@ -4,3 +4,36 @@ updates:
     directory: /
     schedule:
       interval: daily
+    groups:
+      all:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      all:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /apps/docs
+    schedule:
+      interval: daily
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      all:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /apps/supabase-expo-demo
+    schedule:
+      interval: daily
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
+    groups:
+      all:
+        patterns: ['*']
