@@ -1,5 +1,3 @@
-declare module '*.png'
-
 import { type SearchOptions } from 'flexsearch'
 
 declare module '@/markdoc/search.mjs' {
