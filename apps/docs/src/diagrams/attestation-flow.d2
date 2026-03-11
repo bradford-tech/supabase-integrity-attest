@@ -1,0 +1,28 @@
+shape: sequence_diagram
+
+ios: iOS App {
+  icon: ./icons/iphone.svg
+}
+
+enclave: Secure Enclave {
+  icon: ./icons/secure-enclave.svg
+}
+
+apple: Apple Servers {
+  icon: ./icons/apple-cloud.svg
+}
+
+edge: Edge Function {
+  icon: ./icons/server.svg
+}
+
+ios -> enclave: Generate key pair
+enclave -> ios: keyId {
+  style.font: mono
+}
+ios -> apple: Attest key
+apple -> ios: Attestation object (CBOR)
+ios -> edge: attestation + keyId + challenge
+edge -> edge: verifyAttestation() {
+  style.font: mono
+}

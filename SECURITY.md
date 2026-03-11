@@ -7,6 +7,7 @@ If you discover a security vulnerability in this library, please report it respo
 **Email:** security@bradford.tech
 
 Please include:
+
 - Description of the vulnerability
 - Steps to reproduce
 - Potential impact

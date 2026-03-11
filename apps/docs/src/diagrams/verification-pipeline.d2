@@ -1,0 +1,43 @@
+grid-rows: 2
+grid-columns: 3
+grid-gap: 20
+
+classes: {
+  stage: {
+    label.near: outside-top-center
+    style: {
+      border-radius: 8
+      font-size: 15
+    }
+  }
+}
+
+step1: 1. CBOR Decode {
+  icon: ./icons/cbor.svg
+  class: stage
+}
+
+step2: 2. Parse AuthData {
+  icon: ./icons/auth-data.svg
+  class: stage
+}
+
+step3: 3. Verify Cert Chain {
+  icon: ./icons/certificate.svg
+  class: stage
+}
+
+step4: 4. Verify Nonce {
+  icon: ./icons/nonce.svg
+  class: stage
+}
+
+step5: 5. Extract Public Key {
+  icon: ./icons/key.svg
+  class: stage
+}
+
+step6: 6. AttestationResult {
+  icon: ./icons/checkmark.svg
+  class: stage
+}

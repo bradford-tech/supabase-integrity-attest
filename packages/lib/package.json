@@ -1,0 +1,12 @@
+{
+  "name": "@bradford-tech/supabase-integrity-attest",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "check": "deno fmt --check && deno lint && deno test --allow-net=none",
+    "fix": "deno fmt && deno lint --fix && deno test --allow-net=none",
+    "test": "deno test --allow-net=none",
+    "lint": "deno fmt --check && deno lint",
+    "build": "deno fmt --check && deno lint && deno test --allow-net=none"
+  }
+}

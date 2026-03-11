@@ -1,0 +1,21 @@
+shape: sequence_diagram
+
+ios: iOS App {
+  icon: ./icons/iphone.svg
+}
+
+enclave: Secure Enclave {
+  icon: ./icons/secure-enclave.svg
+}
+
+edge: Edge Function {
+  icon: ./icons/server.svg
+}
+
+ios -> enclave: Sign request
+enclave -> ios: Assertion (CBOR)
+ios -> edge: Request + assertion headers
+edge -> edge: verifyAssertion() {
+  style.font: mono
+}
+edge -> edge: Update sign count

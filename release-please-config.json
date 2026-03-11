@@ -1,10 +1,17 @@
 {
   "packages": {
-    ".": {
+    "packages/lib": {
       "release-type": "simple",
+      "component": "lib",
+      "include-component-in-tag": false,
       "extra-files": [
-        { "type": "json", "path": "deno.json", "jsonpath": "$.version" }
+        { "type": "json", "path": "deno.json", "jsonpath": "$.version" },
+        { "type": "json", "path": "package.json", "jsonpath": "$.version" }
       ]
+    },
+    "apps/supabase-expo-demo": {
+      "release-type": "node",
+      "component": "demo"
     }
   }
 }
