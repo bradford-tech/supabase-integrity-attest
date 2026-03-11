@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.0...v0.3.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* prevent Deno from resolving full npm workspace ([436d64c](https://github.com/bradford-tech/supabase-integrity-attest/commit/436d64c09ff218dabad610476f2aed6ab84854a5))
+
 ## [0.3.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.2.4...v0.3.0) (2026-03-08)
 
 
