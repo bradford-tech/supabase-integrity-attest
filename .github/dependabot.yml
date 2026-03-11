@@ -14,21 +14,16 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+      # Expo deps are a coordinated set — use `npx expo install --check`
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react'
     groups:
       all:
         patterns: ['*']
   - package-ecosystem: npm
     directory: /apps/docs
-    schedule:
-      interval: daily
-    ignore:
-      - dependency-name: '*'
-        update-types: ['version-update:semver-major']
-    groups:
-      all:
-        patterns: ['*']
-  - package-ecosystem: npm
-    directory: /apps/supabase-expo-demo
     schedule:
       interval: daily
     ignore:
