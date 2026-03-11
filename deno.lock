@@ -57,62 +57,7 @@
     }
   },
   "workspace": {
-    "packageJson": {
-      "dependencies": [
-        "npm:prettier-plugin-organize-imports@^4.3.0",
-        "npm:prettier-plugin-packagejson@^3.0.2",
-        "npm:prettier@^3.8.1",
-        "npm:turbo@^2.8.16",
-        "npm:typescript@5.9.3"
-      ]
-    },
     "members": {
-      "apps/docs": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@algolia/autocomplete-core@^1.19.2",
-            "npm:@headlessui/react@^2.2.6",
-            "npm:@markdoc/markdoc@~0.5.4",
-            "npm:@markdoc/next.js@0.5",
-            "npm:@sindresorhus/slugify@^2.2.1",
-            "npm:@tailwindcss/postcss@^4.2.0",
-            "npm:@tailwindcss/typography@~0.5.16",
-            "npm:@terrastruct/d2@~0.1.33",
-            "npm:@types/node@^24.1.0",
-            "npm:@types/react-dom@19.2.3",
-            "npm:@types/react-highlight-words@0.20",
-            "npm:@types/react@19.2.14",
-            "npm:clsx@^2.1.1",
-            "npm:eslint-config-next@16.1.6",
-            "npm:eslint@^9.32.0",
-            "npm:fast-glob@^3.3.3",
-            "npm:flexsearch@~0.8.205",
-            "npm:js-yaml@^4.1.0",
-            "npm:next-themes@~0.4.6",
-            "npm:next@16.1.6",
-            "npm:prettier-plugin-tailwindcss@~0.7.2",
-            "npm:prism-react-renderer@^2.4.1",
-            "npm:react-dom@19.2.4",
-            "npm:react-highlight-words@0.21",
-            "npm:react@19.2.4",
-            "npm:sharp@0.34.3",
-            "npm:simple-functional-loader@^1.2.1",
-            "npm:tailwindcss@^4.2.0"
-          ]
-        }
-      },
-      "apps/supabase-expo-demo": {
-        "packageJson": {
-          "dependencies": [
-            "npm:@types/react@~19.2.2",
-            "npm:expo-status-bar@~55.0.4",
-            "npm:expo@~55.0.5",
-            "npm:react-native@0.83.2",
-            "npm:react@19.2.0",
-            "npm:supabase@^2.78.1"
-          ]
-        }
-      },
       "packages/lib": {
         "dependencies": [
           "jsr:@deno/dnt@~0.42.3",
