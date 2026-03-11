@@ -28,6 +28,8 @@ jobs:
 
       - name: Update compatible dependencies
         run: deno outdated --update
+        env:
+          DENO_NO_PACKAGE_JSON: 1
 
       - name: Check for file changes
         id: check
