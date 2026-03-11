@@ -24,6 +24,8 @@ jobs:
           deno-version-file: .deno-version
 
       - run: deno task check
+        env:
+          DENO_NO_PACKAGE_JSON: 1
 
   check-docs:
     runs-on: ubuntu-latest
