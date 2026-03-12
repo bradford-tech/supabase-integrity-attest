@@ -36,11 +36,15 @@ jobs:
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
         run: deno task check
+        env:
+          DENO_NO_PACKAGE_JSON: 1
 
       - name: Publish to JSR
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
         run: deno publish
+        env:
+          DENO_NO_PACKAGE_JSON: 1
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
@@ -52,6 +56,8 @@ jobs:
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
         run: deno run -A scripts/build_npm.ts ${{ steps.release.outputs['packages/lib--version'] }}
+        env:
+          DENO_NO_PACKAGE_JSON: 1
 
       - name: Publish to npm
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
