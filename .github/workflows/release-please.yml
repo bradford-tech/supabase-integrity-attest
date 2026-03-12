@@ -23,37 +23,37 @@ jobs:
           manifest-file: .release-please-manifest.json
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
-          ref: ${{ steps.release.outputs['lib--tag_name'] }}
+          ref: ${{ steps.release.outputs['packages/lib--tag_name'] }}
 
       - uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
           deno-version-file: .deno-version
 
       - name: Verify
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
         run: deno task check
 
       - name: Publish to JSR
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
         run: deno publish
 
       - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
           node-version: lts/*
           registry-url: https://registry.npmjs.org
 
       - name: Build npm package
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib
-        run: deno run -A scripts/build_npm.ts ${{ steps.release.outputs['lib--version'] }}
+        run: deno run -A scripts/build_npm.ts ${{ steps.release.outputs['packages/lib--version'] }}
 
       - name: Publish to npm
-        if: ${{ steps.release.outputs['lib--release_created'] }}
+        if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         working-directory: packages/lib/npm
         run: npm publish --access public
