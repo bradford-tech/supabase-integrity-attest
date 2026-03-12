@@ -1,12 +1,5 @@
 # Changelog
 
-## [0.3.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.1...v0.3.2) (2026-03-12)
-
-
-### Bug Fixes
-
-* use bitwise OR in CBOR uint parser to avoid signed arithmetic ([295b1c8](https://github.com/bradford-tech/supabase-integrity-attest/commit/295b1c81601833d56c859155619d0dae95c324e7))
-
 ## [0.3.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.0...v0.3.1) (2026-03-11)
 
 
