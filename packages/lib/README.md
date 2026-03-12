@@ -10,7 +10,7 @@ assertions using the WebCrypto API. Built for Deno and Supabase Edge Functions.
 deno add jsr:@bradford-tech/supabase-integrity-attest
 
 # npm
-npx jsr add @bradford-tech/supabase-integrity-attest
+npm install @bradford-tech/supabase-integrity-attest
 ```
 
 ## Subpath imports

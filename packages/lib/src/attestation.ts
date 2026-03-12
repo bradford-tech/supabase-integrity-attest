@@ -73,10 +73,10 @@ function readCborUint(
   }
   if (additional === 26) {
     return {
-      value: ((data[offset + 1] << 24) >>> 0) +
-        (data[offset + 2] << 16) +
-        (data[offset + 3] << 8) +
-        data[offset + 4],
+      value: ((data[offset + 1] << 24) |
+        (data[offset + 2] << 16) |
+        (data[offset + 3] << 8) |
+        data[offset + 4]) >>> 0,
       end: offset + 5,
     };
   }
