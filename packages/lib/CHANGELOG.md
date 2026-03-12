@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.1...v0.3.2) (2026-03-12)
+
+
+### Bug Fixes
+
+* **ci:** add DENO_NO_PACKAGE_JSON to release workflow ([23ae26c](https://github.com/bradford-tech/supabase-integrity-attest/commit/23ae26c7f6a46517d2084ae79b9964b477035699))
+* **ci:** use path-based output keys for release-please ([30c10b8](https://github.com/bradford-tech/supabase-integrity-attest/commit/30c10b89d8d0a4df63e3219643cd73eb745e9ee3))
+* **ci:** use separate release PRs to fix component matching ([c319a24](https://github.com/bradford-tech/supabase-integrity-attest/commit/c319a2480206e2e448133e8039f83c32c5a8c61e))
+* use bitwise OR in CBOR uint parser to avoid signed arithmetic ([295b1c8](https://github.com/bradford-tech/supabase-integrity-attest/commit/295b1c81601833d56c859155619d0dae95c324e7))
+
 ## [0.3.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.0...v0.3.1) (2026-03-11)
 
 
