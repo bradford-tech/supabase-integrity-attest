@@ -1,0 +1,48 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sync_site:
+        description: 'Sync docs site to personal repo'
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync-site:
+    name: Sync Site
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.sync_site) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Push docs site to personal repo
+        uses: cpina/github-action-push-to-another-repository@55306faa4ed53b815ae49e564af8cfb359d32ae2 # v1.7.3
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+        with:
+          source-directory: 'apps/docs'
+          destination-github-username: 'sbs44'
+          destination-repository-name: 'supabase-integrity-attest-docs'
+          target-branch: main
+          create-target-branch-if-needed: true
+          commit-message: 'Sync from bradford-tech/supabase-integrity-attest'
+          user-name: 'sbs44'
+          user-email: '83440025+sbs44@users.noreply.github.com'
