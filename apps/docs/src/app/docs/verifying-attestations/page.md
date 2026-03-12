@@ -13,8 +13,7 @@ A complete edge function that receives an attestation from your app and verifies
 ## The edge function
 
 ```ts
-import { serve } from 'https://deno.land/std/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import {
   verifyAttestation,
   AttestationError,
@@ -26,7 +25,7 @@ const appInfo = {
   developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const { attestation, keyId, challenge, deviceId } = await req.json()
 
   // 1. Look up the challenge from your server-side store

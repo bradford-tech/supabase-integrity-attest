@@ -13,8 +13,7 @@ nextjs:
 ## Basic usage
 
 ```ts
-import { serve } from 'https://deno.land/std/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { withAssertion } from '@bradford-tech/supabase-integrity-attest/assertion'
 
 const supabase = createClient(
@@ -57,7 +56,7 @@ const handler = withAssertion(
   },
 )
 
-serve(handler)
+Deno.serve(handler)
 ```
 
 ---

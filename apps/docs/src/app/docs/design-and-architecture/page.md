@@ -53,7 +53,7 @@ The library uses `asn1js` (pkijs's underlying ASN.1 parser, which has no initial
 
 ### @noble/curves for P-384
 
-Apple's intermediate certificate uses a P-384 key to sign with SHA-256. Deno's WebCrypto doesn't support P-384+SHA-256 (`importKey` throws for this combination). The library uses `@noble/curves/p384` for this single verification step during attestation. This dependency is only loaded via the attestation path — the assertion subpath doesn't need it.
+Apple's intermediate certificate uses a P-384 key to sign with SHA-256. Deno's WebCrypto doesn't support P-384+SHA-256 (`verify` throws for this combination). The library uses `@noble/curves/p384` for this single verification step during attestation. This dependency is only loaded via the attestation path — the assertion subpath doesn't need it.
 
 ### Custom CBOR decoder for attestation
 

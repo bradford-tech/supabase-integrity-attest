@@ -13,8 +13,7 @@ A complete edge function that verifies an assertion on every protected request. 
 ## The edge function
 
 ```ts
-import { serve } from 'https://deno.land/std/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import {
   verifyAssertion,
   AssertionError,
@@ -26,7 +25,7 @@ const appInfo = {
   developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   const assertion = req.headers.get('X-App-Attest-Assertion')
   const deviceId = req.headers.get('X-App-Attest-Device-Id')
 
