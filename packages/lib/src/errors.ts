@@ -20,7 +20,9 @@ export enum AttestationErrorCode {
 
 /** Thrown when attestation verification fails. */
 export class AttestationError extends Error {
+  /** Discriminant for `instanceof` checks in catch blocks. Always `"AttestationError"`. */
   override readonly name = "AttestationError";
+  /** Create an AttestationError with a machine-readable code and human-readable message. */
   constructor(
     /** Machine-readable error code. */
     public readonly code: AttestationErrorCode,
@@ -48,7 +50,9 @@ export enum AssertionErrorCode {
 
 /** Thrown when assertion verification fails. */
 export class AssertionError extends Error {
+  /** Discriminant for `instanceof` checks in catch blocks. Always `"AssertionError"`. */
   override readonly name = "AssertionError";
+  /** Create an AssertionError with a machine-readable code and human-readable message. */
   constructor(
     /** Machine-readable error code. */
     public readonly code: AssertionErrorCode,

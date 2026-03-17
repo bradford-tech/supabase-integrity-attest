@@ -32,6 +32,7 @@ await build({
       type: "git",
       url: "git+https://github.com/bradford-tech/supabase-integrity-attest.git",
     },
+    homepage: "https://integrity-attest.bradford.tech",
     bugs: {
       url: "https://github.com/bradford-tech/supabase-integrity-attest/issues",
     },
