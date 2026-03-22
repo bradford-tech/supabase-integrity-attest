@@ -24,10 +24,11 @@ const lexend = localFont({
 export const metadata: Metadata = {
   title: {
     template: '%s - Docs',
-    default: 'CacheAdvance - Never miss the cache again.',
+    default:
+      'supabase-integrity-attest - Apple App Attest verification for Supabase Edge Functions',
   },
   description:
-    'Cache every single thing your app could ever do ahead of time, so your code never even has to run at all.',
+    'Server-side Apple App Attest verification for Supabase Edge Functions, built entirely on WebCrypto.',
 }
 
 export default function RootLayout({
