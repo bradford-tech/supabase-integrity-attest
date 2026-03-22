@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "node scripts/generate-diagrams.mjs && next build --webpack",
+    "build": "node scripts/generate-page-dates.mjs && node scripts/generate-diagrams.mjs && next build --webpack",
     "check": "prettier --check . --log-level warn && eslint . && tsc --noEmit",
     "dev": "next dev --webpack",
     "fix": "prettier --write . --log-level warn && eslint --fix . && tsc --noEmit",

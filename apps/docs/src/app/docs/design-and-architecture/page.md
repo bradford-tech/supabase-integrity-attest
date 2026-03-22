@@ -12,11 +12,11 @@ How the library is structured and why certain design decisions were made. {% .le
 
 ## Verification pipeline
 
-{% diagram name="verification-pipeline" alt="Verification pipeline: CBOR decode, parse authenticator data, verify certificate chain, verify nonce, extract public key, return AttestationResult." /%}
+{% diagram name="verification-pipeline" alt="Verification pipeline: CBOR decode, parse authenticator data, verify certificate chain, verify nonce, extract public key, return AttestationResult." width=663 height=285 /%}
 
-**Attestation** passes through the full pipeline: CBOR decoding, X.509 certificate chain validation against Apple's root CA, nonce verification, public key extraction, and authenticator data checks (rpIdHash, AAGUID, credentialId, signCount).
+**[Attestation](/docs/attestation)** passes through the full pipeline: CBOR decoding, X.509 certificate chain validation against Apple's root CA, nonce verification, public key extraction, and authenticator data checks (rpIdHash, AAGUID, credentialId, signCount).
 
-**Assertion** takes a shorter path: CBOR decoding, authenticator data parsing, counter check, and ECDSA signature verification against the stored public key.
+**[Assertion](/docs/assertion)** takes a shorter path: CBOR decoding, authenticator data parsing, counter check, and ECDSA signature verification against the stored public key.
 
 ---
 
@@ -26,8 +26,8 @@ The library is 10 focused source files under `packages/lib/src/`:
 
 | Module              | Responsibility                                                                                                                   |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `attestation.ts`    | `verifyAttestation()` + custom CBOR decoder for Apple's malformed receipt headers                                                |
-| `assertion.ts`      | `verifyAssertion()` — lightweight path using `cborg` for CBOR                                                                    |
+| `attestation.ts`    | [`verifyAttestation()`](/docs/verify-attestation) + custom CBOR decoder for Apple's malformed receipt headers                    |
+| `assertion.ts`      | [`verifyAssertion()`](/docs/verify-assertion) — lightweight path using `cborg` for CBOR                                          |
 | `certificate.ts`    | X.509 certificate chain verification, nonce extraction, public key extraction via `asn1js` + `@noble/curves` (P-384) + WebCrypto |
 | `authdata.ts`       | Binary parser for authenticator data (rpIdHash, flags, signCount, AAGUID, credentialId)                                          |
 | `cose.ts`           | COSE EC2 key → raw 65-byte uncompressed point / CryptoKey                                                                        |

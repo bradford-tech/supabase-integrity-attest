@@ -60,16 +60,16 @@ Apple's published attestation test vector contains certificates that expired in 
 
 ## Errors
 
-Throws `AttestationError` with one of these codes:
+Throws `AttestationError` with one of these codes (not exhaustive):
 
 | Code                        | Cause                                                        | Resolution                                                                                    |
 | --------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
 | `INVALID_FORMAT`            | CBOR decoding failed, or `fmt` is not `"apple-appattest"`.   | Check that the client is sending the raw attestation object, not a wrapper.                   |
 | `INVALID_CERTIFICATE_CHAIN` | Certificate chain failed validation against Apple's root CA. | Verify the device is using a genuine Apple attestation service. Check `checkDate` if testing. |
 | `NONCE_MISMATCH`            | Computed nonce doesn't match the certificate nonce.          | Ensure you're passing the same challenge that was used during attestation.                    |
-| `RP_ID_MISMATCH`            | `SHA-256(appId)` doesn't match the authenticator data.       | Check that `appInfo.appId` matches the Team ID + bundle ID the client used.                   |
-| `KEY_ID_MISMATCH`           | `keyId` doesn't match the credential in the attestation.     | Ensure the client is sending the `keyId` from `generateKey()`, not a different value.         |
-| `INVALID_COUNTER`           | `signCount` is not `0`.                                      | This attestation has been used before. Request a fresh attestation.                           |
-| `INVALID_AAGUID`            | AAGUID doesn't match the expected environment.               | Check `appInfo.developmentEnv`. Production and development use different AAGUIDs.             |
+
+See [Types & error codes](/docs/types-and-error-codes) for the full list.
 
 Import path: `@bradford-tech/supabase-integrity-attest` or `@bradford-tech/supabase-integrity-attest/attestation`
+
+For a complete working example in a Supabase Edge Function, see the [verifying attestations guide](/docs/verifying-attestations).

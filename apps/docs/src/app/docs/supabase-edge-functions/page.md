@@ -31,6 +31,8 @@ supabase functions new verify-attestation
 supabase functions new verify-assertion
 ```
 
+For complete working implementations, see the [verifying attestations](/docs/verifying-attestations) and [verifying assertions](/docs/verifying-assertions) guides.
+
 ### Add the library
 
 ```shell
@@ -77,7 +79,3 @@ create index idx_devices_user_id on devices(user_id);
 ```
 
 The `device_id` is an identifier your app generates and sends with each request. The `public_key_pem` and `sign_count` come from the attestation result and are updated on each assertion.
-
-{% callout type="note" title="Demo app coming soon" %}
-We're building an Expo demo app that lets you test attestation and assertion on a physical iPhone. It will include the full client-side flow with `@expo/app-integrity` and the matching Supabase Edge Functions. Check back soon.
-{% /callout %}

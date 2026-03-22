@@ -6,7 +6,7 @@ nextjs:
     description: Complete Supabase Edge Function example for verifying Apple App Attest attestations.
 ---
 
-A complete edge function that receives an attestation from your app and verifies it. {% .lead %}
+A complete edge function that receives an [attestation](/docs/attestation) from your app and verifies it. {% .lead %}
 
 ---
 
@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
 
 2. **Validate the challenge** — Look up the challenge from your server-side store. It must exist, be single-use, and not be expired. Delete it immediately after retrieval.
 
-3. **Call `verifyAttestation()`** — Pass the `appInfo`, `keyId`, original challenge value, and the attestation bytes. The function accepts both `Uint8Array` and base64 strings for `challenge` and `attestation`.
+3. **Call [`verifyAttestation()`](/docs/verify-attestation)** — Pass the `appInfo`, `keyId`, original challenge value, and the attestation bytes. The function accepts both `Uint8Array` and base64 strings for `challenge` and `attestation`.
 
 4. **Store the result** — Persist `publicKeyPem`, `signCount` (always 0), and `receipt` for this device. You'll need the public key and counter for every future assertion.
 

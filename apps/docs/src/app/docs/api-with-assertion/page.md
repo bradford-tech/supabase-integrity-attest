@@ -91,7 +91,7 @@ When verification fails and no `onError` is provided:
 ## Handler behavior
 
 - Your handler only runs after successful verification and counter update.
-- Errors thrown by `getDeviceKey` or `updateSignCount` are wrapped as `INTERNAL_ERROR`.
+- Errors thrown by `getDeviceKey` or `updateSignCount` are wrapped as `INTERNAL_ERROR`. See [Types & error codes](/docs/types-and-error-codes) for all error code definitions.
 - Errors thrown by your handler are **not** caught — they propagate normally.
 
 Import path: `@bradford-tech/supabase-integrity-attest` or `@bradford-tech/supabase-integrity-attest/assertion`

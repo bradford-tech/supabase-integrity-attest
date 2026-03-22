@@ -108,7 +108,7 @@ Custom extraction callback for `withAssertion()`. The default reads from `X-App-
 
 ## AttestationErrorCode
 
-`AttestationError` is thrown by `verifyAttestation()`. It extends `Error` with a typed `code` property.
+`AttestationError` is thrown by [`verifyAttestation()`](/docs/verify-attestation). It extends `Error` with a typed `code` property.
 
 ```ts
 class AttestationError extends Error {
@@ -163,7 +163,7 @@ The AAGUID in the authenticator data doesn't match the expected environment.
 
 ## AssertionErrorCode
 
-`AssertionError` is thrown by `verifyAssertion()` and `withAssertion()`. It extends `Error` with a typed `code` property.
+`AssertionError` is thrown by [`verifyAssertion()`](/docs/verify-assertion) and [`withAssertion()`](/docs/api-with-assertion). It extends `Error` with a typed `code` property.
 
 ```ts
 class AssertionError extends Error {

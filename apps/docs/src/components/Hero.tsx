@@ -46,9 +46,9 @@ export function Hero() {
               priority
             />
             <div className="relative">
-              <p className="inline bg-linear-to-r from-indigo-200 via-sky-400 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
+              <h1 className="inline bg-linear-to-r from-indigo-200 via-sky-400 to-indigo-200 bg-clip-text font-display text-5xl tracking-tight text-transparent">
                 Stop API abuse at the edge.
-              </p>
+              </h1>
               <p className="mt-3 text-2xl tracking-tight text-slate-400">
                 Verify that every request comes from a legitimate installation
                 of your app running on a genuine Apple device. Perfect for

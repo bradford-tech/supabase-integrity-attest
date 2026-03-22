@@ -6,7 +6,7 @@ nextjs:
     description: Complete Supabase Edge Function example for verifying Apple App Attest assertions on every request.
 ---
 
-A complete edge function that verifies an assertion on every protected request. {% .lead %}
+A complete edge function that verifies an [assertion](/docs/assertion) on every protected request. {% .lead %}
 
 ---
 
@@ -98,11 +98,11 @@ Deno.serve(async (req: Request) => {
 
 ## Key details
 
-**The raw body is the clientData.** The client signs the raw request body. Your server must read the body as raw bytes (`req.arrayBuffer()`) and pass those same bytes to `verifyAssertion()`. If you parse the body first and re-serialize it, the bytes may differ and the signature will fail.
+**The raw body is the clientData.** The client signs the raw request body. Your server must read the body as raw bytes (`req.arrayBuffer()`) and pass those same bytes to [`verifyAssertion()`](/docs/verify-assertion). If you parse the body first and re-serialize it, the bytes may differ and the signature will fail.
 
 **Update the counter before responding.** If your server crashes between sending the response and updating the counter, the next request will pass verification with the old counter. Update first, then process.
 
-**Use the `./assertion` subpath.** This edge function doesn't need attestation verification, so importing from `@bradford-tech/supabase-integrity-attest/assertion` avoids loading `asn1js` and `@noble/curves`.
+**Use the `./assertion` subpath.** This edge function doesn't need attestation verification, so importing from `@bradford-tech/supabase-integrity-attest/assertion` avoids loading `asn1js` and `@noble/curves`. For a higher-level alternative that eliminates this boilerplate, see the [`withAssertion()` wrapper](/docs/with-assertion).
 
 {% callout type="note" title="Counter persistence" %}
 The `signCount` must be persisted after every successful assertion. If you lose the updated counter, the next valid assertion will be rejected as a replay.

@@ -18,9 +18,9 @@ Assertions are the per-request signature checks that prove a request came from a
 
 3. Your app sends the request with the assertion and a device identifier in headers.
 
-4. Your server calls `verifyAssertion()` with the assertion, the raw request body, the stored public key, and the previous sign count.
+4. Your server calls [`verifyAssertion()`](/docs/verify-assertion) with the assertion, the raw request body, the stored public key, and the previous sign count.
 
-{% diagram name="assertion-flow" alt="Assertion data flow: iOS App signs the request via the Secure Enclave, sends the assertion in headers, and the server verifies the signature and updates the sign count." /%}
+{% diagram name="assertion-flow" alt="Assertion data flow: iOS App signs the request via the Secure Enclave, sends the assertion in headers, and the server verifies the signature and updates the sign count." width=670 height=729 /%}
 
 ---
 
@@ -52,6 +52,6 @@ The library computes `SHA-256(authenticatorData || SHA-256(clientData))` and ver
 
 ## Why assertions are lightweight
 
-Unlike attestation, assertion verification doesn't involve certificate chains or Apple network calls. It's a single ECDSA signature verification using the stored public key. This makes it fast enough to run on every API request without adding meaningful latency.
+Unlike attestation, assertion verification doesn't involve certificate chains or Apple network calls. It's a single ECDSA signature verification using the stored public key. This makes it fast enough to run on every API request without adding meaningful latency. For a complete implementation, see the [verifying assertions guide](/docs/verifying-assertions) or use the [`withAssertion()` wrapper](/docs/with-assertion) to eliminate boilerplate.
 
 The `./assertion` subpath import avoids loading `asn1js` and `@noble/curves` entirely — keeping the bundle minimal for edge functions that only verify assertions.

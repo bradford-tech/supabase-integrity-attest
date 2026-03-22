@@ -22,7 +22,7 @@ The result: your API is open to abuse from scripts and bots that impersonate you
 
 Apple's [App Attest](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity) uses the Secure Enclave on iOS devices to generate a hardware-backed key pair. Apple signs a certificate vouching for that key, and your server can verify the certificate chain to confirm the key belongs to a genuine device running your app.
 
-Once a device is attested, every subsequent API request can include a cryptographic assertion — a signature over the request body that proves it came from the attested device. Your server verifies the signature using the public key from the original attestation.
+Once a device is attested, every subsequent API request can include a cryptographic [assertion](/docs/assertion) — a signature over the request body that proves it came from the attested device. Your server verifies the signature using the public key from the original [attestation](/docs/attestation).
 
 ---
 
@@ -33,7 +33,7 @@ Once a device is attested, every subsequent API request can include a cryptograp
 - **Attestation verification** — Decodes the CBOR attestation object, validates the X.509 certificate chain against Apple's root CA, verifies the nonce, and extracts the device's public key.
 - **Assertion verification** — Verifies the ECDSA signature over the request body, checks the monotonic counter for replay protection, and confirms the request came from the attested device.
 
-Everything uses the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API), so it runs natively in Deno and Supabase Edge Functions with zero Node.js compatibility shims.
+Everything uses the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API), so it runs natively in Deno and [Supabase Edge Functions](/docs/supabase-edge-functions) with zero Node.js compatibility shims.
 
 ---
 

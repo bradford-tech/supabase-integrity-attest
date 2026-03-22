@@ -33,7 +33,7 @@ The nonce is a computed value that binds the attestation or assertion to the spe
 nonce = SHA-256(authData || challenge)
 ```
 
-The library computes this from the raw authenticator data and the challenge you pass to `verifyAttestation()`. It then compares the result to the nonce embedded in the leaf certificate. If they don't match, the attestation was created with a different challenge.
+The library computes this from the raw authenticator data and the challenge you pass to `verifyAttestation()`. It then compares the result to the nonce embedded in the leaf certificate. If they don't match, the [attestation](/docs/attestation) was created with a different challenge.
 
 ### Assertion signature
 
@@ -42,7 +42,7 @@ clientDataHash = SHA-256(clientData)
 message = authenticatorData || clientDataHash
 ```
 
-The client's Secure Enclave signs `SHA-256(message)` using ECDSA P-256. The library computes `nonce = SHA-256(authenticatorData || clientDataHash)` and passes `nonce` to WebCrypto's `verify()` with `hash: "SHA-256"`.
+The client's Secure Enclave signs `SHA-256(message)` using ECDSA P-256. The library computes `nonce = SHA-256(authenticatorData || clientDataHash)` and passes `nonce` to WebCrypto's `verify()` with `hash: "SHA-256"`. For details on how this fits into the per-request flow, see [Assertion](/docs/assertion).
 
 ---
 
@@ -68,7 +68,7 @@ App Attest gives you a strong guarantee with clear boundaries:
 
 The Secure Enclave maintains a monotonically increasing counter (`signCount`) that increments on every assertion. Your server must:
 
-1. Store the counter from the attestation result (always `0`).
+1. Store the counter from the attestation result (always `0`). The [verifying attestations guide](/docs/verifying-attestations) shows this end-to-end.
 2. After each assertion, verify the new counter is strictly greater than the stored value.
 3. Update the stored counter to the new value.
 

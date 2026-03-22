@@ -60,3 +60,16 @@ export const navigation = [
     ],
   },
 ]
+
+export function findPageByTitle(
+  title: string,
+): { href: string; sectionTitle: string } | null {
+  for (const section of navigation) {
+    for (const link of section.links) {
+      if (link.title === title) {
+        return { href: link.href, sectionTitle: section.title }
+      }
+    }
+  }
+  return null
+}

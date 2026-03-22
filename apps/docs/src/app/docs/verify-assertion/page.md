@@ -48,13 +48,16 @@ function verifyAssertion(
 
 ## Errors
 
-Throws `AssertionError` with one of these codes:
+Throws `AssertionError` with one of these codes (not exhaustive):
 
 | Code                      | Cause                                                                                                                 | Resolution                                                                                         |
 | ------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
 | `INVALID_FORMAT`          | CBOR decoding failed, authenticator data is malformed, DER signature is invalid, or PEM public key can't be imported. | Check that the client is sending the raw assertion, not a wrapper.                                 |
-| `RP_ID_MISMATCH`          | `SHA-256(appId)` doesn't match the authenticator data.                                                                | Check that `appInfo.appId` matches what the client used.                                           |
 | `COUNTER_NOT_INCREMENTED` | `signCount` is not greater than `previousSignCount`.                                                                  | Possible replay attack, or your stored counter is stale.                                           |
 | `SIGNATURE_INVALID`       | ECDSA signature verification failed.                                                                                  | The assertion was not signed by the expected key, or the clientData doesn't match what was signed. |
 
+See [Types & error codes](/docs/types-and-error-codes) for the full list.
+
 Import path: `@bradford-tech/supabase-integrity-attest` or `@bradford-tech/supabase-integrity-attest/assertion`
+
+For a complete working example in a Supabase Edge Function, see the [verifying assertions guide](/docs/verifying-assertions).

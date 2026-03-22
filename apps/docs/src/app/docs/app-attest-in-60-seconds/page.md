@@ -14,7 +14,7 @@ The minimum you need to know about Apple App Attest to use this library effectiv
 
 App Attest has three phases. The first happens once per device; the other two happen on every protected request.
 
-### 1. Attestation (one-time)
+### 1. [Attestation](/docs/attestation) (one-time)
 
 Your app asks the Secure Enclave to generate a key pair, then sends the attestation object to Apple. Apple returns a signed certificate chain vouching for the key. Your app sends this to your server, which verifies it and stores the device's public key.
 
@@ -22,7 +22,7 @@ Your app asks the Secure Enclave to generate a key pair, then sends the attestat
 
 Before each protected request, your app asks your server for a fresh, single-use challenge (random bytes). This prevents replay attacks — an attacker can't reuse a captured request because the challenge will have expired.
 
-### 3. Assertion (per-request)
+### 3. [Assertion](/docs/assertion) (per-request)
 
 Your app signs the request body (plus the challenge) with the Secure Enclave's private key and sends the signature alongside the request. Your server verifies the signature using the stored public key and checks that the counter has incremented.
 
@@ -32,7 +32,7 @@ Your app signs the request body (plus the challenge) with the Secure Enclave's p
 
 This library handles phases 1 and 3 on the server side:
 
-- **`verifyAttestation()`** — Called once when a device first registers. Validates Apple's certificate chain, extracts the public key, and returns it for storage.
+- **`verifyAttestation()`** — Called once when a device first registers. Validates Apple's certificate chain, extracts the public key, and returns it for storage. See the [verifying attestations guide](/docs/verifying-attestations) for a complete edge function example.
 - **`verifyAssertion()`** — Called on every protected request. Verifies the signature and counter.
 
 You're responsible for:

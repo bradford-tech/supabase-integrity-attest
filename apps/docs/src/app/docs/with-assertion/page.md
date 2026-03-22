@@ -129,10 +129,10 @@ withAssertion(
 
 ## When to use withAssertion vs verifyAssertion
 
-| Use `withAssertion` when...                            | Use `verifyAssertion` when...                              |
-| ------------------------------------------------------ | ---------------------------------------------------------- |
-| Standard header-based assertion flow                   | Non-standard assertion delivery (WebSocket, etc.)          |
-| You want default error responses                       | You need custom error logic per-endpoint                   |
-| Multiple endpoints share the same verification pattern | You need to verify assertions in a larger middleware chain |
+| Use `withAssertion` when...                            | Use `verifyAssertion` when...                                                                                 |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Standard header-based assertion flow                   | Non-standard assertion delivery (WebSocket, etc.)                                                             |
+| You want default error responses                       | You need custom error logic per-endpoint                                                                      |
+| Multiple endpoints share the same verification pattern | You need to verify assertions in a larger middleware chain ([see manual example](/docs/verifying-assertions)) |
 
 For the full API details, see the [withAssertion() reference](/docs/api-with-assertion).
