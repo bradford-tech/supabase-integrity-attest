@@ -1,7 +1,12 @@
+import { readFileSync } from 'fs'
 import { ImageResponse } from 'next/og'
+import { join } from 'path'
 
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
+
+const logoSvg = readFileSync(join(process.cwd(), 'src/app/logo.svg'), 'utf-8')
+const logoDataUri = `data:image/svg+xml;base64,${Buffer.from(logoSvg).toString('base64')}`
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -30,6 +35,15 @@ export default function OpenGraphImage() {
           height: '6px',
           background: 'linear-gradient(90deg, #06b6d4, #6366f1)',
         }}
+      />
+
+      {/* Logo */}
+      <img
+        src={logoDataUri}
+        alt=""
+        width={80}
+        height={82}
+        style={{ marginBottom: '24px' }}
       />
 
       {/* Library name */}
