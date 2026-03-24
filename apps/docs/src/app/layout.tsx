@@ -6,6 +6,8 @@ import localFont from 'next/font/local'
 import { Providers } from '@/app/providers'
 import { Layout } from '@/components/Layout'
 
+import { Analytics } from '@vercel/analytics/next'
+
 import '@/styles/tailwind.css'
 
 const inter = Inter({
@@ -95,6 +97,7 @@ export default function RootLayout({
         <Providers>
           <Layout>{children}</Layout>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
