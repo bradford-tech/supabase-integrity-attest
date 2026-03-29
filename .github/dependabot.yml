@@ -29,7 +29,7 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
-      # React version is coordinated with Expo SDK — keep in sync with apps/supabase-expo-demo
+      # React version is coordinated with Expo SDK — keep in sync with demo/supabase-expo-demo
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
     groups:
