@@ -2,7 +2,7 @@
 packages/lib/
 
 # Docs app handles its own prettier (has tailwind plugin)
-apps/docs/
+docs/
 
 # Generated
 deno.lock

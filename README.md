@@ -7,7 +7,7 @@ Monorepo for the `@bradford-tech/supabase-integrity-attest` library, documentati
 | Package | Path                                                   | Description                                                                                    |
 | ------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------- |
 | Library | [`packages/lib`](./packages/lib)                       | Apple App Attest verification for Deno / Supabase Edge Functions                               |
-| Docs    | [`apps/docs`](./apps/docs)                             | Documentation site at [integrity-attest.bradford.tech](https://integrity-attest.bradford.tech) |
+| Docs    | [`docs`](./docs)                                       | Documentation site at [integrity-attest.bradford.tech](https://integrity-attest.bradford.tech) |
 | Demo    | [`apps/supabase-expo-demo`](./apps/supabase-expo-demo) | Expo starter app with Supabase edge functions                                                  |
 
 ## Development

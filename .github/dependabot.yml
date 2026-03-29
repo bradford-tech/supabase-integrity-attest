@@ -23,7 +23,7 @@ updates:
       all:
         patterns: ['*']
   - package-ecosystem: npm
-    directory: /apps/docs
+    directory: /docs
     schedule:
       interval: daily
     ignore:

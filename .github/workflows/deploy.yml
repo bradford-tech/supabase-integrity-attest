@@ -38,7 +38,7 @@ jobs:
         env:
           API_TOKEN_GITHUB: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
         with:
-          source-directory: 'apps/docs'
+          source-directory: 'docs'
           destination-github-username: 'sbs44'
           destination-repository-name: 'supabase-integrity-attest-docs'
           target-branch: main
