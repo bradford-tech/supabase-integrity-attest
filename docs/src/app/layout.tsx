@@ -25,6 +25,7 @@ const lexend = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://integrity-attest.bradford.tech'),
+  alternates: { canonical: './' },
   title: {
     template: '%s - supabase-integrity-attest',
     default:
