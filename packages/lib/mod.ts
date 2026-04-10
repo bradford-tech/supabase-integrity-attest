@@ -43,15 +43,34 @@
  *
  * ## Middleware
  *
- * Use the {@linkcode withAssertion} wrapper for automatic assertion
- * verification, device key lookup, and sign count management:
+ * Use the {@linkcode withAttestation} and {@linkcode withAssertion}
+ * wrappers for automatic verification, callback-driven storage, and
+ * typed error handling:
  *
  * ```ts
- * import { withAssertion } from "@bradford-tech/supabase-integrity-attest";
+ * import {
+ *   withAttestation,
+ *   withAssertion,
+ * } from "@bradford-tech/supabase-integrity-attest";
  *
- * const handler = withAssertion(
- *   { appId: "TEAMID.com.example.app", getDeviceKey, updateSignCount },
- *   (req, ctx) => new Response(`Verified device: ${ctx.deviceId}`),
+ * const attestHandler = withAttestation(
+ *   {
+ *     appId: "TEAMID.com.example.app",
+ *     consumeChallenge,
+ *     storeDeviceKey,
+ *   },
+ *   (_req, ctx) =>
+ *     Response.json({ ok: true, deviceId: ctx.deviceId }),
+ * );
+ *
+ * const protectedHandler = withAssertion(
+ *   {
+ *     appId: "TEAMID.com.example.app",
+ *     getDeviceKey,
+ *     commitSignCount,
+ *   },
+ *   (_req, ctx) =>
+ *     Response.json({ hello: ctx.deviceId, counter: ctx.signCount }),
  * );
  * ```
  *
@@ -59,8 +78,11 @@
  *
  * For smaller bundles, import only what you need:
  *
- * - `@bradford-tech/supabase-integrity-attest/attestation` — attestation only
- * - `@bradford-tech/supabase-integrity-attest/assertion` — assertion + middleware (no `asn1js`/`@noble/curves`)
+ * - `@bradford-tech/supabase-integrity-attest/attestation` — attestation
+ *   (`verifyAttestation`, `withAttestation`). Full crypto deps.
+ * - `@bradford-tech/supabase-integrity-attest/assertion` — assertion
+ *   (`verifyAssertion`, `withAssertion`). Excludes `asn1js` and
+ *   `@noble/curves` to keep the bundle minimal.
  *
  * Full documentation: {@link https://integrity-attest.bradford.tech}
  *
@@ -82,7 +104,7 @@ export {
   AttestationErrorCode,
 } from "./src/errors.ts";
 
-// withAssertion wrapper
+// withAssertion middleware
 export { withAssertion } from "./src/with-assertion.ts";
 export {
   DEFAULT_ASSERTION_HEADER,
@@ -90,7 +112,17 @@ export {
 } from "./src/with-assertion.ts";
 export type {
   AssertionContext,
+  AssertionTimings,
   DeviceKey,
   ExtractAssertionFn,
   WithAssertionOptions,
 } from "./src/with-assertion.ts";
+
+// withAttestation middleware
+export { withAttestation } from "./src/with-attestation.ts";
+export type {
+  AttestationContext,
+  AttestationTimings,
+  ExtractAttestationFn,
+  WithAttestationOptions,
+} from "./src/with-attestation.ts";

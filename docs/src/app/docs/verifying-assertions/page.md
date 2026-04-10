@@ -6,7 +6,7 @@ nextjs:
     description: Complete Supabase Edge Function example for verifying Apple App Attest assertions on every request.
 ---
 
-A complete edge function that verifies an [assertion](/docs/assertion) on every protected request. {% .lead %}
+A complete edge function that verifies an [assertion](/docs/assertion) on every protected request, built directly on `verifyAssertion()` — for when you need more control than the [`withAssertion` wrapper](/docs/with-assertion) provides. {% .lead %}
 
 ---
 
@@ -32,9 +32,7 @@ Deno.serve(async (req: Request) => {
   if (!assertion || !deviceId) {
     return new Response(
       JSON.stringify({ error: 'Missing attestation headers' }),
-      {
-        status: 400,
-      },
+      { status: 400 },
     )
   }
 
@@ -48,7 +46,7 @@ Deno.serve(async (req: Request) => {
   )
 
   const { data: device } = await supabase
-    .from('devices')
+    .from('app_attest_devices')
     .select('public_key_pem, sign_count')
     .eq('device_id', deviceId)
     .single()
@@ -69,11 +67,25 @@ Deno.serve(async (req: Request) => {
       device.sign_count, // Previous counter value
     )
 
-    // 4. Update the sign count BEFORE processing the request
-    await supabase
-      .from('devices')
+    // 4. Atomically commit the new sign count — compare-and-swap so a
+    //    concurrent request can't silently corrupt replay protection.
+    const { count } = await supabase
+      .from('app_attest_devices')
       .update({ sign_count: result.signCount })
       .eq('device_id', deviceId)
+      .lt('sign_count', result.signCount)
+      .select('*', { count: 'exact', head: true })
+
+    if (!count || count === 0) {
+      // Another concurrent request already advanced past this count.
+      return new Response(
+        JSON.stringify({
+          error: 'Sign count is stale',
+          code: 'SIGN_COUNT_STALE',
+        }),
+        { status: 401 },
+      )
+    }
 
     // 5. Process the actual request
     const body = JSON.parse(new TextDecoder().decode(rawBody))
@@ -100,10 +112,10 @@ Deno.serve(async (req: Request) => {
 
 **The raw body is the clientData.** The client signs the raw request body. Your server must read the body as raw bytes (`req.arrayBuffer()`) and pass those same bytes to [`verifyAssertion()`](/docs/verify-assertion). If you parse the body first and re-serialize it, the bytes may differ and the signature will fail.
 
-**Update the counter before responding.** If your server crashes between sending the response and updating the counter, the next request will pass verification with the old counter. Update first, then process.
+**Use compare-and-swap for the counter update.** The naive pattern of "read counter, verify assertion, write counter" has a TOCTOU race under concurrent load: two concurrent requests can both read the same stored value, both pass verification, and the second write can overwrite the first with a lower count — silently corrupting replay protection. Always update with a `WHERE sign_count < new_count` predicate and check that a row was actually affected. The [`withAssertion` wrapper](/docs/with-assertion) handles this for you.
 
 **Use the `./assertion` subpath.** This edge function doesn't need attestation verification, so importing from `@bradford-tech/supabase-integrity-attest/assertion` avoids loading `asn1js` and `@noble/curves`. For a higher-level alternative that eliminates this boilerplate, see the [`withAssertion()` wrapper](/docs/with-assertion).
 
 {% callout type="note" title="Counter persistence" %}
-The `signCount` must be persisted after every successful assertion. If you lose the updated counter, the next valid assertion will be rejected as a replay.
+The `signCount` must be persisted atomically after every successful assertion via compare-and-swap. If you lose the updated counter, the next valid assertion will be rejected as a replay. If you update without the CAS predicate, you'll silently corrupt your replay protection under load.
 {% /callout %}

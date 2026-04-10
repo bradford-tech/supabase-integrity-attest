@@ -38,6 +38,8 @@ Deno.test("AttestationErrorCode has all expected values", () => {
   assertEquals(codes.includes("KEY_ID_MISMATCH"), true);
   assertEquals(codes.includes("INVALID_COUNTER"), true);
   assertEquals(codes.includes("INVALID_AAGUID"), true);
+  assertEquals(codes.includes("CHALLENGE_INVALID"), true);
+  assertEquals(codes.includes("INTERNAL_ERROR"), true);
 });
 
 Deno.test("AssertionErrorCode has all expected values", () => {
@@ -46,6 +48,7 @@ Deno.test("AssertionErrorCode has all expected values", () => {
   assertEquals(codes.includes("RP_ID_MISMATCH"), true);
   assertEquals(codes.includes("COUNTER_NOT_INCREMENTED"), true);
   assertEquals(codes.includes("SIGNATURE_INVALID"), true);
+  assertEquals(codes.includes("SIGN_COUNT_STALE"), true);
 });
 
 Deno.test("AssertionErrorCode has wrapper error codes", () => {
@@ -62,6 +65,18 @@ Deno.test("AssertionError supports cause option", () => {
     { cause },
   );
   assertIsError(err, AssertionError);
+  assertEquals(err.code, "INTERNAL_ERROR");
+  assertEquals(err.cause, cause);
+});
+
+Deno.test("AttestationError supports cause option", () => {
+  const cause = new Error("db connection failed");
+  const err = new AttestationError(
+    AttestationErrorCode.INTERNAL_ERROR,
+    "storeDeviceKey callback failed",
+    { cause },
+  );
+  assertIsError(err, AttestationError);
   assertEquals(err.code, "INTERNAL_ERROR");
   assertEquals(err.cause, cause);
 });

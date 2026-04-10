@@ -16,6 +16,18 @@ export enum AttestationErrorCode {
   INVALID_COUNTER = "INVALID_COUNTER",
   /** AAGUID does not match the expected environment (production/development). */
   INVALID_AAGUID = "INVALID_AAGUID",
+  /**
+   * The `consumeChallenge` callback returned `false`, meaning the challenge
+   * was missing, expired, or already consumed. Used by {@linkcode withAttestation}.
+   */
+  CHALLENGE_INVALID = "CHALLENGE_INVALID",
+  /**
+   * An internal or storage callback error occurred (used by
+   * {@linkcode withAttestation}). The original error is attached via
+   * `Error.cause` and is deliberately NOT reflected in the HTTP response
+   * body to avoid leaking database schema or driver diagnostics.
+   */
+  INTERNAL_ERROR = "INTERNAL_ERROR",
 }
 
 /** Thrown when attestation verification fails. */
@@ -27,8 +39,9 @@ export class AttestationError extends Error {
     /** Machine-readable error code. */
     public readonly code: AttestationErrorCode,
     message: string,
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
   }
 }
 
@@ -46,6 +59,13 @@ export enum AssertionErrorCode {
   DEVICE_NOT_FOUND = "DEVICE_NOT_FOUND",
   /** An internal or storage callback error occurred (used by {@linkcode withAssertion}). */
   INTERNAL_ERROR = "INTERNAL_ERROR",
+  /**
+   * The `commitSignCount` callback returned `false`, meaning another
+   * concurrent request already advanced the stored counter past this value.
+   * Indicates an expected race under concurrent load, not a client bug.
+   * Used by {@linkcode withAssertion}.
+   */
+  SIGN_COUNT_STALE = "SIGN_COUNT_STALE",
 }
 
 /** Thrown when assertion verification fails. */

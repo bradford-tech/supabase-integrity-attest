@@ -1,0 +1,12 @@
+# Local-only agent working directory (gitignored via .git/info/exclude)
+superpowers/
+
+# Build output
+.next/
+out/
+
+# Dependencies
+node_modules/
+
+# Generated files
+public/diagrams/

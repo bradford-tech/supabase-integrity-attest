@@ -3,10 +3,10 @@ title: The withAssertion wrapper
 nextjs:
   metadata:
     title: The withAssertion wrapper
-    description: A high-level middleware that handles assertion extraction, verification, counter updates, and error responses.
+    description: A high-level middleware that handles assertion extraction, verification, atomic counter updates, and error responses.
 ---
 
-`withAssertion` wraps your edge function handler with automatic assertion verification, so you don't have to repeat the boilerplate on every endpoint. {% .lead %}
+`withAssertion` wraps your edge function handler with automatic assertion verification, so you don't have to repeat the boilerplate on every endpoint. It also handles the counter compare-and-swap that is easy to get wrong when implementing verification by hand. {% .lead %}
 
 ---
 
@@ -28,7 +28,7 @@ const handler = withAssertion(
 
     getDeviceKey: async (deviceId) => {
       const { data } = await supabase
-        .from('devices')
+        .from('app_attest_devices')
         .select('public_key_pem, sign_count')
         .eq('device_id', deviceId)
         .single()
@@ -40,19 +40,26 @@ const handler = withAssertion(
       }
     },
 
-    updateSignCount: async (deviceId, newSignCount) => {
-      await supabase
-        .from('devices')
+    // Atomic compare-and-swap. Returns true if the row was advanced,
+    // false if another concurrent request already passed this count.
+    commitSignCount: async (deviceId, newSignCount) => {
+      const { count } = await supabase
+        .from('app_attest_devices')
         .update({ sign_count: newSignCount })
         .eq('device_id', deviceId)
+        .lt('sign_count', newSignCount)
+        .select('*', { count: 'exact', head: true })
+      return (count ?? 0) > 0
     },
   },
-  async (req, { deviceId, signCount, rawBody }) => {
-    // Your handler runs only after successful verification
+  async (req, { deviceId, signCount, rawBody, timings }) => {
+    // Your handler runs only after successful verification and commit.
+    // Read the body via rawBody — never call req.json() again.
     const body = JSON.parse(new TextDecoder().decode(rawBody))
-    return new Response(JSON.stringify({ ok: true, deviceId }), {
-      status: 200,
-    })
+    return new Response(
+      JSON.stringify({ ok: true, deviceId, signCount, timings }),
+      { status: 200 },
+    )
   },
 )
 
@@ -66,10 +73,47 @@ Deno.serve(handler)
 1. **Extracts** the assertion and device ID from request headers (`X-App-Attest-Assertion` and `X-App-Attest-Device-Id` by default).
 2. **Looks up** the device's public key and counter via your `getDeviceKey` callback.
 3. **Verifies** the assertion against the raw request body.
-4. **Updates** the counter via your `updateSignCount` callback.
-5. **Calls** your handler with the verified context.
+4. **Atomically commits** the new counter via your `commitSignCount` compare-and-swap callback. If the CAS returns `false`, the wrapper throws `AssertionError(SIGN_COUNT_STALE)` and your handler never runs.
+5. **Calls** your handler with the verified context, including library-internal timing spans.
 
-If any step fails, it returns an appropriate error response (400 for bad format, 401 for invalid assertion, 500 for storage errors) without calling your handler.
+If any step fails, it returns an appropriate error response (400 for bad format, 401 for invalid or stale assertions, 500 for storage errors) without calling your handler.
+
+---
+
+## Why `commitSignCount` must be a compare-and-swap
+
+The naive "read counter, verify assertion, write counter" pattern has a silent race under concurrent load: two parallel requests can both read the same stored value, both pass verification, and the later write can overwrite the earlier one with a lower count. Replay protection is then silently broken for the next request.
+
+The `commitSignCount` contract requires you to atomically update only when the stored value is strictly less than the new value:
+
+```sql
+UPDATE app_attest_devices
+   SET sign_count = $1,
+       last_seen_at = now()
+ WHERE device_id = $2
+   AND sign_count < $1
+```
+
+Return `rowCount > 0`. If the update affected zero rows, another concurrent request already advanced past this counter and your request is correctly rejected with `SIGN_COUNT_STALE`.
+
+Under high concurrency (rapid-fire requests from a single device), expect a non-trivial rate of `SIGN_COUNT_STALE` errors. This is correct behavior — the client should serialize its own requests or accept occasional stale rejections, not the server loosening the check.
+
+---
+
+## Timings
+
+The `timings` field on the handler context exposes library-internal span durations in milliseconds:
+
+```ts
+type AssertionTimings = {
+  extractMs: number // Parse headers + read body bytes
+  getDeviceKeyMs: number // getDeviceKey callback wall-clock
+  verifyMs: number // Cryptographic verify
+  commitMs: number // commitSignCount callback wall-clock
+}
+```
+
+Merge these into your own `Server-Timing` header alongside your business-logic spans. The demo's shared `timing.ts` helper shows the pattern.
 
 ---
 
@@ -84,7 +128,7 @@ withAssertion(
     getDeviceKey: async (deviceId) => {
       /* ... */
     },
-    updateSignCount: async (deviceId, newSignCount) => {
+    commitSignCount: async (deviceId, newSignCount) => {
       /* ... */
     },
 
@@ -112,7 +156,7 @@ withAssertion(
     getDeviceKey: async (deviceId) => {
       /* ... */
     },
-    updateSignCount: async (deviceId, newSignCount) => {
+    commitSignCount: async (deviceId, newSignCount) => {
       /* ... */
     },
 

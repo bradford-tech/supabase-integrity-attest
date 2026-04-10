@@ -24,29 +24,32 @@ This library uses only the WebCrypto API (`crypto.subtle`), which Deno fully sup
 
 ## Project setup
 
-### Create a Supabase Edge Function
+### 1. Scaffold the two core endpoints
+
+Every project needs exactly two App Attest endpoints: one that issues challenges, and one that verifies attestations (one-time device registration). Every protected business endpoint then uses the `withAssertion` middleware as a one-line wrapper — you don't write a separate `verify-assertion` endpoint.
 
 ```shell
+supabase functions new challenge
 supabase functions new verify-attestation
-supabase functions new verify-assertion
 ```
 
-For complete working implementations, see the [verifying attestations](/docs/verifying-attestations) and [verifying assertions](/docs/verifying-assertions) guides.
+Your own business endpoints (`hello`, `checkout`, `premium-feature`, etc.) are wrapped with `withAssertion` — see the [`withAssertion` guide](/docs/with-assertion) for the one-liner pattern.
 
-### Add the library
+### 2. Add the library
 
 ```shell
 # In your Supabase project
 deno add jsr:@bradford-tech/supabase-integrity-attest
 ```
 
-### Environment variables
+### 3. Environment variables
 
-Set your app's bundle ID as an environment variable:
+Set your app's bundle ID and environment:
 
 ```shell
 # .env.local or Supabase dashboard
 APP_ID=TEAMID1234.com.your.bundleid
+ENVIRONMENT=development  # or "production"
 ```
 
 In your edge function:
@@ -62,20 +65,56 @@ const appInfo = {
 
 ## Database schema
 
-You need a table to store device attestation data. Here's a minimal schema:
+Two tables — one for verified devices, one for the short-lived challenge nonces. The `app_attest_` prefix keeps them from colliding with any existing `devices` or `challenges` tables in your project.
 
 ```sql
-create table devices (
-  device_id text primary key,
-  user_id uuid references auth.users(id),
+create table app_attest_devices (
+  device_id      text primary key,
   public_key_pem text not null,
-  sign_count integer not null default 0,
-  receipt bytea,
-  created_at timestamptz not null default now()
+  sign_count     bigint not null default 0 check (sign_count >= 0),
+  receipt        bytea,
+  created_at     timestamptz not null default now(),
+  last_seen_at   timestamptz
 );
 
--- Index for quick lookups during assertion verification
-create index idx_devices_user_id on devices(user_id);
+create table app_attest_challenges (
+  challenge   bytea primary key,
+  purpose     text not null check (purpose in ('attestation', 'assertion')),
+  created_at  timestamptz not null default now(),
+  expires_at  timestamptz not null
+);
+
+create index app_attest_challenges_expires_at_idx
+  on app_attest_challenges (expires_at);
 ```
 
-The `device_id` is an identifier your app generates and sends with each request. The `public_key_pem` and `sign_count` come from the attestation result and are updated on each assertion.
+The `device_id` is the Apple-issued `keyId` from `generateKeyAsync()`. The `public_key_pem`, `sign_count`, and `receipt` come from the attestation result and are updated on each assertion. The `purpose` column on `app_attest_challenges` lets you reject challenges being replayed across attestation/assertion contexts.
+
+---
+
+## The three moving parts
+
+1. **Issue a challenge** — your `challenge` edge function generates a random nonce, stores it in `app_attest_challenges` with a ~60 second expiry, and returns the base64 bytes to the client.
+2. **Verify the attestation** — your `verify-attestation` edge function consumes a challenge (one-time), cryptographically verifies the attestation with [`withAttestation`](/docs/with-attestation), and persists the verified key into `app_attest_devices`.
+3. **Protect every business endpoint** — every other edge function wraps its handler with [`withAssertion`](/docs/with-assertion). No separate `verify-assertion` endpoint — the assertion check becomes a one-line middleware that runs before your business logic:
+
+```ts
+import { withAssertion } from '@bradford-tech/supabase-integrity-attest/assertion'
+
+const protect = (handler) =>
+  withAssertion(
+    {
+      appId: Deno.env.get('APP_ID')!,
+      getDeviceKey: /* lookup from app_attest_devices */,
+      commitSignCount: /* atomic CAS against app_attest_devices */,
+    },
+    handler,
+  )
+
+// Your business endpoint is now one line of protection:
+Deno.serve(protect(async (_req, ctx) => {
+  return Response.json({ hello: ctx.deviceId })
+}))
+```
+
+The [`withAssertion` guide](/docs/with-assertion) shows the full `protect` helper, and the [`withAttestation` guide](/docs/with-attestation) shows the attestation-side equivalent.

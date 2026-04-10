@@ -49,9 +49,13 @@ function createMockStorage(fixture: {
         publicKeyPem: fixture.publicKeyPem,
         signCount: storedSignCount,
       }),
-    updateSignCount: (_deviceId: string, newSignCount: number) => {
-      storedSignCount = newSignCount;
-      return Promise.resolve();
+    commitSignCount: (_deviceId: string, newSignCount: number) => {
+      // CAS semantics: only advance if strictly greater.
+      if (storedSignCount < newSignCount) {
+        storedSignCount = newSignCount;
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(false);
     },
     getStoredSignCount: () => storedSignCount,
   };
@@ -71,7 +75,7 @@ Deno.test("withAssertion: valid assertion → handler runs and returns response"
     {
       appId: TEST_APP_ID,
       getDeviceKey: storage.getDeviceKey,
-      updateSignCount: storage.updateSignCount,
+      commitSignCount: storage.commitSignCount,
     },
     (_req, { deviceId, signCount, rawBody }) => {
       const body = JSON.parse(new TextDecoder().decode(rawBody));
@@ -102,7 +106,7 @@ Deno.test("withAssertion: sign count updated before handler runs", async () => {
     {
       appId: TEST_APP_ID,
       getDeviceKey: storage.getDeviceKey,
-      updateSignCount: storage.updateSignCount,
+      commitSignCount: storage.commitSignCount,
     },
     () => {
       // By the time the handler runs, sign count should already be updated
@@ -129,7 +133,7 @@ Deno.test("withAssertion: missing assertion header → 400", async () => {
     {
       appId: TEST_APP_ID,
       getDeviceKey: () => Promise.resolve(null),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
     },
     () => new Response("should not run"),
   );
@@ -153,7 +157,7 @@ Deno.test("withAssertion: missing device ID header → 400", async () => {
     {
       appId: TEST_APP_ID,
       getDeviceKey: () => Promise.resolve(null),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
     },
     () => new Response("should not run"),
   );
@@ -177,7 +181,7 @@ Deno.test("withAssertion: unknown device → 401 DEVICE_NOT_FOUND", async () => 
     {
       appId: TEST_APP_ID,
       getDeviceKey: () => Promise.resolve(null),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
     },
     () => new Response("should not run"),
   );
@@ -213,7 +217,7 @@ Deno.test("withAssertion: invalid assertion signature → 401", async () => {
           publicKeyPem: wrongPem,
           signCount: 0,
         }),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
     },
     () => new Response("should not run"),
   );
@@ -235,7 +239,7 @@ Deno.test("withAssertion: getDeviceKey throws → 500 INTERNAL_ERROR", async () 
     {
       appId: TEST_APP_ID,
       getDeviceKey: () => Promise.reject(new Error("db connection failed")),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
     },
     () => new Response("should not run"),
   );
@@ -246,7 +250,7 @@ Deno.test("withAssertion: getDeviceKey throws → 500 INTERNAL_ERROR", async () 
   assertEquals(json.code, AssertionErrorCode.INTERNAL_ERROR);
 });
 
-Deno.test("withAssertion: updateSignCount throws → 500 INTERNAL_ERROR", async () => {
+Deno.test("withAssertion: commitSignCount throws → 500 INTERNAL_ERROR", async () => {
   const { req, fixture } = await buildAttestedRequest(
     "http://localhost/test",
     { text: "hello" },
@@ -261,7 +265,7 @@ Deno.test("withAssertion: updateSignCount throws → 500 INTERNAL_ERROR", async 
           publicKeyPem: fixture.publicKeyPem,
           signCount: 0,
         }),
-      updateSignCount: () => Promise.reject(new Error("db write failed")),
+      commitSignCount: () => Promise.reject(new Error("db write failed")),
     },
     () => new Response("should not run"),
   );
@@ -286,7 +290,7 @@ Deno.test("withAssertion: handler throw bubbles up, not caught by wrapper", asyn
     {
       appId: TEST_APP_ID,
       getDeviceKey: storage.getDeviceKey,
-      updateSignCount: storage.updateSignCount,
+      commitSignCount: storage.commitSignCount,
     },
     () => {
       throw new Error("handler exploded");
@@ -316,7 +320,7 @@ Deno.test("withAssertion: custom onError overrides default response", async () =
     {
       appId: TEST_APP_ID,
       getDeviceKey: () => Promise.resolve(null),
-      updateSignCount: () => Promise.resolve(),
+      commitSignCount: () => Promise.resolve(true),
       onError: (error, _req) => {
         return new Response(
           JSON.stringify({ custom: true, code: error.code }),
@@ -362,7 +366,7 @@ Deno.test("withAssertion: custom extractAssertion is used", async () => {
     {
       appId: TEST_APP_ID,
       getDeviceKey: storage.getDeviceKey,
-      updateSignCount: storage.updateSignCount,
+      commitSignCount: storage.commitSignCount,
       extractAssertion: async (req) => {
         const assertion = req.headers.get("X-Custom-Assertion")!;
         const deviceId = req.headers.get("X-Custom-Device")!;
@@ -404,9 +408,12 @@ Deno.test("withAssertion: appInfo constructed once, reused across calls", async 
           publicKeyPem: fixture1.publicKeyPem,
           signCount: currentSignCount,
         }),
-      updateSignCount: (_deviceId, newSignCount) => {
-        currentSignCount = newSignCount;
-        return Promise.resolve();
+      commitSignCount: (_deviceId, newSignCount) => {
+        if (currentSignCount < newSignCount) {
+          currentSignCount = newSignCount;
+          return Promise.resolve(true);
+        }
+        return Promise.resolve(false);
       },
     },
     (_req, { signCount }) => {
@@ -445,4 +452,103 @@ Deno.test("withAssertion: appInfo constructed once, reused across calls", async 
   const res2 = await handler(req2);
   assertEquals(res2.status, 200);
   assertEquals(currentSignCount, 2);
+});
+
+// --- TOCTOU fix: commitSignCount CAS semantics ---
+
+Deno.test("withAssertion: commitSignCount returns false → 401 SIGN_COUNT_STALE", async () => {
+  const { req, fixture } = await buildAttestedRequest(
+    "http://localhost/test",
+    { text: "hello" },
+    { appId: TEST_APP_ID, signCount: 1 },
+  );
+
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: () =>
+        Promise.resolve({
+          publicKeyPem: fixture.publicKeyPem,
+          signCount: 0,
+        }),
+      commitSignCount: () => Promise.resolve(false),
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(req);
+  assertEquals(res.status, 401);
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.SIGN_COUNT_STALE);
+});
+
+Deno.test("withAssertion: commitSignCount returns true → handler runs", async () => {
+  const { req, fixture } = await buildAttestedRequest(
+    "http://localhost/test",
+    { text: "hello" },
+    { appId: TEST_APP_ID, signCount: 1 },
+  );
+
+  let handlerRan = false;
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: () =>
+        Promise.resolve({
+          publicKeyPem: fixture.publicKeyPem,
+          signCount: 0,
+        }),
+      commitSignCount: () => Promise.resolve(true),
+    },
+    () => {
+      handlerRan = true;
+      return new Response("ok");
+    },
+  );
+
+  const res = await handler(req);
+  assertEquals(res.status, 200);
+  assertEquals(handlerRan, true);
+});
+
+// --- Timings are populated on the context ---
+
+Deno.test("withAssertion: ctx.timings has all four spans populated", async () => {
+  const { req, fixture } = await buildAttestedRequest(
+    "http://localhost/test",
+    { text: "hello" },
+    { appId: TEST_APP_ID, signCount: 1 },
+  );
+  const storage = createMockStorage(fixture);
+
+  let capturedTimings: Record<string, number> | null = null;
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: storage.getDeviceKey,
+      commitSignCount: storage.commitSignCount,
+    },
+    (_req, ctx) => {
+      capturedTimings = ctx.timings as unknown as Record<string, number>;
+      return new Response("ok");
+    },
+  );
+
+  await handler(req);
+  if (!capturedTimings) throw new Error("timings not captured");
+  const t = capturedTimings as unknown as {
+    extractMs: number;
+    getDeviceKeyMs: number;
+    verifyMs: number;
+    commitMs: number;
+  };
+  // All four fields must exist and be non-negative numbers.
+  assertEquals(typeof t.extractMs, "number");
+  assertEquals(typeof t.getDeviceKeyMs, "number");
+  assertEquals(typeof t.verifyMs, "number");
+  assertEquals(typeof t.commitMs, "number");
+  assertEquals(t.extractMs >= 0, true);
+  assertEquals(t.getDeviceKeyMs >= 0, true);
+  assertEquals(t.verifyMs >= 0, true);
+  assertEquals(t.commitMs >= 0, true);
 });
