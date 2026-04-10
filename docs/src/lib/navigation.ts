@@ -35,6 +35,7 @@ export const navigation = [
         title: 'Verifying assertions',
         href: '/docs/verifying-assertions',
       },
+      { title: 'The withAttestation wrapper', href: '/docs/with-attestation' },
       { title: 'The withAssertion wrapper', href: '/docs/with-assertion' },
     ],
   },
@@ -43,6 +44,10 @@ export const navigation = [
     links: [
       { title: 'verifyAttestation()', href: '/docs/verify-attestation' },
       { title: 'verifyAssertion()', href: '/docs/verify-assertion' },
+      {
+        title: 'withAttestation() reference',
+        href: '/docs/api-with-attestation',
+      },
       {
         title: 'withAssertion() reference',
         href: '/docs/api-with-assertion',
