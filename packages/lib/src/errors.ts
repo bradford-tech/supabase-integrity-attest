@@ -21,6 +21,13 @@ export enum AttestationErrorCode {
    * was missing, expired, or already consumed. Used by {@linkcode withAttestation}.
    */
   CHALLENGE_INVALID = "CHALLENGE_INVALID",
+  /**
+   * An internal or storage callback error occurred (used by
+   * {@linkcode withAttestation}). The original error is attached via
+   * `Error.cause` and is deliberately NOT reflected in the HTTP response
+   * body to avoid leaking database schema or driver diagnostics.
+   */
+  INTERNAL_ERROR = "INTERNAL_ERROR",
 }
 
 /** Thrown when attestation verification fails. */
@@ -32,8 +39,9 @@ export class AttestationError extends Error {
     /** Machine-readable error code. */
     public readonly code: AttestationErrorCode,
     message: string,
+    options?: { cause?: unknown },
   ) {
-    super(message);
+    super(message, options);
   }
 }
 

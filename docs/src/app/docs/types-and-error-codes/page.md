@@ -243,6 +243,12 @@ The AAGUID in the authenticator data doesn't match the expected environment.
 
 **Resolution:** Check that the client is sending the same challenge it received from your `/challenge` endpoint, and that the challenge hasn't expired (60 seconds by default) or already been used for a prior attestation attempt.
 
+### INTERNAL_ERROR
+
+`withAttestation()` only. The `consumeChallenge` or `storeDeviceKey` callback threw an error, or an unexpected non-`AttestationError` escaped the middleware pipeline. The HTTP response body contains only a static, client-safe message — the original error is deliberately NOT reflected to the caller to avoid leaking database schema details or driver diagnostics through the unauthenticated attestation endpoint.
+
+**Resolution:** The original error is available via `error.cause` inside a custom `onError` handler — log it there for debugging. Check your database connection and the logic inside your `consumeChallenge` / `storeDeviceKey` implementations.
+
 ---
 
 ## AssertionErrorCode

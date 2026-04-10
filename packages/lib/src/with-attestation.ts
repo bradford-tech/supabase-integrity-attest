@@ -134,7 +134,11 @@ async function defaultExtractAttestation(req: Request): Promise<{
 }
 
 function defaultErrorResponse(error: AttestationError): Response {
-  const status = error.code === AttestationErrorCode.INVALID_FORMAT ? 400 : 401;
+  const status = error.code === AttestationErrorCode.INTERNAL_ERROR
+    ? 500
+    : error.code === AttestationErrorCode.INVALID_FORMAT
+    ? 400
+    : 401;
   return new Response(
     JSON.stringify({ error: error.message, code: error.code }),
     { status, headers: { "Content-Type": "application/json" } },
@@ -188,11 +192,14 @@ export function withAttestation(
       try {
         challengeOk = await options.consumeChallenge(extracted.challenge);
       } catch (err) {
+        // Static message — the original error is attached via `cause` and
+        // never reaches the wire. Callback errors from Postgres drivers
+        // routinely contain schema details, constraint names, and other
+        // info that must not leak to unauthenticated clients.
         throw new AttestationError(
-          AttestationErrorCode.INVALID_FORMAT,
-          `consumeChallenge callback failed: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          AttestationErrorCode.INTERNAL_ERROR,
+          "consumeChallenge callback failed",
+          { cause: err },
         );
       }
       timings.consumeChallengeMs = performance.now() - consumeStart;
@@ -224,20 +231,24 @@ export function withAttestation(
           receipt,
         });
       } catch (err) {
+        // Static message — see consumeChallenge catch above.
         throw new AttestationError(
-          AttestationErrorCode.INVALID_FORMAT,
-          `storeDeviceKey callback failed: ${
-            err instanceof Error ? err.message : String(err)
-          }`,
+          AttestationErrorCode.INTERNAL_ERROR,
+          "storeDeviceKey callback failed",
+          { cause: err },
         );
       }
       timings.storeDeviceKeyMs = performance.now() - storeStart;
     } catch (err) {
+      // Non-AttestationError escapes (unexpected runtime errors, programmer
+      // bugs, etc.) are wrapped as INTERNAL_ERROR with a static message.
+      // The original is attached via `cause` and never reaches the wire.
       const error = err instanceof AttestationError
         ? err
         : new AttestationError(
-          AttestationErrorCode.INVALID_FORMAT,
-          String(err),
+          AttestationErrorCode.INTERNAL_ERROR,
+          "Internal error",
+          { cause: err },
         );
       return options.onError?.(error, req) ?? defaultErrorResponse(error);
     }

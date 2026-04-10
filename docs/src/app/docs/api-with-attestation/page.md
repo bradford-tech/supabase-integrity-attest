@@ -94,6 +94,7 @@ When verification fails and no `onError` is provided:
 | `KEY_ID_MISMATCH`           | 401         | `{ "error": "...", "code": "KEY_ID_MISMATCH" }`           |
 | `INVALID_COUNTER`           | 401         | `{ "error": "...", "code": "INVALID_COUNTER" }`           |
 | `INVALID_AAGUID`            | 401         | `{ "error": "...", "code": "INVALID_AAGUID" }`            |
+| `INTERNAL_ERROR`            | 500         | `{ "error": "...", "code": "INTERNAL_ERROR" }`            |
 
 ---
 
@@ -101,7 +102,8 @@ When verification fails and no `onError` is provided:
 
 - Your handler only runs after successful verification and a successful `storeDeviceKey` write.
 - A `consumeChallenge` that returns `false` (not throws) surfaces as `CHALLENGE_INVALID` — an expected condition (missing, expired, or already-consumed challenge), not a callback failure.
-- Errors thrown by `consumeChallenge` or `storeDeviceKey` surface as `INVALID_FORMAT` with the original error message.
+- Errors **thrown** by `consumeChallenge` or `storeDeviceKey` are wrapped as `INTERNAL_ERROR` (HTTP 500) with a static, client-safe message. The original error is attached via `error.cause` for your own logging and never reflected in the HTTP response body — this prevents accidental leakage of database schema details, constraint names, or driver diagnostics through the unauthenticated attestation endpoint.
+- Any unexpected non-`AttestationError` thrown inside the middleware pipeline (extractor, `verifyAttestation`, etc.) is similarly wrapped as `INTERNAL_ERROR` with a generic `"Internal error"` message and the original attached via `cause`.
 - Errors thrown by your handler are **not** caught — they propagate normally.
 
 Import path: `@bradford-tech/supabase-integrity-attest` or `@bradford-tech/supabase-integrity-attest/attestation`

@@ -114,11 +114,14 @@ Deno.test("withAttestation: consumeChallenge returns false → 401 CHALLENGE_INV
   assertEquals(handlerRan, false);
 });
 
-Deno.test("withAttestation: consumeChallenge throws → 400 INVALID_FORMAT", async () => {
+Deno.test("withAttestation: consumeChallenge throws → 500 INTERNAL_ERROR with no leak", async () => {
+  // Use a sentinel message that would obviously leak if reflected.
+  const LEAKY_DB_ERROR =
+    'duplicate key value violates unique constraint "app_attest_devices_pkey" Key (device_id)=(abc) already exists';
   const handler = withAttestation(
     {
       appId: TEST_APP_ID,
-      consumeChallenge: () => Promise.reject(new Error("db exploded")),
+      consumeChallenge: () => Promise.reject(new Error(LEAKY_DB_ERROR)),
       storeDeviceKey: () => Promise.resolve(),
     },
     () => new Response("should not run"),
@@ -131,9 +134,61 @@ Deno.test("withAttestation: consumeChallenge throws → 400 INVALID_FORMAT", asy
       attestation: encodeBase64(new Uint8Array([4, 5, 6])),
     }),
   );
-  assertEquals(res.status, 400);
+  // Server-fault semantics → 500, not 400.
+  assertEquals(res.status, 500);
   const json = await res.json();
-  assertEquals(json.code, AttestationErrorCode.INVALID_FORMAT);
+  assertEquals(json.code, AttestationErrorCode.INTERNAL_ERROR);
+  // Static client-safe message only.
+  assertEquals(json.error, "consumeChallenge callback failed");
+  // The leaky underlying error MUST NOT appear anywhere in the response body.
+  const raw = JSON.stringify(json);
+  assertEquals(
+    raw.includes("duplicate key"),
+    false,
+    "response body must not leak callback error message",
+  );
+  assertEquals(
+    raw.includes("app_attest_devices_pkey"),
+    false,
+    "response body must not leak database schema details",
+  );
+});
+
+Deno.test("withAttestation: outer fallback wraps non-AttestationError as INTERNAL_ERROR with no leak", async () => {
+  // A custom extractor throws a plain Error that isn't an AttestationError —
+  // this exercises the outer catch block's fallback wrap.
+  const LEAKY_INTERNAL_ERROR =
+    "TypeError: Cannot read property 'foo' of undefined at internal.ts:42";
+  const handler = withAttestation(
+    {
+      appId: TEST_APP_ID,
+      consumeChallenge: () => Promise.resolve(true),
+      storeDeviceKey: () => Promise.resolve(),
+      extractAttestation: () => {
+        throw new Error(LEAKY_INTERNAL_ERROR);
+      },
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(
+    new Request("http://localhost/attest", { method: "POST" }),
+  );
+  assertEquals(res.status, 500);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.INTERNAL_ERROR);
+  assertEquals(json.error, "Internal error");
+  const raw = JSON.stringify(json);
+  assertEquals(
+    raw.includes("Cannot read property"),
+    false,
+    "response body must not leak internal stack details",
+  );
+  assertEquals(
+    raw.includes("internal.ts"),
+    false,
+    "response body must not leak internal source paths",
+  );
 });
 
 // --- Verification reaches crypto layer ---
