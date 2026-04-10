@@ -5,4 +5,5 @@ module.exports = {
     if (name === 'eslint') return 'minor'
     return 'latest'
   },
+  reject: ['react', 'react-dom'],
 }
