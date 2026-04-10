@@ -26,14 +26,14 @@ function withAssertion(
 
 ## Options
 
-| Field              | Type                                                                     | Required | Description                                                                                                                                                                  |
-| ------------------ | ------------------------------------------------------------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `appId`            | `string`                                                                 | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                                                             |
-| `developmentEnv`   | `boolean`                                                                | No       | Default `false`. Set `true` for development AAGUID.                                                                                                                          |
-| `getDeviceKey`     | `(deviceId: string) => Promise<DeviceKey \| null>`                       | Yes      | Fetch the device's stored public key and counter. Return `null` if not found.                                                                                                |
-| `commitSignCount`  | `(deviceId: string, newSignCount: number) => Promise<boolean>`           | Yes      | **Atomic compare-and-swap.** Update the stored counter only if the current stored value is strictly less than `newSignCount`. Return `true` if updated, `false` if stale.    |
-| `extractAssertion` | `ExtractAssertionFn`                                                     | No       | Custom extraction logic. Default reads from standard headers.                                                                                                                |
-| `onError`          | `(error: AssertionError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                                               |
+| Field              | Type                                                                     | Required | Description                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appId`            | `string`                                                                 | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                                                          |
+| `developmentEnv`   | `boolean`                                                                | No       | Default `false`. Set `true` for development AAGUID.                                                                                                                       |
+| `getDeviceKey`     | `(deviceId: string) => Promise<DeviceKey \| null>`                       | Yes      | Fetch the device's stored public key and counter. Return `null` if not found.                                                                                             |
+| `commitSignCount`  | `(deviceId: string, newSignCount: number) => Promise<boolean>`           | Yes      | **Atomic compare-and-swap.** Update the stored counter only if the current stored value is strictly less than `newSignCount`. Return `true` if updated, `false` if stale. |
+| `extractAssertion` | `ExtractAssertionFn`                                                     | No       | Custom extraction logic. Default reads from standard headers.                                                                                                             |
+| `onError`          | `(error: AssertionError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                                            |
 
 ---
 
@@ -54,10 +54,10 @@ Library-internal timing spans in milliseconds.
 
 ```ts
 type AssertionTimings = {
-  extractMs: number       // Parse request headers + read body bytes
-  getDeviceKeyMs: number  // getDeviceKey callback wall-clock duration
-  verifyMs: number        // Cryptographic verification
-  commitMs: number        // commitSignCount callback wall-clock duration
+  extractMs: number // Parse request headers + read body bytes
+  getDeviceKeyMs: number // getDeviceKey callback wall-clock duration
+  verifyMs: number // Cryptographic verification
+  commitMs: number // commitSignCount callback wall-clock duration
 }
 ```
 
@@ -67,10 +67,10 @@ Passed to your handler after successful verification and commit:
 
 ```ts
 type AssertionContext = {
-  deviceId: string       // The device identifier from extraction
-  signCount: number      // The new counter value (already committed)
-  rawBody: Uint8Array    // The raw request body bytes
-  timings: AssertionTimings  // Library-internal spans
+  deviceId: string // The device identifier from extraction
+  signCount: number // The new counter value (already committed)
+  rawBody: Uint8Array // The raw request body bytes
+  timings: AssertionTimings // Library-internal spans
 }
 ```
 

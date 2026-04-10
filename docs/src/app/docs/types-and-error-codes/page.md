@@ -68,10 +68,10 @@ Used by `withAssertion()`'s `getDeviceKey` callback.
 
 ```ts
 type AssertionTimings = {
-  extractMs: number       // Parse request headers + read body bytes
-  getDeviceKeyMs: number  // getDeviceKey callback wall-clock duration
-  verifyMs: number        // Cryptographic verification
-  commitMs: number        // commitSignCount callback wall-clock duration
+  extractMs: number // Parse request headers + read body bytes
+  getDeviceKeyMs: number // getDeviceKey callback wall-clock duration
+  verifyMs: number // Cryptographic verification
+  commitMs: number // commitSignCount callback wall-clock duration
 }
 ```
 
@@ -81,10 +81,10 @@ Library-internal span measurements passed to `withAssertion()` handlers via `ctx
 
 ```ts
 type AssertionContext = {
-  deviceId: string               // Device identifier from extraction
-  signCount: number              // New counter value (already committed)
-  rawBody: Uint8Array            // Raw request body bytes
-  timings: AssertionTimings      // Library-internal spans
+  deviceId: string // Device identifier from extraction
+  signCount: number // New counter value (already committed)
+  rawBody: Uint8Array // Raw request body bytes
+  timings: AssertionTimings // Library-internal spans
 }
 ```
 
@@ -124,10 +124,10 @@ Custom extraction callback for `withAssertion()`. The default reads from `X-App-
 
 ```ts
 type AttestationTimings = {
-  extractMs: number            // Parse body + decode base64 fields
-  consumeChallengeMs: number   // consumeChallenge callback wall-clock duration
-  verifyMs: number             // Cryptographic attestation verification
-  storeDeviceKeyMs: number     // storeDeviceKey callback wall-clock duration
+  extractMs: number // Parse body + decode base64 fields
+  consumeChallengeMs: number // consumeChallenge callback wall-clock duration
+  verifyMs: number // Cryptographic attestation verification
+  storeDeviceKeyMs: number // storeDeviceKey callback wall-clock duration
 }
 ```
 
@@ -137,11 +137,11 @@ Library-internal span measurements passed to `withAttestation()` handlers via `c
 
 ```ts
 type AttestationContext = {
-  deviceId: string               // Apple-issued keyId from the request
-  publicKeyPem: string           // PEM-encoded ECDSA P-256 public key
-  signCount: number              // Always 0 for a fresh attestation
-  receipt: Uint8Array            // Raw Apple receipt bytes
-  timings: AttestationTimings    // Library-internal spans
+  deviceId: string // Apple-issued keyId from the request
+  publicKeyPem: string // PEM-encoded ECDSA P-256 public key
+  signCount: number // Always 0 for a fresh attestation
+  receipt: Uint8Array // Raw Apple receipt bytes
+  timings: AttestationTimings // Library-internal spans
 }
 ```
 

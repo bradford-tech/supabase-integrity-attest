@@ -106,10 +106,10 @@ The `timings` field on the handler context exposes library-internal span duratio
 
 ```ts
 type AssertionTimings = {
-  extractMs: number        // Parse headers + read body bytes
-  getDeviceKeyMs: number   // getDeviceKey callback wall-clock
-  verifyMs: number         // Cryptographic verify
-  commitMs: number         // commitSignCount callback wall-clock
+  extractMs: number // Parse headers + read body bytes
+  getDeviceKeyMs: number // getDeviceKey callback wall-clock
+  verifyMs: number // Cryptographic verify
+  commitMs: number // commitSignCount callback wall-clock
 }
 ```
 

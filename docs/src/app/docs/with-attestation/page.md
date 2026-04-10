@@ -99,10 +99,10 @@ The `timings` field on the handler context exposes library-internal span duratio
 
 ```ts
 type AttestationTimings = {
-  extractMs: number            // Parse body + decode base64 fields
-  consumeChallengeMs: number   // consumeChallenge callback wall-clock
-  verifyMs: number             // CBOR + cert chain + nonce + key extract
-  storeDeviceKeyMs: number     // storeDeviceKey callback wall-clock
+  extractMs: number // Parse body + decode base64 fields
+  consumeChallengeMs: number // consumeChallenge callback wall-clock
+  verifyMs: number // CBOR + cert chain + nonce + key extract
+  storeDeviceKeyMs: number // storeDeviceKey callback wall-clock
 }
 ```
 
@@ -143,10 +143,10 @@ withAttestation(
 
 ## When to use withAttestation vs verifyAttestation
 
-| Use `withAttestation` when...                           | Use `verifyAttestation` when...                                                                                       |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Standard JSON-body attestation payload                  | Non-standard delivery (WebSocket, binary protocols)                                                                   |
-| You want default error responses                        | You need custom error branching per-endpoint                                                                          |
-| You're using `app_attest_challenges` for nonce storage  | You have a fundamentally different challenge-storage architecture ([see manual example](/docs/verifying-attestations)) |
+| Use `withAttestation` when...                          | Use `verifyAttestation` when...                                                                                        |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| Standard JSON-body attestation payload                 | Non-standard delivery (WebSocket, binary protocols)                                                                    |
+| You want default error responses                       | You need custom error branching per-endpoint                                                                           |
+| You're using `app_attest_challenges` for nonce storage | You have a fundamentally different challenge-storage architecture ([see manual example](/docs/verifying-attestations)) |
 
 For the full API details, see the [withAttestation() reference](/docs/api-with-attestation).

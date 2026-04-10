@@ -26,14 +26,14 @@ function withAttestation(
 
 ## Options
 
-| Field                | Type                                                                        | Required | Description                                                                                                                                   |
-| -------------------- | --------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `appId`              | `string`                                                                    | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                              |
-| `developmentEnv`     | `boolean`                                                                   | No       | Default `false`. Set `true` for development AAGUID.                                                                                           |
-| `consumeChallenge`   | `(challenge: Uint8Array) => Promise<boolean>`                               | Yes      | **Atomic single-use consume.** Return `true` if the challenge was valid, unused, and unexpired (and is now consumed). Return `false` otherwise. |
-| `storeDeviceKey`     | `(row: { deviceId, publicKeyPem, signCount, receipt }) => Promise<void>`    | Yes      | Persist the verified key. Caller chooses INSERT vs UPSERT — upsert is usually correct.                                                        |
-| `extractAttestation` | `ExtractAttestationFn`                                                      | No       | Custom extraction logic. Default reads a JSON body of `{ keyId, challenge, attestation }` with base64-encoded values.                         |
-| `onError`            | `(error: AttestationError, req: Request) => Response \| Promise<Response>`  | No       | Custom error response handler.                                                                                                                |
+| Field                | Type                                                                       | Required | Description                                                                                                                                     |
+| -------------------- | -------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appId`              | `string`                                                                   | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                                |
+| `developmentEnv`     | `boolean`                                                                  | No       | Default `false`. Set `true` for development AAGUID.                                                                                             |
+| `consumeChallenge`   | `(challenge: Uint8Array) => Promise<boolean>`                              | Yes      | **Atomic single-use consume.** Return `true` if the challenge was valid, unused, and unexpired (and is now consumed). Return `false` otherwise. |
+| `storeDeviceKey`     | `(row: { deviceId, publicKeyPem, signCount, receipt }) => Promise<void>`   | Yes      | Persist the verified key. Caller chooses INSERT vs UPSERT — upsert is usually correct.                                                          |
+| `extractAttestation` | `ExtractAttestationFn`                                                     | No       | Custom extraction logic. Default reads a JSON body of `{ keyId, challenge, attestation }` with base64-encoded values.                           |
+| `onError`            | `(error: AttestationError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                  |
 
 ---
 
@@ -45,10 +45,10 @@ Library-internal timing spans in milliseconds.
 
 ```ts
 type AttestationTimings = {
-  extractMs: number            // Parse body + decode base64 fields
-  consumeChallengeMs: number   // consumeChallenge callback wall-clock duration
-  verifyMs: number             // Cryptographic attestation verification
-  storeDeviceKeyMs: number     // storeDeviceKey callback wall-clock duration
+  extractMs: number // Parse body + decode base64 fields
+  consumeChallengeMs: number // consumeChallenge callback wall-clock duration
+  verifyMs: number // Cryptographic attestation verification
+  storeDeviceKeyMs: number // storeDeviceKey callback wall-clock duration
 }
 ```
 
@@ -58,11 +58,11 @@ Passed to your handler after successful verification and persistence:
 
 ```ts
 type AttestationContext = {
-  deviceId: string               // Apple-issued keyId from the request
-  publicKeyPem: string           // PEM-encoded ECDSA P-256 public key
-  signCount: number              // Always 0 for a fresh attestation
-  receipt: Uint8Array            // Raw Apple receipt bytes
-  timings: AttestationTimings    // Library-internal spans
+  deviceId: string // Apple-issued keyId from the request
+  publicKeyPem: string // PEM-encoded ECDSA P-256 public key
+  signCount: number // Always 0 for a fresh attestation
+  receipt: Uint8Array // Raw Apple receipt bytes
+  timings: AttestationTimings // Library-internal spans
 }
 ```
 
@@ -84,16 +84,16 @@ Custom extraction callback. The default reads a JSON body of the shape `{ keyId:
 
 When verification fails and no `onError` is provided:
 
-| Error code                | HTTP status | Response body                                                     |
-| ------------------------- | ----------- | ----------------------------------------------------------------- |
-| `INVALID_FORMAT`          | 400         | `{ "error": "...", "code": "INVALID_FORMAT" }`                    |
-| `CHALLENGE_INVALID`       | 401         | `{ "error": "...", "code": "CHALLENGE_INVALID" }`                 |
-| `INVALID_CERTIFICATE_CHAIN` | 401       | `{ "error": "...", "code": "INVALID_CERTIFICATE_CHAIN" }`         |
-| `NONCE_MISMATCH`          | 401         | `{ "error": "...", "code": "NONCE_MISMATCH" }`                    |
-| `RP_ID_MISMATCH`          | 401         | `{ "error": "...", "code": "RP_ID_MISMATCH" }`                    |
-| `KEY_ID_MISMATCH`         | 401         | `{ "error": "...", "code": "KEY_ID_MISMATCH" }`                   |
-| `INVALID_COUNTER`         | 401         | `{ "error": "...", "code": "INVALID_COUNTER" }`                   |
-| `INVALID_AAGUID`          | 401         | `{ "error": "...", "code": "INVALID_AAGUID" }`                    |
+| Error code                  | HTTP status | Response body                                             |
+| --------------------------- | ----------- | --------------------------------------------------------- |
+| `INVALID_FORMAT`            | 400         | `{ "error": "...", "code": "INVALID_FORMAT" }`            |
+| `CHALLENGE_INVALID`         | 401         | `{ "error": "...", "code": "CHALLENGE_INVALID" }`         |
+| `INVALID_CERTIFICATE_CHAIN` | 401         | `{ "error": "...", "code": "INVALID_CERTIFICATE_CHAIN" }` |
+| `NONCE_MISMATCH`            | 401         | `{ "error": "...", "code": "NONCE_MISMATCH" }`            |
+| `RP_ID_MISMATCH`            | 401         | `{ "error": "...", "code": "RP_ID_MISMATCH" }`            |
+| `KEY_ID_MISMATCH`           | 401         | `{ "error": "...", "code": "KEY_ID_MISMATCH" }`           |
+| `INVALID_COUNTER`           | 401         | `{ "error": "...", "code": "INVALID_COUNTER" }`           |
+| `INVALID_AAGUID`            | 401         | `{ "error": "...", "code": "INVALID_AAGUID" }`            |
 
 ---
 

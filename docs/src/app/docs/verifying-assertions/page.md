@@ -52,10 +52,9 @@ Deno.serve(async (req: Request) => {
     .single()
 
   if (!device) {
-    return new Response(
-      JSON.stringify({ error: 'Unknown device' }),
-      { status: 401 },
-    )
+    return new Response(JSON.stringify({ error: 'Unknown device' }), {
+      status: 401,
+    })
   }
 
   // 3. Verify the assertion
