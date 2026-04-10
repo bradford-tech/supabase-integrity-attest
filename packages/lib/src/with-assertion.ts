@@ -16,6 +16,22 @@ export type DeviceKey = {
   signCount: number;
 };
 
+/**
+ * Library-internal timing spans for an assertion verification, in
+ * milliseconds. Exposed on {@linkcode AssertionContext.timings} so the
+ * wrapped handler can emit them as part of its own Server-Timing response.
+ */
+export type AssertionTimings = {
+  /** Parse request headers and read raw body bytes. */
+  extractMs: number;
+  /** `getDeviceKey` callback wall-clock duration. */
+  getDeviceKeyMs: number;
+  /** Cryptographic verification (CBOR decode, ECDSA verify, counter check). */
+  verifyMs: number;
+  /** `commitSignCount` callback wall-clock duration. */
+  commitMs: number;
+};
+
 /** Context passed to the inner handler after successful assertion verification. */
 export type AssertionContext = {
   /** Device identifier from the request. */
@@ -24,6 +40,8 @@ export type AssertionContext = {
   signCount: number;
   /** Raw request body bytes (the client data that was signed). */
   rawBody: Uint8Array;
+  /** Library-internal timings, ready to merge into Server-Timing. */
+  timings: AssertionTimings;
 };
 
 /** Custom function to extract assertion data from an incoming request. */
@@ -41,8 +59,24 @@ export type WithAssertionOptions = {
   developmentEnv?: boolean;
   /** Retrieve the stored device key for a given device ID. Return `null` if not found. */
   getDeviceKey: (deviceId: string) => Promise<DeviceKey | null>;
-  /** Persist the new sign count after successful verification. */
-  updateSignCount: (deviceId: string, newSignCount: number) => Promise<void>;
+  /**
+   * Atomically advance the stored sign count. MUST be implemented as a
+   * compare-and-swap: only update if the currently stored value is strictly
+   * less than `newSignCount`. Returns `true` if the row was advanced,
+   * `false` if another concurrent request already advanced past this value.
+   *
+   * Recommended SQL pattern against Postgres:
+   *
+   * ```sql
+   * UPDATE app_attest_devices
+   *    SET sign_count = $1, last_seen_at = now()
+   *  WHERE device_id = $2 AND sign_count < $1
+   * ```
+   *
+   * Return `rowCount > 0`. The library converts `false` into
+   * `AssertionError(SIGN_COUNT_STALE)`.
+   */
+  commitSignCount: (deviceId: string, newSignCount: number) => Promise<boolean>;
   /** Override the default header-based assertion extraction. */
   extractAssertion?: ExtractAssertionFn;
   /** Custom error response handler. Defaults to JSON error responses. */
@@ -89,8 +123,13 @@ function defaultErrorResponse(error: AssertionError): Response {
  * Request handler middleware that verifies App Attest assertions.
  *
  * Wraps a handler function with automatic assertion verification,
- * device key lookup, and sign count management. Returns a new handler
+ * device key lookup, and atomic sign-count commit. Returns a new handler
  * that rejects unauthenticated requests with appropriate HTTP error responses.
+ *
+ * The `commitSignCount` callback MUST implement compare-and-swap semantics
+ * (see {@linkcode WithAssertionOptions.commitSignCount}) — a non-atomic
+ * unconditional write will silently corrupt replay protection under
+ * concurrent load.
  */
 export function withAssertion(
   options: WithAssertionOptions,
@@ -109,13 +148,23 @@ export function withAssertion(
     let deviceId: string;
     let clientData: Uint8Array;
     let newSignCount: number;
+    const timings: AssertionTimings = {
+      extractMs: 0,
+      getDeviceKeyMs: 0,
+      verifyMs: 0,
+      commitMs: 0,
+    };
 
-    // Steps 1-4: extract, verify, update sign count
+    // Steps 1-4: extract, verify, commit sign count
     try {
+      const extractStart = performance.now();
       const extracted = await extract(req);
+      timings.extractMs = performance.now() - extractStart;
+
       deviceId = extracted.deviceId;
       clientData = extracted.clientData;
 
+      const getKeyStart = performance.now();
       let deviceKey: DeviceKey | null;
       try {
         deviceKey = await options.getDeviceKey(deviceId);
@@ -126,6 +175,7 @@ export function withAssertion(
           { cause: err },
         );
       }
+      timings.getDeviceKeyMs = performance.now() - getKeyStart;
 
       if (!deviceKey) {
         throw new AssertionError(
@@ -134,6 +184,7 @@ export function withAssertion(
         );
       }
 
+      const verifyStart = performance.now();
       const result = await verifyAssertion(
         appInfo,
         extracted.assertion,
@@ -141,14 +192,25 @@ export function withAssertion(
         deviceKey.publicKeyPem,
         deviceKey.signCount,
       );
+      timings.verifyMs = performance.now() - verifyStart;
 
+      const commitStart = performance.now();
+      let committed: boolean;
       try {
-        await options.updateSignCount(deviceId, result.signCount);
+        committed = await options.commitSignCount(deviceId, result.signCount);
       } catch (err) {
         throw new AssertionError(
           AssertionErrorCode.INTERNAL_ERROR,
-          "Failed to update sign count",
+          "Failed to commit sign count",
           { cause: err },
+        );
+      }
+      timings.commitMs = performance.now() - commitStart;
+
+      if (!committed) {
+        throw new AssertionError(
+          AssertionErrorCode.SIGN_COUNT_STALE,
+          `Sign count ${result.signCount} is stale — another concurrent request already advanced past it`,
         );
       }
 
@@ -167,6 +229,7 @@ export function withAssertion(
       deviceId,
       signCount: newSignCount,
       rawBody: clientData,
+      timings,
     });
   };
 }
