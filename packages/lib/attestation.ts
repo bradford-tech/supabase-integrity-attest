@@ -3,7 +3,10 @@
  * dependencies (`asn1js`, `@noble/curves`).
  *
  * ```ts
- * import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
+ * import {
+ *   verifyAttestation,
+ *   withAttestation,
+ * } from "@bradford-tech/supabase-integrity-attest/attestation";
  *
  * const { publicKeyPem } = await verifyAttestation(
  *   { appId: "TEAMID.com.example.app" },
@@ -23,3 +26,12 @@ export type {
   VerifyAttestationOptions,
 } from "./src/attestation.ts";
 export { AttestationError, AttestationErrorCode } from "./src/errors.ts";
+
+// withAttestation middleware
+export { withAttestation } from "./src/with-attestation.ts";
+export type {
+  AttestationContext,
+  AttestationTimings,
+  ExtractAttestationFn,
+  WithAttestationOptions,
+} from "./src/with-attestation.ts";
