@@ -3,10 +3,10 @@
   "version": "0.3.2",
   "private": true,
   "scripts": {
-    "check": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none",
-    "fix": "DENO_NO_PACKAGE_JSON=1 deno fmt && DENO_NO_PACKAGE_JSON=1 deno lint --fix && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none",
-    "test": "DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none",
+    "check": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none --unstable-kv",
+    "fix": "DENO_NO_PACKAGE_JSON=1 deno fmt && DENO_NO_PACKAGE_JSON=1 deno lint --fix && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none --unstable-kv",
+    "test": "DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none --unstable-kv",
     "lint": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint",
-    "build": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none"
+    "build": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none --unstable-kv"
   }
 }
