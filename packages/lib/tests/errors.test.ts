@@ -38,6 +38,7 @@ Deno.test("AttestationErrorCode has all expected values", () => {
   assertEquals(codes.includes("KEY_ID_MISMATCH"), true);
   assertEquals(codes.includes("INVALID_COUNTER"), true);
   assertEquals(codes.includes("INVALID_AAGUID"), true);
+  assertEquals(codes.includes("CHALLENGE_INVALID"), true);
 });
 
 Deno.test("AssertionErrorCode has all expected values", () => {
@@ -46,6 +47,7 @@ Deno.test("AssertionErrorCode has all expected values", () => {
   assertEquals(codes.includes("RP_ID_MISMATCH"), true);
   assertEquals(codes.includes("COUNTER_NOT_INCREMENTED"), true);
   assertEquals(codes.includes("SIGNATURE_INVALID"), true);
+  assertEquals(codes.includes("SIGN_COUNT_STALE"), true);
 });
 
 Deno.test("AssertionErrorCode has wrapper error codes", () => {
