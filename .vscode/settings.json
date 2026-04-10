@@ -1,8 +1,21 @@
 {
-  "deno.enable": true,
-  "deno.enablePaths": [
-    "packages/lib",
-    "demo/supabase-expo-demo/supabase/functions"
+  "deno.enablePaths": ["demo/supabase-expo-demo/supabase/functions"],
+  "deno.config": "./demo/supabase-expo-demo/supabase/functions/deno.json",
+  "deno.lint": true,
+  "deno.unstable": [
+    "bare-node-builtins",
+    "byonm",
+    "sloppy-imports",
+    "unsafe-proto",
+    "webgpu",
+    "broadcast-channel",
+    "worker-options",
+    "cron",
+    "kv",
+    "ffi",
+    "fs",
+    "http",
+    "net"
   ],
   "css.customData": [".vscode/tailwind.css-data.json"]
 }
