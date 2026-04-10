@@ -5,6 +5,7 @@
       "release-type": "simple",
       "component": "lib",
       "include-component-in-tag": false,
+      "bump-minor-pre-major": true,
       "extra-files": [
         { "type": "json", "path": "deno.json", "jsonpath": "$.version" },
         { "type": "json", "path": "package.json", "jsonpath": "$.version" }
