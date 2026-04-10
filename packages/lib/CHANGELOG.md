@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.2...v1.0.0) (2026-04-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **lib:** AssertionErrorCode and AttestationErrorCode gain new members. Exhaustive switch statements on these enums will need updating.
+
+### Features
+
+* **lib:** withAttestation middleware + withAssertion TOCTOU fix (Phase A) ([#35](https://github.com/bradford-tech/supabase-integrity-attest/issues/35)) ([a89ddd8](https://github.com/bradford-tech/supabase-integrity-attest/commit/a89ddd8a8b3587f25a5de91d326d290553380f66))
+
 ## [0.3.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.1...v0.3.2) (2026-03-12)
 
 
