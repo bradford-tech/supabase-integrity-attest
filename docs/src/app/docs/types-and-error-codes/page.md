@@ -21,7 +21,7 @@ interface AppInfo {
 }
 ```
 
-Used by `verifyAttestation()`, `verifyAssertion()`, and `withAssertion()`.
+Used by `verifyAttestation()`, `verifyAssertion()`, `withAttestation()`, and `withAssertion()`.
 
 ### AttestationResult
 
@@ -64,13 +64,27 @@ type DeviceKey = {
 
 Used by `withAssertion()`'s `getDeviceKey` callback.
 
+### AssertionTimings
+
+```ts
+type AssertionTimings = {
+  extractMs: number       // Parse request headers + read body bytes
+  getDeviceKeyMs: number  // getDeviceKey callback wall-clock duration
+  verifyMs: number        // Cryptographic verification
+  commitMs: number        // commitSignCount callback wall-clock duration
+}
+```
+
+Library-internal span measurements passed to `withAssertion()` handlers via `ctx.timings`.
+
 ### AssertionContext
 
 ```ts
 type AssertionContext = {
-  deviceId: string // Device identifier from extraction
-  signCount: number // New counter value (already persisted)
-  rawBody: Uint8Array // Raw request body bytes
+  deviceId: string               // Device identifier from extraction
+  signCount: number              // New counter value (already committed)
+  rawBody: Uint8Array            // Raw request body bytes
+  timings: AssertionTimings      // Library-internal spans
 }
 ```
 
@@ -83,7 +97,7 @@ type WithAssertionOptions = {
   appId: string
   developmentEnv?: boolean
   getDeviceKey: (deviceId: string) => Promise<DeviceKey | null>
-  updateSignCount: (deviceId: string, newSignCount: number) => Promise<void>
+  commitSignCount: (deviceId: string, newSignCount: number) => Promise<boolean>
   extractAssertion?: ExtractAssertionFn
   onError?: (
     error: AssertionError,
@@ -91,6 +105,8 @@ type WithAssertionOptions = {
   ) => Response | Promise<Response>
 }
 ```
+
+`commitSignCount` must be an atomic compare-and-swap — see the [`withAssertion` guide](/docs/with-assertion) for details.
 
 ### ExtractAssertionFn
 
@@ -104,11 +120,73 @@ type ExtractAssertionFn = (req: Request) => Promise<{
 
 Custom extraction callback for `withAssertion()`. The default reads from `X-App-Attest-Assertion` and `X-App-Attest-Device-Id` headers.
 
+### AttestationTimings
+
+```ts
+type AttestationTimings = {
+  extractMs: number            // Parse body + decode base64 fields
+  consumeChallengeMs: number   // consumeChallenge callback wall-clock duration
+  verifyMs: number             // Cryptographic attestation verification
+  storeDeviceKeyMs: number     // storeDeviceKey callback wall-clock duration
+}
+```
+
+Library-internal span measurements passed to `withAttestation()` handlers via `ctx.timings`.
+
+### AttestationContext
+
+```ts
+type AttestationContext = {
+  deviceId: string               // Apple-issued keyId from the request
+  publicKeyPem: string           // PEM-encoded ECDSA P-256 public key
+  signCount: number              // Always 0 for a fresh attestation
+  receipt: Uint8Array            // Raw Apple receipt bytes
+  timings: AttestationTimings    // Library-internal spans
+}
+```
+
+Passed to your `withAttestation()` handler.
+
+### WithAttestationOptions
+
+```ts
+type WithAttestationOptions = {
+  appId: string
+  developmentEnv?: boolean
+  consumeChallenge: (challenge: Uint8Array) => Promise<boolean>
+  storeDeviceKey: (row: {
+    deviceId: string
+    publicKeyPem: string
+    signCount: number
+    receipt: Uint8Array
+  }) => Promise<void>
+  extractAttestation?: ExtractAttestationFn
+  onError?: (
+    error: AttestationError,
+    req: Request,
+  ) => Response | Promise<Response>
+}
+```
+
+`consumeChallenge` must be an atomic single-use consume — see the [`withAttestation` guide](/docs/with-attestation) for details.
+
+### ExtractAttestationFn
+
+```ts
+type ExtractAttestationFn = (req: Request) => Promise<{
+  deviceId: string
+  challenge: Uint8Array
+  attestation: Uint8Array
+}>
+```
+
+Custom extraction callback for `withAttestation()`. The default reads a JSON body of the shape `{ keyId: string, challenge: string, attestation: string }` where `challenge` and `attestation` are base64-encoded.
+
 ---
 
 ## AttestationErrorCode
 
-`AttestationError` is thrown by [`verifyAttestation()`](/docs/verify-attestation). It extends `Error` with a typed `code` property.
+`AttestationError` is thrown by [`verifyAttestation()`](/docs/verify-attestation) and [`withAttestation()`](/docs/api-with-attestation). It extends `Error` with a typed `code` property.
 
 ```ts
 class AttestationError extends Error {
@@ -119,9 +197,9 @@ class AttestationError extends Error {
 
 ### INVALID_FORMAT
 
-The attestation object couldn't be decoded (bad CBOR, bad base64) or the format field is not `"apple-appattest"`.
+The attestation object couldn't be decoded (bad CBOR, bad base64) or the format field is not `"apple-appattest"`. Also thrown by `withAttestation()` when the request body can't be parsed as JSON or is missing required fields.
 
-**Resolution:** Verify the client is sending the raw attestation object from `DCAppAttestService.attestKey()`, base64-encoded.
+**Resolution:** Verify the client is sending the raw attestation object from `attestKeyAsync()`, base64-encoded, in a JSON body with `keyId`, `challenge`, and `attestation` keys.
 
 ### INVALID_CERTIFICATE_CHAIN
 
@@ -133,7 +211,7 @@ The X.509 certificate chain failed validation against Apple's App Attestation Ro
 
 The computed nonce (`SHA-256(authData || challenge)`) doesn't match the nonce in the leaf certificate.
 
-**Resolution:** Ensure you're passing the exact same challenge value that was active when the client called `attestKey()`. Check that the challenge hasn't been URL-encoded or otherwise transformed.
+**Resolution:** Ensure you're passing the exact same challenge value that was active when the client called `attestKeyAsync()`. Check that the challenge hasn't been URL-encoded or otherwise transformed.
 
 ### RP_ID_MISMATCH
 
@@ -145,7 +223,7 @@ The computed nonce (`SHA-256(authData || challenge)`) doesn't match the nonce in
 
 The `keyId` doesn't match the public key hash or credential ID in the attestation.
 
-**Resolution:** Ensure the client sends the `keyId` from `generateKey()` without modification.
+**Resolution:** Ensure the client sends the `keyId` from `generateKeyAsync()` without modification.
 
 ### INVALID_COUNTER
 
@@ -158,6 +236,12 @@ The `keyId` doesn't match the public key hash or credential ID in the attestatio
 The AAGUID in the authenticator data doesn't match the expected environment.
 
 **Resolution:** Check `appInfo.developmentEnv`. Production devices use `"appattest"` + 7 null bytes; development builds use `"appattestdevelop"`.
+
+### CHALLENGE_INVALID
+
+`withAttestation()` only. The `consumeChallenge` callback returned `false`, meaning the challenge was missing, expired, or already consumed.
+
+**Resolution:** Check that the client is sending the same challenge it received from your `/challenge` endpoint, and that the challenge hasn't expired (60 seconds by default) or already been used for a prior attestation attempt.
 
 ---
 
@@ -176,7 +260,7 @@ class AssertionError extends Error {
 
 The assertion couldn't be decoded (bad CBOR, bad base64), the authenticator data is malformed, the DER signature is invalid, or the PEM public key can't be imported.
 
-**Resolution:** Verify the client is sending the raw assertion from `generateAssertion()`, base64-encoded. Check that the stored public key PEM is valid.
+**Resolution:** Verify the client is sending the raw assertion from `generateAssertionAsync()`, base64-encoded. Check that the stored public key PEM is valid.
 
 ### RP_ID_MISMATCH
 
@@ -202,9 +286,15 @@ ECDSA signature verification failed.
 
 **Resolution:** The device hasn't been attested yet, or the device ID is incorrect. The client should re-attest.
 
+### SIGN_COUNT_STALE
+
+`withAssertion()` only. The `commitSignCount` callback returned `false`, meaning another concurrent request already advanced the stored counter past this assertion's value.
+
+**Resolution:** This is an expected race condition under concurrent load, not a client bug. Serialize rapid-fire requests from the same device client-side, or accept occasional stale rejections as the correct behavior under strict monotonic counter semantics.
+
 ### INTERNAL_ERROR
 
-`withAssertion()` only. The `getDeviceKey` or `updateSignCount` callback threw an error.
+`withAssertion()` only. The `getDeviceKey` or `commitSignCount` callback threw an error.
 
 **Resolution:** Check your database connection and storage logic. The original error is available via `error.cause`.
 
