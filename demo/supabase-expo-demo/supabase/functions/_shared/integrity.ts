@@ -25,6 +25,31 @@ export const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
+// --- bytea encoding helper ---
+
+/**
+ * Encode a Uint8Array as a Postgres bytea hex literal (`\x<hex>`).
+ *
+ * Required because supabase-js v2 serializes Uint8Array via
+ * JSON.stringify, which produces the object form `{"0":byte,"1":byte,...}`
+ * and writes those literal JSON text bytes into a bytea column —
+ * NOT the raw bytes you intended. Worse, the same serialization
+ * produces a *different* string in URL filter parameters, so
+ * .insert() and .eq() round-trips silently mismatch.
+ *
+ * The fix: explicitly convert Uint8Array → `\x<hex>` on both sides.
+ * Postgres parses `\x...` strings as bytea literals at insert time,
+ * and PostgREST passes string filter values through unchanged, so
+ * insert and query agree on the same bytes.
+ */
+function toPgBytea(bytes: Uint8Array): string {
+  let hex = "\\x";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return hex;
+}
+
 // --- App Attest configuration ---
 
 export const APP_INFO = {
@@ -53,7 +78,7 @@ export async function issueChallenge(
   const { error } = await supabase
     .from("app_attest_challenges")
     .insert({
-      challenge,
+      challenge: toPgBytea(challenge),
       purpose,
       expires_at: expiresAt.toISOString(),
     });
@@ -99,7 +124,7 @@ async function consumeChallenge(
   const { data, error } = await supabase
     .from("app_attest_challenges")
     .delete()
-    .eq("challenge", challenge)
+    .eq("challenge", toPgBytea(challenge))
     .eq("purpose", purpose)
     .gt("expires_at", new Date().toISOString())
     .select()
@@ -180,7 +205,7 @@ async function storeDeviceKey(row: {
       device_id: row.deviceId,
       public_key_pem: row.publicKeyPem,
       sign_count: row.signCount,
-      receipt: row.receipt,
+      receipt: toPgBytea(row.receipt),
     });
 
   if (error) {
