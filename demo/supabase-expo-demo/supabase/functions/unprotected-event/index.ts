@@ -7,19 +7,19 @@
 // into demo_events with no App Attest verification, no authentication,
 // no nothing. In a production project this would be a gaping security
 // hole. Never copy this file into a real codebase.
-import { supabase } from "../_shared/integrity.ts";
-import { newTimingBuilder } from "../_shared/timing.ts";
+import { supabase } from '../_shared/integrity.ts';
+import { newTimingBuilder } from '../_shared/timing.ts';
 
 Deno.serve(async (_req: Request): Promise<Response> => {
   const timing = newTimingBuilder();
 
-  const insertStop = timing.start("db_write_event");
+  const insertStop = timing.start('db_write_event');
   const { data, error } = await supabase
-    .from("demo_events")
+    .from('demo_events')
     .insert({
       device_id: null,
       protected: false,
-      payload: { source: "unprotected-event", at: new Date().toISOString() },
+      payload: { source: 'unprotected-event', at: new Date().toISOString() },
     })
     .select()
     .single();
@@ -32,8 +32,8 @@ Deno.serve(async (_req: Request): Promise<Response> => {
       {
         status: 500,
         headers: {
-          "Content-Type": "application/json",
-          "Server-Timing": header,
+          'Content-Type': 'application/json',
+          'Server-Timing': header,
         },
       },
     );
@@ -43,8 +43,8 @@ Deno.serve(async (_req: Request): Promise<Response> => {
   return new Response(JSON.stringify(json), {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
-      "Server-Timing": header,
+      'Content-Type': 'application/json',
+      'Server-Timing': header,
     },
   });
 });

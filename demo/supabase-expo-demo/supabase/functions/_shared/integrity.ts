@@ -7,22 +7,22 @@
 // protect() / attest() / issueChallenge() / consumeChallenge*()
 // closures are the stable surface.
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 import {
-  withAttestation,
   type AttestationContext,
-} from "@bradford-tech/supabase-integrity-attest";
+  withAttestation,
+} from '@bradford-tech/supabase-integrity-attest';
 import {
-  withAssertion,
   type AssertionContext,
-} from "@bradford-tech/supabase-integrity-attest";
-import { decodeBase64, encodeBase64 } from "@std/encoding/base64";
+  withAssertion,
+} from '@bradford-tech/supabase-integrity-attest';
+import { decodeBase64, encodeBase64 } from '@std/encoding/base64';
 
 // --- Supabase client (service role for admin writes) ---
 
 export const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  Deno.env.get('SUPABASE_URL')!,
+  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
 // --- bytea encoding helper ---
@@ -43,9 +43,9 @@ export const supabase = createClient(
  * insert and query agree on the same bytes.
  */
 function toPgBytea(bytes: Uint8Array): string {
-  let hex = "\\x";
+  let hex = '\\x';
   for (let i = 0; i < bytes.length; i++) {
-    hex += bytes[i].toString(16).padStart(2, "0");
+    hex += bytes[i].toString(16).padStart(2, '0');
   }
   return hex;
 }
@@ -53,8 +53,8 @@ function toPgBytea(bytes: Uint8Array): string {
 // --- App Attest configuration ---
 
 export const APP_INFO = {
-  appId: Deno.env.get("APP_ID") ?? "TEAMID1234.com.example.demo",
-  developmentEnv: Deno.env.get("ENVIRONMENT") !== "production",
+  appId: Deno.env.get('APP_ID') ?? 'TEAMID1234.com.example.demo',
+  developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
 };
 
 // --- Challenge lifecycle ---
@@ -67,7 +67,7 @@ const CHALLENGE_TTL_SECONDS = 60;
  * base64-encoded form for transport.
  */
 export async function issueChallenge(
-  purpose: "attestation" | "assertion",
+  purpose: 'attestation' | 'assertion',
 ): Promise<
   { challenge: Uint8Array; challengeBase64: string; expiresAt: Date }
 > {
@@ -76,7 +76,7 @@ export async function issueChallenge(
   const expiresAt = new Date(Date.now() + CHALLENGE_TTL_SECONDS * 1000);
 
   const { error } = await supabase
-    .from("app_attest_challenges")
+    .from('app_attest_challenges')
     .insert({
       challenge: toPgBytea(challenge),
       purpose,
@@ -101,7 +101,7 @@ export async function issueChallenge(
 export function consumeChallengeAttestation(
   challenge: Uint8Array,
 ): Promise<boolean> {
-  return consumeChallenge(challenge, "attestation");
+  return consumeChallenge(challenge, 'attestation');
 }
 
 /**
@@ -111,22 +111,22 @@ export function consumeChallengeAttestation(
 export function consumeChallengeAssertion(
   challenge: Uint8Array,
 ): Promise<boolean> {
-  return consumeChallenge(challenge, "assertion");
+  return consumeChallenge(challenge, 'assertion');
 }
 
 async function consumeChallenge(
   challenge: Uint8Array,
-  purpose: "attestation" | "assertion",
+  purpose: 'attestation' | 'assertion',
 ): Promise<boolean> {
   // Atomic DELETE ... RETURNING with expires_at and purpose filters.
   // If zero rows are affected, the challenge was missing, expired, or
   // purpose-mismatched — all of which should reject.
   const { data, error } = await supabase
-    .from("app_attest_challenges")
+    .from('app_attest_challenges')
     .delete()
-    .eq("challenge", toPgBytea(challenge))
-    .eq("purpose", purpose)
-    .gt("expires_at", new Date().toISOString())
+    .eq('challenge', toPgBytea(challenge))
+    .eq('purpose', purpose)
+    .gt('expires_at', new Date().toISOString())
     .select()
     .maybeSingle();
 
@@ -141,9 +141,9 @@ async function consumeChallenge(
 /** Look up a stored device key by its device_id (= Apple keyId). */
 async function getDeviceKey(deviceId: string) {
   const { data, error } = await supabase
-    .from("app_attest_devices")
-    .select("public_key_pem, sign_count")
-    .eq("device_id", deviceId)
+    .from('app_attest_devices')
+    .select('public_key_pem, sign_count')
+    .eq('device_id', deviceId)
     .maybeSingle();
 
   if (error) {
@@ -172,16 +172,16 @@ async function commitSignCount(
   // rows. count > 0 means we won the CAS; count === 0 means another
   // concurrent request already advanced past this counter.
   const { count, error } = await supabase
-    .from("app_attest_devices")
+    .from('app_attest_devices')
     .update(
       {
         sign_count: newSignCount,
         last_seen_at: new Date().toISOString(),
       },
-      { count: "exact" },
+      { count: 'exact' },
     )
-    .eq("device_id", deviceId)
-    .lt("sign_count", newSignCount);
+    .eq('device_id', deviceId)
+    .lt('sign_count', newSignCount);
 
   if (error) {
     throw new Error(`Failed to commit sign count: ${error.message}`);
@@ -200,7 +200,7 @@ async function storeDeviceKey(row: {
   receipt: Uint8Array;
 }): Promise<void> {
   const { error } = await supabase
-    .from("app_attest_devices")
+    .from('app_attest_devices')
     .upsert({
       device_id: row.deviceId,
       public_key_pem: row.publicKeyPem,

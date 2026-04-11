@@ -84,7 +84,7 @@ export function newTimingBuilder(): TimingBuilder {
     },
     merge(timings, prefix) {
       for (const [name, dur] of Object.entries(timings)) {
-        if (typeof dur !== "number") continue;
+        if (typeof dur !== 'number') continue;
         spans.push({
           name: prefix ? `${prefix}_${name}` : name,
           dur,
@@ -93,7 +93,7 @@ export function newTimingBuilder(): TimingBuilder {
     },
     finish(extras) {
       const total = performance.now() - totalStart;
-      spans.push({ name: "total", dur: total });
+      spans.push({ name: 'total', dur: total });
 
       // Build the W3C Server-Timing header value. Format:
       //   name;dur=123.45;desc="description", name2;dur=6.78
@@ -101,7 +101,7 @@ export function newTimingBuilder(): TimingBuilder {
       const headerParts: string[] = [];
       const spansJson: Record<string, number> = {};
       for (const s of spans) {
-        const safeName = s.name.replace(/[^a-zA-Z0-9_-]/g, "_");
+        const safeName = s.name.replace(/[^a-zA-Z0-9_-]/g, '_');
         let part = `${safeName};dur=${s.dur.toFixed(2)}`;
         if (s.desc) {
           // Escape quotes in descriptions.
@@ -112,7 +112,7 @@ export function newTimingBuilder(): TimingBuilder {
       }
 
       return {
-        header: headerParts.join(", "),
+        header: headerParts.join(', '),
         json: {
           ...(extras ?? {}),
           spans: spansJson,

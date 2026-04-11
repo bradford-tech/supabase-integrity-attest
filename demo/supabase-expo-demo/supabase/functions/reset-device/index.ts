@@ -7,16 +7,16 @@
 // demo per spec §6.5 (the demo needs a way to reset state between
 // test runs). In a hosted deployment this would be authenticated
 // or removed entirely.
-import { supabase } from "../_shared/integrity.ts";
-import { newTimingBuilder } from "../_shared/timing.ts";
+import { supabase } from '../_shared/integrity.ts';
+import { newTimingBuilder } from '../_shared/timing.ts';
 
 Deno.serve(async (req: Request): Promise<Response> => {
   const timing = newTimingBuilder();
 
-  if (req.method !== "POST") {
+  if (req.method !== 'POST') {
     return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      { status: 405, headers: { "Content-Type": "application/json" } },
+      JSON.stringify({ error: 'Method not allowed' }),
+      { status: 405, headers: { 'Content-Type': 'application/json' } },
     );
   }
 
@@ -26,26 +26,26 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } catch {
     const { header, json } = timing.finish();
     return new Response(
-      JSON.stringify({ error: "Invalid JSON body", _timing: json }),
+      JSON.stringify({ error: 'Invalid JSON body', _timing: json }),
       {
         status: 400,
         headers: {
-          "Content-Type": "application/json",
-          "Server-Timing": header,
+          'Content-Type': 'application/json',
+          'Server-Timing': header,
         },
       },
     );
   }
 
-  if (typeof body.keyId !== "string" || body.keyId.length === 0) {
+  if (typeof body.keyId !== 'string' || body.keyId.length === 0) {
     const { header, json } = timing.finish();
     return new Response(
-      JSON.stringify({ error: "Missing keyId", _timing: json }),
+      JSON.stringify({ error: 'Missing keyId', _timing: json }),
       {
         status: 400,
         headers: {
-          "Content-Type": "application/json",
-          "Server-Timing": header,
+          'Content-Type': 'application/json',
+          'Server-Timing': header,
         },
       },
     );
@@ -53,11 +53,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   // Atomic delete with row counting (supabase-js v2 idiom: count option
   // goes on .delete(), not on a chained .select()).
-  const deleteDeviceStop = timing.start("delete_device");
+  const deleteDeviceStop = timing.start('delete_device');
   const { error: deviceErr, count: deviceCount } = await supabase
-    .from("app_attest_devices")
-    .delete({ count: "exact" })
-    .eq("device_id", body.keyId);
+    .from('app_attest_devices')
+    .delete({ count: 'exact' })
+    .eq('device_id', body.keyId);
   deleteDeviceStop();
 
   if (deviceErr) {
@@ -67,8 +67,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
       {
         status: 500,
         headers: {
-          "Content-Type": "application/json",
-          "Server-Timing": header,
+          'Content-Type': 'application/json',
+          'Server-Timing': header,
         },
       },
     );
@@ -87,8 +87,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
   return new Response(JSON.stringify(json), {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
-      "Server-Timing": header,
+      'Content-Type': 'application/json',
+      'Server-Timing': header,
     },
   });
 });

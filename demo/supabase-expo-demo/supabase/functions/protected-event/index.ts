@@ -19,19 +19,19 @@ import {
   decodeBase64,
   protect,
   supabase,
-} from "../_shared/integrity.ts";
-import { newTimingBuilder } from "../_shared/timing.ts";
+} from '../_shared/integrity.ts';
+import { newTimingBuilder } from '../_shared/timing.ts';
 
 Deno.serve(
   protect(async (_req, ctx) => {
     const timing = newTimingBuilder();
     timing.merge(
       ctx.timings as unknown as Record<string, number>,
-      "assert",
+      'assert',
     );
 
     // Parse the signed body bytes from ctx.rawBody (NEVER req.json()).
-    const parseStop = timing.start("parse_body");
+    const parseStop = timing.start('parse_body');
     let body: { challenge?: string; payload?: unknown };
     try {
       body = JSON.parse(new TextDecoder().decode(ctx.rawBody));
@@ -40,15 +40,15 @@ Deno.serve(
       const { header, json } = timing.finish();
       return new Response(
         JSON.stringify({
-          error: "Invalid JSON body",
-          code: "INVALID_FORMAT",
+          error: 'Invalid JSON body',
+          code: 'INVALID_FORMAT',
           _timing: json,
         }),
         {
           status: 400,
           headers: {
-            "Content-Type": "application/json",
-            "Server-Timing": header,
+            'Content-Type': 'application/json',
+            'Server-Timing': header,
           },
         },
       );
@@ -57,25 +57,25 @@ Deno.serve(
 
     // Verify the assertion challenge (belt-and-suspenders check on top
     // of the library's counter-based replay protection).
-    if (typeof body.challenge !== "string") {
+    if (typeof body.challenge !== 'string') {
       const { header, json } = timing.finish();
       return new Response(
         JSON.stringify({
-          error: "Missing challenge in body",
-          code: "CHALLENGE_INVALID",
+          error: 'Missing challenge in body',
+          code: 'CHALLENGE_INVALID',
           _timing: json,
         }),
         {
           status: 401,
           headers: {
-            "Content-Type": "application/json",
-            "Server-Timing": header,
+            'Content-Type': 'application/json',
+            'Server-Timing': header,
           },
         },
       );
     }
 
-    const consumeStop = timing.start("challenge_consume");
+    const consumeStop = timing.start('challenge_consume');
     let challengeBytes: Uint8Array;
     try {
       challengeBytes = decodeBase64(body.challenge);
@@ -84,15 +84,15 @@ Deno.serve(
       const { header, json } = timing.finish();
       return new Response(
         JSON.stringify({
-          error: "challenge is not valid base64",
-          code: "CHALLENGE_INVALID",
+          error: 'challenge is not valid base64',
+          code: 'CHALLENGE_INVALID',
           _timing: json,
         }),
         {
           status: 401,
           headers: {
-            "Content-Type": "application/json",
-            "Server-Timing": header,
+            'Content-Type': 'application/json',
+            'Server-Timing': header,
           },
         },
       );
@@ -104,29 +104,29 @@ Deno.serve(
       const { header, json } = timing.finish();
       return new Response(
         JSON.stringify({
-          error: "Challenge is missing, expired, or already consumed",
-          code: "CHALLENGE_INVALID",
+          error: 'Challenge is missing, expired, or already consumed',
+          code: 'CHALLENGE_INVALID',
           _timing: json,
         }),
         {
           status: 401,
           headers: {
-            "Content-Type": "application/json",
-            "Server-Timing": header,
+            'Content-Type': 'application/json',
+            'Server-Timing': header,
           },
         },
       );
     }
 
     // Business work: identical to unprotected-event.
-    const insertStop = timing.start("db_write_event");
+    const insertStop = timing.start('db_write_event');
     const { data, error } = await supabase
-      .from("demo_events")
+      .from('demo_events')
       .insert({
         device_id: ctx.deviceId,
         protected: true,
         payload: body.payload ?? {
-          source: "protected-event",
+          source: 'protected-event',
           at: new Date().toISOString(),
         },
       })
@@ -141,8 +141,8 @@ Deno.serve(
         {
           status: 500,
           headers: {
-            "Content-Type": "application/json",
-            "Server-Timing": header,
+            'Content-Type': 'application/json',
+            'Server-Timing': header,
           },
         },
       );
@@ -157,8 +157,8 @@ Deno.serve(
     return new Response(JSON.stringify(json), {
       status: 200,
       headers: {
-        "Content-Type": "application/json",
-        "Server-Timing": header,
+        'Content-Type': 'application/json',
+        'Server-Timing': header,
       },
     });
   }),
