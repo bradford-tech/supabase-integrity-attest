@@ -21,6 +21,16 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 )
 
+// supabase-js serializes Uint8Array via JSON.stringify, which writes
+// {"0":byte,"1":byte,...} JSON text — not raw bytes — into bytea
+// columns. Convert to Postgres hex literal so inserts and filters
+// round-trip correctly.
+function toPgBytea(bytes: Uint8Array): string {
+  let hex = '\\x'
+  for (const b of bytes) hex += b.toString(16).padStart(2, '0')
+  return hex
+}
+
 const handler = withAttestation(
   {
     appId: Deno.env.get('APP_ID')!,
@@ -32,7 +42,7 @@ const handler = withAttestation(
       const { data } = await supabase
         .from('app_attest_challenges')
         .delete()
-        .eq('challenge', challenge)
+        .eq('challenge', toPgBytea(challenge))
         .eq('purpose', 'attestation')
         .gt('expires_at', new Date().toISOString())
         .select()
@@ -46,7 +56,7 @@ const handler = withAttestation(
         device_id: deviceId,
         public_key_pem: publicKeyPem,
         sign_count: signCount,
-        receipt,
+        receipt: toPgBytea(receipt),
       })
     },
   },
