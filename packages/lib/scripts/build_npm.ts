@@ -15,6 +15,7 @@ await build({
     { name: "./attestation", path: "./attestation.ts" },
   ],
   outDir: "./npm",
+  test: false,
   shims: {
     deno: { test: "dev" },
   },
