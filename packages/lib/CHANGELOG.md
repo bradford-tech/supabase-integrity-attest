@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.4.0...v0.4.1) (2026-04-12)
+
+
+### Bug Fixes
+
+* **lib:** disable dnt test compilation in build_npm.ts ([cab281e](https://github.com/bradford-tech/supabase-integrity-attest/commit/cab281ea0b9fa2749821fdbbf7b4b3fe24945177))
+
 ## [0.4.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.3.2...v0.4.0) (2026-04-10)
 
 
