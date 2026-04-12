@@ -1,0 +1,33 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.103.0",
+    "@bradford-tech/supabase-integrity-attest": "jsr:@bradford-tech/supabase-integrity-attest@^0.4.0",
+    "@std/encoding": "jsr:@std/encoding@^1.0.10"
+  },
+  "workspace": [
+    "_shared",
+    "challenge",
+    "protected-event",
+    "reset-device",
+    "unprotected-event",
+    "verify-attestation"
+  ],
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "fmt": {
+    "include": ["**/*.ts", "**/*.tsx"],
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "proseWrap": "preserve",
+    "singleQuote": true,
+    "useTabs": false
+  },
+  "lint": {
+    "include": ["**/*.ts", "**/*.tsx"],
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}
