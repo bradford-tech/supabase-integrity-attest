@@ -71,10 +71,9 @@ Deno.serve(async (req: Request) => {
     //    concurrent request can't silently corrupt replay protection.
     const { count } = await supabase
       .from('app_attest_devices')
-      .update({ sign_count: result.signCount })
+      .update({ sign_count: result.signCount }, { count: 'exact' })
       .eq('device_id', deviceId)
       .lt('sign_count', result.signCount)
-      .select('*', { count: 'exact', head: true })
 
     if (!count || count === 0) {
       // Another concurrent request already advanced past this count.

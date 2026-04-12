@@ -45,10 +45,9 @@ const handler = withAssertion(
     commitSignCount: async (deviceId, newSignCount) => {
       const { count } = await supabase
         .from('app_attest_devices')
-        .update({ sign_count: newSignCount })
+        .update({ sign_count: newSignCount }, { count: 'exact' })
         .eq('device_id', deviceId)
         .lt('sign_count', newSignCount)
-        .select('*', { count: 'exact', head: true })
       return (count ?? 0) > 0
     },
   },
