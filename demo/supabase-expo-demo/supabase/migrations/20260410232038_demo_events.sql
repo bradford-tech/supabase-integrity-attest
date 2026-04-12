@@ -14,4 +14,7 @@ create table demo_events (
 comment on table demo_events is
   'Demo-only. Records identical inserts from unprotected-event and protected-event so the A/B timing comparison is fair.';
 
+-- RLS with no policies = service-role-only access.
+alter table demo_events enable row level security;
+
 create index demo_events_created_at_idx on demo_events (created_at desc);

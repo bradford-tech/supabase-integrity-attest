@@ -14,6 +14,12 @@ create table app_attest_devices (
 comment on table app_attest_devices is
   'Verified App Attest device keys. device_id is the Apple-issued keyId from generateKeyAsync().';
 
+-- RLS with no policies = service-role-only access. The anon key (which is
+-- public and embedded in client apps) MUST NOT have write access to this
+-- table — the entire security model depends on public_key_pem being populated
+-- exclusively through the verified attestation flow in the edge function.
+alter table app_attest_devices enable row level security;
+
 create table app_attest_challenges (
   challenge   bytea primary key,
   purpose     text not null check (purpose in ('attestation', 'assertion')),
@@ -23,6 +29,9 @@ create table app_attest_challenges (
 
 comment on table app_attest_challenges is
   'Short-lived single-use challenge nonces. Consume via DELETE ... RETURNING.';
+
+-- Same RLS pattern: anon must not inject or read challenge values.
+alter table app_attest_challenges enable row level security;
 
 create index app_attest_challenges_expires_at_idx
   on app_attest_challenges (expires_at);
