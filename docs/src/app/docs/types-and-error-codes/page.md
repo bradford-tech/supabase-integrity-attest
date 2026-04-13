@@ -175,12 +175,13 @@ type WithAttestationOptions = {
 ```ts
 type ExtractAttestationFn = (req: Request) => Promise<{
   deviceId: string
-  challenge: Uint8Array
+  challenge: Uint8Array // raw bytes for consumeChallenge DB lookup
+  challengeAsSent: string // original string the client SDK hashed
   attestation: Uint8Array
 }>
 ```
 
-Custom extraction callback for `withAttestation()`. The default reads a JSON body of the shape `{ keyId: string, challenge: string, attestation: string }` where `challenge` and `attestation` are base64-encoded.
+Custom extraction callback for `withAttestation()`. The default reads a JSON body of the shape `{ keyId: string, challenge: string, attestation: string }` where `challenge` and `attestation` are base64-encoded. `challengeAsSent` is the original challenge string before base64 decoding — the middleware hashes it to produce `clientDataHash`, matching what client SDKs hash before passing to Apple.
 
 ---
 
