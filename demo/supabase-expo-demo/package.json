@@ -4,8 +4,15 @@
   "private": true,
   "main": "index.ts",
   "scripts": {
+    "check": "npm run format:check && npm run lint:check && npm run typecheck",
+    "fix": "npm run format && npm run lint && npm run typecheck",
+    "format": "prettier --write --cache --log-level warn \"**/*.{json,md,css,yml,yaml,html}\" && deno fmt --config supabase/functions/deno.json supabase/functions/ --quiet",
+    "format:check": "prettier --check --cache --log-level warn \"**/*.{json,md,css,yml,yaml,html}\" && deno fmt --check --config supabase/functions/deno.json supabase/functions/ --quiet",
     "ios": "expo run:ios",
+    "lint": "expo lint --fix . && for dir in supabase/functions/*/; do [ -f \"${dir}index.ts\" ] && (cd \"$dir\" && deno lint --fix --quiet index.ts); done",
+    "lint:check": "expo lint . && for dir in supabase/functions/*/; do [ -f \"${dir}index.ts\" ] && (cd \"$dir\" && deno lint --quiet index.ts); done",
     "start": "expo start",
+    "typecheck": "tsc --noEmit && for dir in supabase/functions/*/; do [ -f \"${dir}index.ts\" ] && (cd \"$dir\" && deno check --quiet index.ts); done",
     "web": "expo start --web"
   },
   "dependencies": {
@@ -17,7 +24,11 @@
     "react-native": "0.83.4"
   },
   "devDependencies": {
+    "@eslint/compat": "^2.0.5",
     "@types/react": "~19.2.2",
+    "eslint-config-expo": "~55.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "supabase": "^2.89.1"
   }
 }
