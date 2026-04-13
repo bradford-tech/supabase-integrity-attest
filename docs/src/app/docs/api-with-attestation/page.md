@@ -71,12 +71,17 @@ type AttestationContext = {
 ```ts
 type ExtractAttestationFn = (req: Request) => Promise<{
   deviceId: string
-  challenge: Uint8Array
+  challenge: Uint8Array // raw bytes for consumeChallenge DB lookup
+  challengeAsSent: string // original string the client SDK hashed
   attestation: Uint8Array
 }>
 ```
 
 Custom extraction callback. The default reads a JSON body of the shape `{ keyId: string, challenge: string, attestation: string }` where `challenge` and `attestation` are base64-encoded.
+
+The `challengeAsSent` field is the challenge in the exact form the client SDK received it — before any server-side base64 decoding. Client SDKs (Expo's `attestKeyAsync`, native `DCAppAttestService` wrappers) hash this string's UTF-8 bytes to produce `clientDataHash` before passing to Apple. The middleware hashes the same string to produce a matching `clientDataHash`. The decoded `challenge` bytes are used separately for the `consumeChallenge` DB lookup.
+
+This asymmetry does not exist on the assertion side: there, the string passed to `generateAssertionAsync` IS the raw HTTP body, so both client and server hash identical bytes by definition.
 
 ---
 

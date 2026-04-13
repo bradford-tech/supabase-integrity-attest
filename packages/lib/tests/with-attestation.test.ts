@@ -242,6 +242,7 @@ Deno.test("withAttestation: custom extractAttestation is used", async () => {
         return Promise.resolve({
           deviceId: "from-custom-extractor",
           challenge: new Uint8Array([1, 2, 3]),
+          challengeAsSent: "test-challenge-string",
           attestation: new Uint8Array([4, 5, 6]),
         });
       },
