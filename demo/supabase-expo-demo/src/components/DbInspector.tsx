@@ -116,7 +116,7 @@ export function DbInspector({ device, event }: Props) {
       setPrevSc(prevSignCount.current);
       prevSignCount.current = device.signCount;
     }
-  }, [device?.signCount]);
+  }, [device, device?.signCount]);
 
   if (!device && !event) return null;
 
