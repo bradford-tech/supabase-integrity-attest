@@ -20,15 +20,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'com.apple.developer.devicecheck.appattest-environment': 'development',
     },
   },
-  android: {
-    adaptiveIcon: {
-      backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/android-icon-foreground.png',
-      backgroundImage: './assets/android-icon-background.png',
-      monochromeImage: './assets/android-icon-monochrome.png',
-    },
-    predictiveBackGestureEnabled: false,
-  },
   web: {
     favicon: './assets/favicon.png',
   },
