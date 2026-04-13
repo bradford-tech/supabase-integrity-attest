@@ -52,9 +52,20 @@ function toPgBytea(bytes: Uint8Array): string {
 
 // --- App Attest configuration ---
 
+const appId = Deno.env.get('APP_ID');
+const isProduction = Deno.env.get('ENVIRONMENT') === 'production';
+
+if (!appId && isProduction) {
+  throw new Error(
+    'APP_ID env var is required in production. ' +
+      'Set it to TEAMID.bundleIdentifier (e.g., ABC123DEF4.com.example.app). ' +
+      'See supabase/.env.local.example for details.',
+  );
+}
+
 export const APP_INFO = {
-  appId: Deno.env.get('APP_ID') ?? 'TEAMID1234.com.example.demo',
-  developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
+  appId: appId ?? 'TEAMID1234.com.example.demo',
+  developmentEnv: !isProduction,
 };
 
 // --- Challenge lifecycle ---

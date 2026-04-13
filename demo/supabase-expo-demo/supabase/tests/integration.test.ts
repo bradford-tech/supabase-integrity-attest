@@ -34,10 +34,12 @@ const FUNCTIONS_URL = `${API_URL}/functions/v1`;
 const SERVICE_ROLE_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU";
 
-// MUST match the APP_ID default in supabase/functions/_shared/integrity.ts.
-// Both sides hardcode the same value so no env configuration step is
-// needed. If you change this, change APP_INFO.appId in integrity.ts too.
-const TEST_APP_ID = "TEAMID1234.com.example.demo";
+// Reads APP_ID from env if set (for iPhone E2E with a real Team ID),
+// falls back to the same default _shared/integrity.ts uses in non-
+// production. The test doesn't care what the specific string is, only
+// that both sides use the same one.
+const TEST_APP_ID =
+  Deno.env.get('APP_ID') ?? 'TEAMID1234.com.example.demo';
 const TEST_DEVICE_ID = "test-device-" + crypto.randomUUID();
 
 // --- Assertion helpers ---
