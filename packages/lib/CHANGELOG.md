@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.5.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.4.1...v0.5.0) (2026-04-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **lib:** hash challenge in withAttestation, rename parameter to clientDataHash ([#43](https://github.com/bradford-tech/supabase-integrity-attest/issues/43))
+
+### Bug Fixes
+
+* **lib:** hash challenge in withAttestation, rename parameter to clientDataHash ([#43](https://github.com/bradford-tech/supabase-integrity-attest/issues/43)) ([76f6be9](https://github.com/bradford-tech/supabase-integrity-attest/commit/76f6be9a948a983bb615fad5355f32a38c46afb0))
+
 ## [0.4.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.4.0...v0.4.1) (2026-04-12)
 
 
