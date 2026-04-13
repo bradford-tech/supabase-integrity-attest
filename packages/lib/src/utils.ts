@@ -55,6 +55,6 @@ export async function importPemPublicKey(pem: string): Promise<CryptoKey> {
 /** Export a CryptoKey to PEM-encoded SPKI format. */
 export async function exportKeyToPem(key: CryptoKey): Promise<string> {
   const spki = await crypto.subtle.exportKey("spki", key);
-  const base64 = encodeBase64(spki);
+  const base64 = encodeBase64(spki).match(/.{1,64}/g)!.join("\n");
   return `-----BEGIN PUBLIC KEY-----\n${base64}\n-----END PUBLIC KEY-----`;
 }
