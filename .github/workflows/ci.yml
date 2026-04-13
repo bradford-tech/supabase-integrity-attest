@@ -45,3 +45,5 @@ jobs:
       - run: npm ci
 
       - run: npx turbo run check build --filter=docs
+        env:
+          DO_NOT_TRACK: 1
