@@ -1,6 +1,6 @@
 {
   "name": "@bradford-tech/supabase-integrity-attest",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "check": "DENO_NO_PACKAGE_JSON=1 deno fmt --check && DENO_NO_PACKAGE_JSON=1 deno lint && DENO_NO_PACKAGE_JSON=1 deno test --allow-net=none --unstable-kv",
