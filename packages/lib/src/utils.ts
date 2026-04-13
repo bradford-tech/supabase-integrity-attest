@@ -16,9 +16,8 @@ export function concat(...arrays: Uint8Array[]): Uint8Array {
 
 /** Constant-time comparison of two byte arrays. */
 export function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) {
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < a.length && i < b.length; i++) {
     diff |= a[i] ^ b[i];
   }
   return diff === 0;
