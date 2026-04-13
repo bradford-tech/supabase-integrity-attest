@@ -16,9 +16,8 @@ export function concat(...arrays: Uint8Array[]): Uint8Array {
 
 /** Constant-time comparison of two byte arrays. */
 export function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
-  if (a.length !== b.length) return false;
-  let diff = 0;
-  for (let i = 0; i < a.length; i++) {
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < a.length && i < b.length; i++) {
     diff |= a[i] ^ b[i];
   }
   return diff === 0;
@@ -55,6 +54,6 @@ export async function importPemPublicKey(pem: string): Promise<CryptoKey> {
 /** Export a CryptoKey to PEM-encoded SPKI format. */
 export async function exportKeyToPem(key: CryptoKey): Promise<string> {
   const spki = await crypto.subtle.exportKey("spki", key);
-  const base64 = encodeBase64(spki);
+  const base64 = encodeBase64(spki).match(/.{1,64}/g)!.join("\n");
   return `-----BEGIN PUBLIC KEY-----\n${base64}\n-----END PUBLIC KEY-----`;
 }

@@ -15,10 +15,14 @@
  * ```ts
  * import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest";
  *
+ * // clientDataHash = SHA-256(challenge) — most client SDKs hash internally
+ * const clientDataHash = new Uint8Array(
+ *   await crypto.subtle.digest("SHA-256", new TextEncoder().encode(challenge)),
+ * );
  * const { publicKeyPem, receipt, signCount } = await verifyAttestation(
  *   { appId: "TEAMID.com.example.app" },
  *   keyId,
- *   challenge,
+ *   clientDataHash,
  *   attestation,
  * );
  * // Store publicKeyPem and signCount for future assertion verification

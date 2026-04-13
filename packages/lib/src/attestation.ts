@@ -241,12 +241,20 @@ export function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
  * CBOR decode, certificate chain validation, nonce check, key extraction,
  * AAGUID check, and credential ID verification.
  *
+ * **Important:** The `clientDataHash` parameter corresponds to Apple's
+ * `clientDataHash` argument on `DCAppAttestService.attestKey(_:clientDataHash:)`.
+ * Most client SDKs (Expo's `attestKeyAsync`, native wrappers) hash the
+ * caller's challenge with SHA-256 before passing to Apple. If you are using
+ * the {@linkcode withAttestation} middleware, this hashing is handled
+ * automatically. If calling `verifyAttestation` directly, you must pass
+ * `SHA-256(challenge)` — not the raw challenge — as `clientDataHash`.
+ *
  * @throws {AttestationError} If any verification step fails.
  */
 export async function verifyAttestation(
   appInfo: AppInfo,
   keyId: string,
-  challenge: Uint8Array | string,
+  clientDataHash: Uint8Array | string,
   attestation: Uint8Array | string,
   options?: VerifyAttestationOptions,
 ): Promise<AttestationResult> {
@@ -298,11 +306,11 @@ export async function verifyAttestation(
   // Step 4: Verify certificate chain
   await verifyCertificateChain(x5c, options?.checkDate);
 
-  // Step 5-6: Compute nonce = SHA-256(authData || challenge)
-  // Apple's nonce verification uses the raw challenge bytes concatenated with authData,
-  // NOT a hash of the challenge.
-  const challengeBytes = toBytes(challenge);
-  const nonceInput = concat(authData, challengeBytes);
+  // Step 5-6: Compute nonce = SHA-256(authData || clientDataHash)
+  // The clientDataHash is typically SHA-256(challenge) — see the JSDoc above.
+  // The withAttestation middleware handles this hashing automatically.
+  const clientDataHashBytes = toBytes(clientDataHash);
+  const nonceInput = concat(authData, clientDataHashBytes);
   const computedNonce = new Uint8Array(
     await crypto.subtle.digest("SHA-256", nonceInput),
   );
