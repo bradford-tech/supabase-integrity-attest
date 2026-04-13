@@ -2,7 +2,7 @@
 import { assertEquals, assertRejects } from "@std/assert";
 import { decodeBase64 } from "@std/encoding/base64";
 import { verifyAttestation } from "../src/attestation.ts";
-import { AttestationError } from "../src/errors.ts";
+import { AttestationError, AttestationErrorCode } from "../src/errors.ts";
 import { APPLE_TEST_VECTOR } from "./fixtures/apple-attestation.ts";
 
 // The Apple test vector certs expired April 20, 2024.
@@ -58,7 +58,7 @@ Deno.test("verifyAttestation public key hash matches keyId", async () => {
 });
 
 Deno.test("verifyAttestation rejects wrong challenge", async () => {
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAttestation(
         { appId: APPLE_TEST_VECTOR.appId, developmentEnv: false },
@@ -69,10 +69,11 @@ Deno.test("verifyAttestation rejects wrong challenge", async () => {
       ),
     AttestationError,
   );
+  assertEquals(err.code, AttestationErrorCode.NONCE_MISMATCH);
 });
 
 Deno.test("verifyAttestation rejects wrong appId", async () => {
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAttestation(
         { appId: "WRONG.com.example.wrongapp", developmentEnv: false },
@@ -83,10 +84,11 @@ Deno.test("verifyAttestation rejects wrong appId", async () => {
       ),
     AttestationError,
   );
+  assertEquals(err.code, AttestationErrorCode.RP_ID_MISMATCH);
 });
 
 Deno.test("verifyAttestation rejects wrong keyId", async () => {
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAttestation(
         { appId: APPLE_TEST_VECTOR.appId, developmentEnv: false },
@@ -97,11 +99,12 @@ Deno.test("verifyAttestation rejects wrong keyId", async () => {
       ),
     AttestationError,
   );
+  assertEquals(err.code, AttestationErrorCode.KEY_ID_MISMATCH);
 });
 
 Deno.test("verifyAttestation rejects wrong environment", async () => {
   // Apple test vector is production; requesting dev should fail on AAGUID
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAttestation(
         { appId: APPLE_TEST_VECTOR.appId, developmentEnv: true },
@@ -112,10 +115,11 @@ Deno.test("verifyAttestation rejects wrong environment", async () => {
       ),
     AttestationError,
   );
+  assertEquals(err.code, AttestationErrorCode.INVALID_AAGUID);
 });
 
 Deno.test("verifyAttestation rejects malformed CBOR", async () => {
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAttestation(
         { appId: APPLE_TEST_VECTOR.appId },
@@ -125,4 +129,5 @@ Deno.test("verifyAttestation rejects malformed CBOR", async () => {
       ),
     AttestationError,
   );
+  assertEquals(err.code, AttestationErrorCode.INVALID_FORMAT);
 });
