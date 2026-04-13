@@ -8,11 +8,28 @@ import { APPLE_TEST_VECTOR } from "./fixtures/apple-attestation.ts";
 // The Apple test vector certs expired April 20, 2024.
 // verifyAttestation must accept a checkDate option internally for testing.
 
+// Apple's published test vector was generated with the raw challenge
+// string "test_server_challenge" passed directly as clientDataHash —
+// NOT hashed first. This is atypical: real client SDKs (Expo's
+// attestKeyAsync, native wrappers around DCAppAttestService) hash
+// their challenge with SHA-256 before passing to Apple. The
+// withAttestation middleware mirrors this by hashing the raw challenge
+// before calling verifyAttestation. When using verifyAttestation
+// directly, callers must construct the clientDataHash themselves —
+// typically SHA-256(challenge), sometimes a different derivation
+// depending on client SDK behavior.
+//
+// The test below passes the raw challenge string because that is what
+// was used as clientDataHash when Apple generated this specific test
+// vector. This does NOT represent the normal integration pattern.
+
 Deno.test("verifyAttestation succeeds with Apple test vector", async () => {
+  // Pass raw challenge as clientDataHash — matches how Apple generated
+  // this specific test vector (see comment above).
   const result = await verifyAttestation(
     { appId: APPLE_TEST_VECTOR.appId, developmentEnv: false },
     APPLE_TEST_VECTOR.keyId,
-    APPLE_TEST_VECTOR.challenge,
+    APPLE_TEST_VECTOR.challenge, // raw string used as clientDataHash in test vector
     APPLE_TEST_VECTOR.attestationBase64,
     { checkDate: new Date("2024-04-18T00:00:00Z") },
   );
