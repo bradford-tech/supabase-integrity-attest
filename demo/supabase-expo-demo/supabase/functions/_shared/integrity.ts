@@ -52,14 +52,19 @@ function toPgBytea(bytes: Uint8Array): string {
 
 // --- App Attest configuration ---
 
-const appId = Deno.env.get('APP_ID');
+// Derive APP_ID from the same EXPO_PUBLIC_* env vars the client uses.
+// These are passed through from .env.local via config.toml
+// [edge_runtime.secrets], so there's a single source of truth.
+const teamId = Deno.env.get('EXPO_PUBLIC_TEAM_ID');
+const bundleId = Deno.env.get('EXPO_PUBLIC_BUNDLE_IDENTIFIER');
 const isProduction = Deno.env.get('ENVIRONMENT') === 'production';
+
+const appId = teamId && bundleId ? `${teamId}.${bundleId}` : undefined;
 
 if (!appId && isProduction) {
   throw new Error(
-    'APP_ID env var is required in production. ' +
-      'Set it to TEAMID.bundleIdentifier (e.g., ABC123DEF4.com.example.app). ' +
-      'See supabase/.env.local.example for details.',
+    'EXPO_PUBLIC_TEAM_ID and EXPO_PUBLIC_BUNDLE_IDENTIFIER env vars are ' +
+      'required in production. Set them in .env.local.',
   );
 }
 
@@ -204,7 +209,7 @@ async function commitSignCount(
  * Persist a verified device key. UPSERT semantics — re-attesting an
  * existing device is cryptographically safe (Apple has re-signed).
  */
-async function storeDeviceKey(row: {
+export async function storeDeviceKey(row: {
   deviceId: string;
   publicKeyPem: string;
   signCount: number;

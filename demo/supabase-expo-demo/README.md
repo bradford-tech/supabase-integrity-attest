@@ -52,28 +52,16 @@ EXPO_PUBLIC_BUNDLE_IDENTIFIER=com.yourcompany.appattest-demo
 
 Find your LAN IP via `ipconfig getifaddr en0` (macOS). Do not use `127.0.0.1` or `localhost` — the iPhone can't reach those on the host machine.
 
-### 5. Configure the Supabase edge functions
+This single `.env.local` file is the source of truth for both the Expo client AND the Supabase edge functions. The edge functions receive `EXPO_PUBLIC_TEAM_ID` and `EXPO_PUBLIC_BUNDLE_IDENTIFIER` via `config.toml`'s `[edge_runtime.secrets]` section and derive `APP_ID = TEAMID.bundleIdentifier` at runtime. No separate server-side env file is needed.
 
-```bash
-cp supabase/.env.local.example supabase/.env.local
-```
-
-Edit `supabase/.env.local`:
-
-```
-APP_ID=ABC123DEF4.com.yourcompany.appattest-demo
-```
-
-The format is `TEAMID.bundleIdentifier` — the same values from steps 1 and 2, dot-separated. This must match exactly what the Expo client derives, or App Attest verification will reject with `RP_ID_MISMATCH`.
-
-### 6. Start the backend
+### 5. Start the backend
 
 ```bash
 npx supabase start
 npx supabase db reset
 ```
 
-### 7. Build and run on iPhone
+### 6. Build and run on iPhone
 
 ```bash
 npx expo run:ios --device
@@ -83,7 +71,7 @@ This creates a native development build on the connected iPhone. The first build
 
 > `expo start --ios` (Expo Go) will **not** work — `@expo/app-integrity` requires native modules that Expo Go doesn't include. Always use `expo run:ios`.
 
-### 8. Verify the flow
+### 7. Verify the flow
 
 1. **Status strip** shows "Not attested" with your Supabase URL
 2. Tap **Call unprotected** — timing bar and DB inspector should populate

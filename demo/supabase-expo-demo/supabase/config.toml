@@ -365,8 +365,11 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+[edge_runtime.secrets]
+# Passed through from .env.local so edge functions can derive APP_ID.
+# Same vars the Expo client reads — single source of truth.
+EXPO_PUBLIC_TEAM_ID = "env(EXPO_PUBLIC_TEAM_ID)"
+EXPO_PUBLIC_BUNDLE_IDENTIFIER = "env(EXPO_PUBLIC_BUNDLE_IDENTIFIER)"
 
 [analytics]
 enabled = false
