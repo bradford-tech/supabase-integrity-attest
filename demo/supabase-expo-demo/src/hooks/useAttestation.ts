@@ -100,27 +100,50 @@ export function useAttestation(): UseAttestationReturn {
 
     try {
       // Step 1: Generate a new cryptographic key in the Secure Enclave.
+      console.log("[attest] Step 1: generating key...");
       const newKeyId = await AppIntegrity.generateKeyAsync();
+      console.log(
+        "[attest] Step 1 done. keyId:",
+        newKeyId.slice(0, 12) + "...",
+      );
 
       // Step 2: Get a one-time challenge from the server.
+      console.log("[attest] Step 2: issuing challenge...");
       const challengeResult = await issueChallenge("attestation");
       if (!challengeResult.ok || !challengeResult.data) {
+        console.error("[attest] Step 2 failed:", challengeResult.error);
         throw new Error(
           challengeResult.error?.error ?? "Failed to get challenge",
         );
       }
+      console.log(
+        "[attest] Step 2 done. challenge:",
+        challengeResult.data.challenge.slice(0, 16) + "...",
+      );
 
       // Step 3: Ask Apple to attest the key.
+      console.log("[attest] Step 3: calling attestKeyAsync...");
       const attestationObject = await AppIntegrity.attestKeyAsync(
         newKeyId,
         challengeResult.data.challenge,
       );
+      console.log(
+        "[attest] Step 3 done. attestation length:",
+        attestationObject.length,
+      );
 
       // Step 4: Send the attestation to the server for verification.
+      console.log("[attest] Step 4: verifying on server...");
       const verifyResult = await verifyAttestation({
         keyId: newKeyId,
         challenge: challengeResult.data.challenge,
         attestation: attestationObject,
+      });
+      console.log("[attest] Step 4 result:", {
+        status: verifyResult.status,
+        ok: verifyResult.ok,
+        error: verifyResult.error,
+        serverTiming: verifyResult.serverTiming,
       });
 
       if (!verifyResult.ok) {
@@ -167,12 +190,18 @@ export function useAttestation(): UseAttestationReturn {
 
       try {
         // Step 1: Get a one-time challenge.
+        console.log("[callProtected] Step 1: issuing assertion challenge...");
         const challengeResult = await issueChallenge("assertion");
         if (!challengeResult.ok || !challengeResult.data) {
+          console.error(
+            "[callProtected] Step 1 failed:",
+            challengeResult.error,
+          );
           throw new Error(
             challengeResult.error?.error ?? "Failed to get challenge",
           );
         }
+        console.log("[callProtected] Step 1 done.");
 
         // Step 2: Build the request body. The challenge is embedded so
         // the server can verify it as a belt-and-suspenders check.
@@ -190,17 +219,29 @@ export function useAttestation(): UseAttestationReturn {
         // generateAssertionAsync signs the string, and the server's
         // withAssertion middleware verifies against the raw body bytes
         // (which are the UTF-8 encoding of this string).
+        console.log("[callProtected] Step 3: signing assertion...");
         const assertion = await AppIntegrity.generateAssertionAsync(
           currentKeyId,
           bodyString,
         );
+        console.log(
+          "[callProtected] Step 3 done. assertion length:",
+          assertion.length,
+        );
 
         // Step 4: Send the signed request.
+        console.log("[callProtected] Step 4: calling protected-event...");
         const result = await callProtectedEvent(
           bodyBytes,
           assertion,
           currentKeyId,
         );
+        console.log("[callProtected] Step 4 result:", {
+          status: result.status,
+          ok: result.ok,
+          error: result.error,
+          durationMs: result.durationMs,
+        });
 
         if (result.ok && result.data) {
           setSignCount(result.data.signCount);
