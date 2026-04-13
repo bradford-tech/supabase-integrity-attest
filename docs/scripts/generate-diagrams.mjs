@@ -143,4 +143,13 @@ try {
 } catch (error) {
   console.error(error)
   process.exit(1)
+} finally {
+  // The D2 renderer leaves open handles (child processes, file
+  // descriptors) that prevent Node from exiting naturally. Without
+  // this explicit exit, the script hangs indefinitely under turbo
+  // (which waits for the process to close before starting the next
+  // pipeline step). Running `next build` directly works because
+  // Node is replaced by the next command in the && chain, but
+  // turbo spawns each script as a child process and waits for exit.
+  process.exit(0)
 }
