@@ -216,11 +216,13 @@ export function withAssertion(
 
       newSignCount = result.signCount;
     } catch (err) {
-      const error = err instanceof AssertionError
-        ? err
-        : new AssertionError(AssertionErrorCode.INTERNAL_ERROR, String(err), {
+      const error = err instanceof AssertionError ? err : new AssertionError(
+        AssertionErrorCode.INTERNAL_ERROR,
+        "Internal error",
+        {
           cause: err,
-        });
+        },
+      );
       return options.onError?.(error, req) ?? defaultErrorResponse(error);
     }
 

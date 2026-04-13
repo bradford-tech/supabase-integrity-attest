@@ -1,7 +1,7 @@
 // tests/assertion.test.ts
 import { assertEquals, assertRejects } from "@std/assert";
 import { verifyAssertion } from "../src/assertion.ts";
-import { AssertionError } from "../src/errors.ts";
+import { AssertionError, AssertionErrorCode } from "../src/errors.ts";
 import { generateSyntheticAssertion } from "./fixtures/generate-assertion.ts";
 import { exportKeyToPem } from "../src/utils.ts";
 
@@ -69,7 +69,7 @@ Deno.test("verifyAssertion rejects wrong key", async () => {
     ["sign", "verify"],
   );
   const wrongPem = await exportKeyToPem(otherKeyPair.publicKey);
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAssertion(
         { appId: TEST_APP_ID },
@@ -80,6 +80,7 @@ Deno.test("verifyAssertion rejects wrong key", async () => {
       ),
     AssertionError,
   );
+  assertEquals(err.code, AssertionErrorCode.SIGNATURE_INVALID);
 });
 
 Deno.test("verifyAssertion rejects counter not incremented", async () => {
@@ -88,7 +89,7 @@ Deno.test("verifyAssertion rejects counter not incremented", async () => {
     clientData: TEST_CLIENT_DATA,
     signCount: 5,
   });
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAssertion(
         { appId: TEST_APP_ID },
@@ -99,6 +100,7 @@ Deno.test("verifyAssertion rejects counter not incremented", async () => {
       ),
     AssertionError,
   );
+  assertEquals(err.code, AssertionErrorCode.COUNTER_NOT_INCREMENTED);
 });
 
 Deno.test("verifyAssertion rejects wrong appId", async () => {
@@ -107,7 +109,7 @@ Deno.test("verifyAssertion rejects wrong appId", async () => {
     clientData: TEST_CLIENT_DATA,
     signCount: 1,
   });
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAssertion(
         { appId: "WRONG.com.example.otherapp" },
@@ -118,6 +120,7 @@ Deno.test("verifyAssertion rejects wrong appId", async () => {
       ),
     AssertionError,
   );
+  assertEquals(err.code, AssertionErrorCode.RP_ID_MISMATCH);
 });
 
 Deno.test("verifyAssertion rejects tampered clientData", async () => {
@@ -126,7 +129,7 @@ Deno.test("verifyAssertion rejects tampered clientData", async () => {
     clientData: TEST_CLIENT_DATA,
     signCount: 1,
   });
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAssertion(
         { appId: TEST_APP_ID },
@@ -137,6 +140,7 @@ Deno.test("verifyAssertion rejects tampered clientData", async () => {
       ),
     AssertionError,
   );
+  assertEquals(err.code, AssertionErrorCode.SIGNATURE_INVALID);
 });
 
 Deno.test("verifyAssertion rejects malformed CBOR", async () => {
@@ -145,7 +149,7 @@ Deno.test("verifyAssertion rejects malformed CBOR", async () => {
     clientData: TEST_CLIENT_DATA,
     signCount: 1,
   });
-  await assertRejects(
+  const err = await assertRejects(
     () =>
       verifyAssertion(
         { appId: TEST_APP_ID },
@@ -156,6 +160,7 @@ Deno.test("verifyAssertion rejects malformed CBOR", async () => {
       ),
     AssertionError,
   );
+  assertEquals(err.code, AssertionErrorCode.INVALID_FORMAT);
 });
 
 Deno.test("verifyAssertion accepts base64 string inputs", async () => {
