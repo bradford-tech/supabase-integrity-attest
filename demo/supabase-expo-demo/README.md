@@ -12,19 +12,29 @@ Go to [Apple Developer Account > Membership](https://developer.apple.com/account
 
 ### 2. Choose a bundle identifier
 
-Pick a reverse-DNS bundle identifier for the demo app (e.g., `com.yourcompany.appattest-demo`). This can be anything you own — it just needs to be unique in the Apple Developer portal.
+Pick a reverse-DNS bundle identifier for the demo app. This can be anything you own — it just needs to be unique in the Apple Developer portal.
 
-### 3. Create an App ID with App Attest enabled
+**Example:** `com.yourcompany.appattest-demo`
 
-This is the single most important step. Without it, attestation will fail with `RP_ID_MISMATCH` and there is no workaround.
+The convention is your reversed domain name followed by a project-specific suffix. Use only lowercase letters, numbers, hyphens, and dots.
 
-1. Go to [Certificates, Identifiers & Profiles > Identifiers](https://developer.apple.com/account/resources/identifiers)
-2. Click **+** to register a new App ID (or select an existing one)
-3. Set the **Bundle ID** to match the identifier you chose in step 2
-4. Under **Capabilities**, check **App Attest** — it must be explicitly enabled, not just present
-5. Click **Save**
+### 3. Register an App ID with App Attest enabled
 
-> After enabling App Attest, Apple regenerates the provisioning profile for this App ID. In Xcode, go to **Signing & Capabilities** and re-download the updated profile (or let Xcode manage it automatically).
+**This is the single most important step.** Without it, attestation will fail with `RP_ID_MISMATCH` and there is no workaround.
+
+1. Go to [Certificates, Identifiers & Profiles > Identifiers](https://developer.apple.com/account/resources/identifiers/list/bundleId)
+2. Click the **+** button (top left) to register a new identifier
+3. Select **App IDs** and click **Continue**
+4. Select **App** (not App Clip) and click **Continue**
+5. Fill in the registration form:
+   - **Description:** A human-readable name (e.g., `App Attest Demo`)
+   - **Bundle ID:** Select **Explicit** and enter the identifier from step 2 (e.g., `com.yourcompany.appattest-demo`)
+6. Scroll down to the **Capabilities** section and check the **App Attest** checkbox
+7. Click **Continue**, then **Register**
+
+> **App Attest must be explicitly checked.** Simply having an App ID is not sufficient — the App Attest capability must be ticked on. If you skip this, the attestation flow will fail with `RP_ID_MISMATCH` at runtime and there is no workaround other than going back and enabling it.
+
+> Expo's `expo run:ios` handles code signing and provisioning profiles automatically — you do not need to open Xcode manually. On first build, Expo will prompt you to select your Apple team and will configure signing for you.
 
 ### 4. Configure the Expo client
 
