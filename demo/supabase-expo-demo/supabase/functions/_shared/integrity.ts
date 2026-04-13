@@ -209,7 +209,7 @@ async function commitSignCount(
  * Persist a verified device key. UPSERT semantics — re-attesting an
  * existing device is cryptographically safe (Apple has re-signed).
  */
-export async function storeDeviceKey(row: {
+async function storeDeviceKey(row: {
   deviceId: string;
   publicKeyPem: string;
   signCount: number;

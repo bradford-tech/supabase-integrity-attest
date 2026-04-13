@@ -8,6 +8,7 @@
     "npm:@noble/curves@^2.0.1": "2.2.0",
     "npm:@supabase/supabase-js@^2.103.0": "2.103.0",
     "npm:asn1js@^3.0.7": "3.0.7",
+    "npm:cborg@4.5.8": "4.5.8",
     "npm:cborg@^4.5.8": "4.5.8",
     "npm:openai@^4.52.5": "4.104.0"
   },
@@ -18,7 +19,7 @@
         "jsr:@std/encoding@1.0.10",
         "npm:@noble/curves",
         "npm:asn1js",
-        "npm:cborg"
+        "npm:cborg@^4.5.8"
       ]
     },
     "@std/encoding@1.0.10": {

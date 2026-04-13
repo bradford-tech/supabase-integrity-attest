@@ -36,7 +36,18 @@ export type AttestationContext = {
 /** Custom function to extract attestation data from an incoming request. */
 export type ExtractAttestationFn = (req: Request) => Promise<{
   deviceId: string;
+  /** Raw challenge bytes for the `consumeChallenge` DB lookup. */
   challenge: Uint8Array;
+  /**
+   * The challenge in the exact form the client SDK received it, before
+   * any server-side decoding. This is what the client SDK hashed to
+   * produce `clientDataHash` — Expo's `attestKeyAsync` and native
+   * `DCAppAttestService` wrappers convert this string to UTF-8 bytes
+   * and SHA-256 hash them before passing to Apple. The middleware must
+   * hash this same string to produce the matching `clientDataHash` for
+   * `verifyAttestation`.
+   */
+  challengeAsSent: string;
   attestation: Uint8Array;
 }>;
 
@@ -83,6 +94,7 @@ export type WithAttestationOptions = {
 async function defaultExtractAttestation(req: Request): Promise<{
   deviceId: string;
   challenge: Uint8Array;
+  challengeAsSent: string;
   attestation: Uint8Array;
 }> {
   let body: unknown;
@@ -130,7 +142,12 @@ async function defaultExtractAttestation(req: Request): Promise<{
       "attestation is not valid base64",
     );
   }
-  return { deviceId: typed.keyId, challenge, attestation };
+  return {
+    deviceId: typed.keyId,
+    challenge,
+    challengeAsSent: typed.challenge,
+    attestation,
+  };
 }
 
 function defaultErrorResponse(error: AttestationError): Response {
@@ -216,14 +233,24 @@ export function withAttestation(
         );
       }
 
-      // Hash the raw challenge to produce clientDataHash. Client SDKs
-      // (Expo's attestKeyAsync, native DCAppAttestService wrappers) hash
-      // the challenge with SHA-256 before passing to Apple's attestKey
-      // API, so the attestation certificate's nonce is computed over the
-      // hash, not the raw bytes. verifyAttestation expects clientDataHash
-      // (the hash), not the raw challenge.
+      // Hash the challenge AS THE CLIENT SAW IT — the exact string passed
+      // to attestKeyAsync / DCAppAttestService.attestKey. Client SDKs
+      // convert this string to UTF-8 bytes and SHA-256 hash them before
+      // passing to Apple as clientDataHash. The attestation certificate's
+      // nonce is SHA-256(authData || clientDataHash), so we must hash the
+      // same string to produce the matching clientDataHash.
+      //
+      // This is different from the assertion path, which has no encoding
+      // layer: the string passed to generateAssertionAsync IS the raw
+      // body, and both sides hash identical bytes by definition.
+      // Attestation has a transport encoding layer (base64 in a JSON
+      // body), so the middleware must hash BEFORE decoding to match what
+      // the client SDK hashed.
       const clientDataHash = new Uint8Array(
-        await crypto.subtle.digest("SHA-256", extracted.challenge),
+        await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(extracted.challengeAsSent),
+        ),
       );
 
       const verifyStart = performance.now();
