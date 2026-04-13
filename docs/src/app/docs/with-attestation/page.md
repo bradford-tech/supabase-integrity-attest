@@ -78,10 +78,11 @@ Deno.serve(handler)
 ## What it does for you
 
 1. **Extracts** the request body as JSON, expecting `{ keyId, challenge, attestation }` with all three values base64-encoded. Override with `extractAttestation` for a different wire format.
-2. **Consumes the challenge** via your `consumeChallenge` callback. If the callback returns `false`, the wrapper throws `AttestationError(CHALLENGE_INVALID)` and your handler never runs.
-3. **Verifies the attestation** cryptographically — CBOR decode, X.509 cert chain, nonce, key extract, AAGUID, credentialId check.
-4. **Persists** the verified key via your `storeDeviceKey` callback.
-5. **Calls** your handler with the verified context, including the extracted `publicKeyPem`, `receipt`, and library-internal timing spans.
+2. **Consumes the challenge** via your `consumeChallenge` callback using the raw challenge bytes (for DB lookup). If the callback returns `false`, the wrapper throws `AttestationError(CHALLENGE_INVALID)` and your handler never runs.
+3. **Hashes the challenge** — computes `clientDataHash = SHA-256(challenge)` to match what client SDKs (Expo's `attestKeyAsync`, native `DCAppAttestService` wrappers) pass to Apple. This step is why you don't need to think about `clientDataHash` when using this wrapper — it's handled for you.
+4. **Verifies the attestation** cryptographically — CBOR decode, X.509 cert chain, nonce (using the hashed challenge), key extract, AAGUID, credentialId check.
+5. **Persists** the verified key via your `storeDeviceKey` callback.
+6. **Calls** your handler with the verified context, including the extracted `publicKeyPem`, `receipt`, and library-internal timing spans.
 
 Any step that fails short-circuits to an `AttestationError` → JSON error response.
 

@@ -209,9 +209,9 @@ The X.509 certificate chain failed validation against Apple's App Attestation Ro
 
 ### NONCE_MISMATCH
 
-The computed nonce (`SHA-256(authData || challenge)`) doesn't match the nonce in the leaf certificate.
+The computed nonce (`SHA-256(authData || clientDataHash)`) doesn't match the nonce in the leaf certificate.
 
-**Resolution:** Ensure you're passing the exact same challenge value that was active when the client called `attestKeyAsync()`. Check that the challenge hasn't been URL-encoded or otherwise transformed.
+**Resolution:** If using `verifyAttestation()` directly, ensure the `clientDataHash` parameter is `SHA-256(challenge)` — NOT the raw challenge bytes. Client SDKs (Expo's `attestKeyAsync`, native `DCAppAttestService` wrappers) hash the challenge before passing to Apple, so the server must do the same. If using the `withAttestation` middleware, this hashing is handled automatically — check that the challenge hasn't expired or been consumed already instead.
 
 ### RP_ID_MISMATCH
 
@@ -316,7 +316,16 @@ import {
 } from '@bradford-tech/supabase-integrity-attest'
 
 try {
-  const result = await verifyAttestation(appInfo, keyId, challenge, attestation)
+  // clientDataHash = SHA-256(challenge) — most client SDKs hash internally
+  const clientDataHash = new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(challenge)),
+  )
+  const result = await verifyAttestation(
+    appInfo,
+    keyId,
+    clientDataHash,
+    attestation,
+  )
   // Success — store result
 } catch (error) {
   if (error instanceof AttestationError) {

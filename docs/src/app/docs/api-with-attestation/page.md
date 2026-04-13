@@ -101,6 +101,7 @@ When verification fails and no `onError` is provided:
 ## Handler behavior
 
 - Your handler only runs after successful verification and a successful `storeDeviceKey` write.
+- The middleware automatically hashes the raw challenge with SHA-256 before passing it to `verifyAttestation` as `clientDataHash`. This matches the behavior of client SDKs (Expo's `attestKeyAsync`, native `DCAppAttestService` wrappers), which hash the challenge before sending to Apple. You do not need to hash the challenge yourself when using this middleware.
 - A `consumeChallenge` that returns `false` (not throws) surfaces as `CHALLENGE_INVALID` — an expected condition (missing, expired, or already-consumed challenge), not a callback failure.
 - Errors **thrown** by `consumeChallenge` or `storeDeviceKey` are wrapped as `INTERNAL_ERROR` (HTTP 500) with a static, client-safe message. The original error is attached via `error.cause` for your own logging and never reflected in the HTTP response body — this prevents accidental leakage of database schema details, constraint names, or driver diagnostics through the unauthenticated attestation endpoint.
 - Any unexpected non-`AttestationError` thrown inside the middleware pipeline (extractor, `verifyAttestation`, etc.) is similarly wrapped as `INTERNAL_ERROR` with a generic `"Internal error"` message and the original attached via `cause`.
