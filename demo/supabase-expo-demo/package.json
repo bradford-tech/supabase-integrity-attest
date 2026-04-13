@@ -9,6 +9,7 @@
     "format": "prettier --write --cache --log-level warn \"**/*.{json,md,css,yml,yaml,html}\" && deno fmt --config supabase/functions/deno.json supabase/functions/ --quiet",
     "format:check": "prettier --check --cache --log-level warn \"**/*.{json,md,css,yml,yaml,html}\" && deno fmt --check --config supabase/functions/deno.json supabase/functions/ --quiet",
     "ios": "expo run:ios",
+    "iphone": "expo run:ios --device",
     "lint": "expo lint --fix . && for dir in supabase/functions/*/; do [ -f \"${dir}index.ts\" ] && (cd \"$dir\" && deno lint --fix --quiet index.ts); done",
     "lint:check": "expo lint . && for dir in supabase/functions/*/; do [ -f \"${dir}index.ts\" ] && (cd \"$dir\" && deno lint --quiet index.ts); done",
     "start": "expo start",
