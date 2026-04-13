@@ -11,7 +11,7 @@
  * Set via EXPO_PUBLIC_SUPABASE_URL in .env.local.
  */
 export const SUPABASE_URL: string =
-  process.env.EXPO_PUBLIC_SUPABASE_URL ?? 'http://localhost:54321'
+  process.env.EXPO_PUBLIC_SUPABASE_URL ?? "http://localhost:54321";
 
 /** Edge functions base URL derived from SUPABASE_URL. */
-export const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`
+export const FUNCTIONS_URL = `${SUPABASE_URL}/functions/v1`;

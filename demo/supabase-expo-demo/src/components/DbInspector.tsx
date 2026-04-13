@@ -3,7 +3,7 @@
 // Collapsible per-table cards showing the rows affected by the last
 // request. The sign_count field shows a diff animation (prev → new)
 // when it changes — this is the hero visual per spec §8.1 item 4.
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   Platform,
@@ -11,24 +11,24 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native'
+} from "react-native";
 
 type DeviceInfo = {
-  deviceId: string
-  signCount: number
-}
+  deviceId: string;
+  signCount: number;
+};
 
 type EventInfo = {
-  id: number
-  protected: boolean
-  device_id: string | null
-  created_at: string
-}
+  id: number;
+  protected: boolean;
+  device_id: string | null;
+  created_at: string;
+};
 
 type Props = {
-  device: DeviceInfo | null
-  event: EventInfo | null
-}
+  device: DeviceInfo | null;
+  event: EventInfo | null;
+};
 
 /**
  * Animated sign_count diff — the "42 → 43" flash that teaches replay
@@ -39,26 +39,26 @@ function SignCountDiff({
   current,
   previous,
 }: {
-  current: number
-  previous: number | null
+  current: number;
+  previous: number | null;
 }) {
-  const flashAnim = useRef(new Animated.Value(0)).current
+  const flashAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (previous !== null && previous !== current) {
-      flashAnim.setValue(1)
+      flashAnim.setValue(1);
       Animated.timing(flashAnim, {
         toValue: 0,
         duration: 1500,
         useNativeDriver: false,
-      }).start()
+      }).start();
     }
-  }, [current, previous, flashAnim])
+  }, [current, previous, flashAnim]);
 
   const bgColor = flashAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: ['rgba(34, 197, 94, 0)', 'rgba(34, 197, 94, 0.3)'],
-  })
+    outputRange: ["rgba(34, 197, 94, 0)", "rgba(34, 197, 94, 0.3)"],
+  });
 
   return (
     <Animated.View style={[styles.diffContainer, { backgroundColor: bgColor }]}>
@@ -70,17 +70,17 @@ function SignCountDiff({
         <Text style={styles.diffText}>{current}</Text>
       )}
     </Animated.View>
-  )
+  );
 }
 
 function TableCard({
   title,
   children,
 }: {
-  title: string
-  children: React.ReactNode
+  title: string;
+  children: React.ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(true);
 
   return (
     <View style={styles.card}>
@@ -89,11 +89,11 @@ function TableCard({
         style={styles.cardHeader}
       >
         <Text style={styles.cardTitle}>{title}</Text>
-        <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
+        <Text style={styles.chevron}>{expanded ? "▾" : "▸"}</Text>
       </Pressable>
       {expanded && <View style={styles.cardBody}>{children}</View>}
     </View>
-  )
+  );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -104,21 +104,21 @@ function Row({ label, value }: { label: string; value: string }) {
         {value}
       </Text>
     </View>
-  )
+  );
 }
 
 export function DbInspector({ device, event }: Props) {
-  const prevSignCount = useRef<number | null>(null)
-  const [prevSc, setPrevSc] = useState<number | null>(null)
+  const prevSignCount = useRef<number | null>(null);
+  const [prevSc, setPrevSc] = useState<number | null>(null);
 
   useEffect(() => {
     if (device) {
-      setPrevSc(prevSignCount.current)
-      prevSignCount.current = device.signCount
+      setPrevSc(prevSignCount.current);
+      prevSignCount.current = device.signCount;
     }
-  }, [device?.signCount])
+  }, [device?.signCount]);
 
-  if (!device && !event) return null
+  if (!device && !event) return null;
 
   return (
     <View style={styles.container}>
@@ -138,12 +138,12 @@ export function DbInspector({ device, event }: Props) {
         <TableCard title="demo_events">
           <Row label="id" value={String(event.id)} />
           <Row label="protected" value={String(event.protected)} />
-          <Row label="device_id" value={event.device_id ?? '(null)'} />
+          <Row label="device_id" value={event.device_id ?? "(null)"} />
           <Row label="created_at" value={event.created_at} />
         </TableCard>
       )}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -155,55 +155,55 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: "600",
+    color: "#1E293B",
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    overflow: 'hidden',
+    borderColor: "#E2E8F0",
+    overflow: "hidden",
   },
   cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: "#F8FAFC",
   },
   cardTitle: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#475569',
-    fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+    fontWeight: "600",
+    color: "#475569",
+    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
   },
   chevron: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: "#94A3B8",
   },
   cardBody: {
     padding: 14,
     gap: 6,
   },
   row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   rowLabel: {
     fontSize: 12,
-    color: '#64748B',
-    fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+    color: "#64748B",
+    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
   },
   rowValue: {
     fontSize: 12,
-    color: '#1E293B',
-    fontWeight: '500',
-    fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
-    maxWidth: '60%',
-    textAlign: 'right',
+    color: "#1E293B",
+    fontWeight: "500",
+    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
+    maxWidth: "60%",
+    textAlign: "right",
   },
   diffContainer: {
     borderRadius: 4,
@@ -212,8 +212,8 @@ const styles = StyleSheet.create({
   },
   diffText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#16A34A',
-    fontFamily: Platform.select({ ios: 'Menlo', default: 'monospace' }),
+    fontWeight: "700",
+    color: "#16A34A",
+    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
   },
-})
+});

@@ -4,82 +4,82 @@
 // through FUNCTIONS_URL from config.ts. The iPhone must be on the
 // same LAN as the host running supabase start.
 
-import { FUNCTIONS_URL } from './config'
+import { FUNCTIONS_URL } from "./config";
 
 // --- Response types ---
 
 export type ChallengeResponse = {
-  challenge: string
-  expiresAt: string
-  spans: Record<string, number>
-  cold: boolean
-  boot_age_ms: number
-}
+  challenge: string;
+  expiresAt: string;
+  spans: Record<string, number>;
+  cold: boolean;
+  boot_age_ms: number;
+};
 
 export type UnprotectedEventResponse = {
-  ok: boolean
+  ok: boolean;
   event: {
-    id: number
-    device_id: string | null
-    protected: boolean
-    payload: Record<string, unknown>
-    created_at: string
-  }
-  spans: Record<string, number>
-  cold: boolean
-  boot_age_ms: number
-}
+    id: number;
+    device_id: string | null;
+    protected: boolean;
+    payload: Record<string, unknown>;
+    created_at: string;
+  };
+  spans: Record<string, number>;
+  cold: boolean;
+  boot_age_ms: number;
+};
 
 export type ProtectedEventResponse = {
-  ok: boolean
+  ok: boolean;
   event: {
-    id: number
-    device_id: string
-    protected: boolean
-    payload: Record<string, unknown>
-    created_at: string
-  }
-  deviceId: string
-  signCount: number
-  spans: Record<string, number>
-  cold: boolean
-  boot_age_ms: number
-}
+    id: number;
+    device_id: string;
+    protected: boolean;
+    payload: Record<string, unknown>;
+    created_at: string;
+  };
+  deviceId: string;
+  signCount: number;
+  spans: Record<string, number>;
+  cold: boolean;
+  boot_age_ms: number;
+};
 
 export type VerifyAttestationResponse = {
-  ok: boolean
-  deviceId: string
-  spans: Record<string, number>
-  cold: boolean
-  boot_age_ms: number
-}
+  ok: boolean;
+  deviceId: string;
+  spans: Record<string, number>;
+  cold: boolean;
+  boot_age_ms: number;
+};
 
 export type ResetDeviceResponse = {
-  ok: boolean
-  deletedDeviceRows: number
-  spans: Record<string, number>
-  cold: boolean
-  boot_age_ms: number
-}
+  ok: boolean;
+  deletedDeviceRows: number;
+  spans: Record<string, number>;
+  cold: boolean;
+  boot_age_ms: number;
+};
 
 export type ErrorResponse = {
-  error: string
-  code?: string
+  error: string;
+  code?: string;
   _timing?: {
-    spans: Record<string, number>
-    cold: boolean
-    boot_age_ms: number
-  }
-}
+    spans: Record<string, number>;
+    cold: boolean;
+    boot_age_ms: number;
+  };
+};
 
 export type ApiResult<T> = {
-  status: number
-  ok: boolean
-  data: T | null
-  error: ErrorResponse | null
-  serverTiming: string | null
-  durationMs: number
-}
+  status: number;
+  ok: boolean;
+  data: T | null;
+  error: ErrorResponse | null;
+  serverTiming: string | null;
+  durationMs: number;
+};
 
 // --- Fetch helpers ---
 
@@ -90,23 +90,23 @@ async function request<T>(
   body: string,
   headers: Record<string, string> = {},
 ): Promise<ApiResult<T>> {
-  const start = performance.now()
+  const start = performance.now();
   try {
     const res = await fetch(`${FUNCTIONS_URL}${path}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...headers },
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
       body,
-    })
-    const durationMs = performance.now() - start
-    const json = await res.json()
+    });
+    const durationMs = performance.now() - start;
+    const json = await res.json();
     return {
       status: res.status,
       ok: res.ok,
       data: res.ok ? (json as T) : null,
       error: res.ok ? null : (json as ErrorResponse),
-      serverTiming: res.headers.get('server-timing'),
+      serverTiming: res.headers.get("server-timing"),
       durationMs,
-    }
+    };
   } catch (err) {
     return {
       status: 0,
@@ -114,11 +114,11 @@ async function request<T>(
       data: null,
       error: {
         error: err instanceof Error ? err.message : String(err),
-        code: 'NETWORK_ERROR',
+        code: "NETWORK_ERROR",
       },
       serverTiming: null,
       durationMs: performance.now() - start,
-    }
+    };
   }
 }
 
@@ -129,9 +129,9 @@ function post<T>(
 ): Promise<ApiResult<T>> {
   return request<T>(
     path,
-    typeof body === 'string' ? body : JSON.stringify(body),
+    typeof body === "string" ? body : JSON.stringify(body),
     headers,
-  )
+  );
 }
 
 /**
@@ -150,29 +150,29 @@ function postRaw<T>(
   rawBody: Uint8Array,
   headers: Record<string, string> = {},
 ): Promise<ApiResult<T>> {
-  return request<T>(path, new TextDecoder().decode(rawBody), headers)
+  return request<T>(path, new TextDecoder().decode(rawBody), headers);
 }
 
 // --- Endpoint wrappers ---
 
 export function issueChallenge(
-  purpose: 'attestation' | 'assertion',
+  purpose: "attestation" | "assertion",
 ): Promise<ApiResult<ChallengeResponse>> {
-  return post('/challenge', { purpose })
+  return post("/challenge", { purpose });
 }
 
 export function verifyAttestation(body: {
-  keyId: string
-  challenge: string
-  attestation: string
+  keyId: string;
+  challenge: string;
+  attestation: string;
 }): Promise<ApiResult<VerifyAttestationResponse>> {
-  return post('/verify-attestation', body)
+  return post("/verify-attestation", body);
 }
 
 export function callUnprotectedEvent(): Promise<
   ApiResult<UnprotectedEventResponse>
 > {
-  return post('/unprotected-event', {})
+  return post("/unprotected-event", {});
 }
 
 export function callProtectedEvent(
@@ -180,14 +180,14 @@ export function callProtectedEvent(
   assertion: string,
   deviceId: string,
 ): Promise<ApiResult<ProtectedEventResponse>> {
-  return postRaw('/protected-event', rawBody, {
-    'X-App-Attest-Assertion': assertion,
-    'X-App-Attest-Device-Id': deviceId,
-  })
+  return postRaw("/protected-event", rawBody, {
+    "X-App-Attest-Assertion": assertion,
+    "X-App-Attest-Device-Id": deviceId,
+  });
 }
 
 export function resetDevice(
   keyId: string,
 ): Promise<ApiResult<ResetDeviceResponse>> {
-  return post('/reset-device', { keyId })
+  return post("/reset-device", { keyId });
 }

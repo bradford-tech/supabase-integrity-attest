@@ -1,5 +1,5 @@
 // src/components/UnsupportedBanner.tsx
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from "react-native";
 
 /**
  * Permanent banner shown when App Attest is not supported on this device
@@ -24,13 +24,13 @@ export function UnsupportedBanner() {
         </Text>
       </View>
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    backgroundColor: '#FEF3C7',
+    flexDirection: "row",
+    backgroundColor: "#FEF3C7",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 16,
@@ -46,18 +46,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#92400E',
+    fontWeight: "600",
+    color: "#92400E",
   },
   body: {
     fontSize: 13,
-    color: '#92400E',
+    color: "#92400E",
     lineHeight: 18,
   },
   hint: {
     fontSize: 13,
-    color: '#B45309',
-    fontStyle: 'italic',
+    color: "#B45309",
+    fontStyle: "italic",
     marginTop: 4,
   },
-})
+});

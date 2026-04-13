@@ -5,17 +5,17 @@ import {
   StyleSheet,
   Text,
   View,
-} from 'react-native'
-import type { AttestState } from '../hooks/useAttestation'
+} from "react-native";
+import type { AttestState } from "../hooks/useAttestation";
 
 type Props = {
-  state: AttestState
-  isSupported: boolean
-  loading: boolean
-  onCallUnprotected: () => void
-  onCallProtected: () => void
-  onAttest: () => void
-}
+  state: AttestState;
+  isSupported: boolean;
+  loading: boolean;
+  onCallUnprotected: () => void;
+  onCallProtected: () => void;
+  onAttest: () => void;
+};
 
 export function ActionButtons({
   state,
@@ -25,8 +25,8 @@ export function ActionButtons({
   onCallProtected,
   onAttest,
 }: Props) {
-  const canProtect = isSupported && state === 'attested' && !loading
-  const canAttest = isSupported && state === 'idle' && !loading
+  const canProtect = isSupported && state === "attested" && !loading;
+  const canAttest = isSupported && state === "idle" && !loading;
 
   return (
     <View style={styles.container}>
@@ -49,7 +49,7 @@ export function ActionButtons({
         )}
       </Pressable>
 
-      {state === 'attested' ? (
+      {state === "attested" ? (
         <Pressable
           onPress={onCallProtected}
           disabled={!canProtect}
@@ -81,41 +81,41 @@ export function ActionButtons({
             <ActivityIndicator color="#fff" size="small" />
           ) : (
             <Text style={styles.buttonText}>
-              {isSupported ? 'Attest this device' : 'Not supported'}
+              {isSupported ? "Attest this device" : "Not supported"}
             </Text>
           )}
         </Pressable>
       )}
     </View>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   button: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     paddingVertical: 16,
     borderRadius: 16,
   },
-  unprotectedButton: { backgroundColor: '#EF4444' },
-  unprotectedButtonPressed: { backgroundColor: '#DC2626' },
-  protectedButton: { backgroundColor: '#22C55E' },
-  protectedButtonPressed: { backgroundColor: '#16A34A' },
-  attestButton: { backgroundColor: '#3B82F6' },
-  attestButtonPressed: { backgroundColor: '#2563EB' },
+  unprotectedButton: { backgroundColor: "#EF4444" },
+  unprotectedButtonPressed: { backgroundColor: "#DC2626" },
+  protectedButton: { backgroundColor: "#22C55E" },
+  protectedButtonPressed: { backgroundColor: "#16A34A" },
+  attestButton: { backgroundColor: "#3B82F6" },
+  attestButtonPressed: { backgroundColor: "#2563EB" },
   buttonDisabled: { opacity: 0.5 },
   buttonText: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
-})
+});
