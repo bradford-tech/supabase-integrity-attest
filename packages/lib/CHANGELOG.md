@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.7.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.6.0...v0.7.0) (2026-04-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **demo:** custom extractAttestation implementations must return challengeAsSent alongside challenge.
+* **lib:** hash challenge in withAttestation, rename parameter to clientDataHash ([#43](https://github.com/bradford-tech/supabase-integrity-attest/issues/43))
+* **lib:** AssertionErrorCode and AttestationErrorCode gain new members. Exhaustive switch statements on these enums will need updating.
+
+### Features
+
+* **demo:** Phase C hero client UI + fix(lib)!: challengeAsSent attestation contract ([#46](https://github.com/bradford-tech/supabase-integrity-attest/issues/46)) ([63be406](https://github.com/bradford-tech/supabase-integrity-attest/commit/63be40684a8896210ea87caeb6b11c8db2c6bf9c))
+* **lib:** withAttestation middleware + withAssertion TOCTOU fix (Phase A) ([#35](https://github.com/bradford-tech/supabase-integrity-attest/issues/35)) ([a89ddd8](https://github.com/bradford-tech/supabase-integrity-attest/commit/a89ddd8a8b3587f25a5de91d326d290553380f66))
+
+
+### Bug Fixes
+
+* **ci:** add DENO_NO_PACKAGE_JSON to release workflow ([23ae26c](https://github.com/bradford-tech/supabase-integrity-attest/commit/23ae26c7f6a46517d2084ae79b9964b477035699))
+* **ci:** use path-based output keys for release-please ([30c10b8](https://github.com/bradford-tech/supabase-integrity-attest/commit/30c10b89d8d0a4df63e3219643cd73eb745e9ee3))
+* **ci:** use separate release PRs to fix component matching ([c319a24](https://github.com/bradford-tech/supabase-integrity-attest/commit/c319a2480206e2e448133e8039f83c32c5a8c61e))
+* **lib:** disable dnt test compilation in build_npm.ts ([cab281e](https://github.com/bradford-tech/supabase-integrity-attest/commit/cab281ea0b9fa2749821fdbbf7b4b3fe24945177))
+* **lib:** hash challenge in withAttestation, rename parameter to clientDataHash ([#43](https://github.com/bradford-tech/supabase-integrity-attest/issues/43)) ([76f6be9](https://github.com/bradford-tech/supabase-integrity-attest/commit/76f6be9a948a983bb615fad5355f32a38c46afb0))
+* prevent Deno from resolving full npm workspace ([436d64c](https://github.com/bradford-tech/supabase-integrity-attest/commit/436d64c09ff218dabad610476f2aed6ab84854a5))
+* use bitwise OR in CBOR uint parser to avoid signed arithmetic ([295b1c8](https://github.com/bradford-tech/supabase-integrity-attest/commit/295b1c81601833d56c859155619d0dae95c324e7))
+
 ## [0.6.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.5.0...v0.6.0) (2026-04-13)
 
 *Version skipped — no functional changes.*
