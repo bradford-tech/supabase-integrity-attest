@@ -1,0 +1,121 @@
+# App Attest Demo
+
+End-to-end demo of [@bradford-tech/supabase-integrity-attest](https://integrity-attest.bradford.tech) — Apple App Attest verification on Supabase Edge Functions, exercised from an Expo iOS app on a physical iPhone.
+
+**Requirements:** macOS, Docker, Xcode, a physical iPhone (App Attest requires Secure Enclave hardware — the iOS simulator cannot be used for the attestation/assertion flows).
+
+## Setup
+
+### 1. Get your Apple Team ID
+
+Go to [Apple Developer Account > Membership](https://developer.apple.com/account) and copy your **Team ID** (10-character alphanumeric string, e.g., `ABC123DEF4`).
+
+### 2. Choose a bundle identifier
+
+Pick a reverse-DNS bundle identifier for the demo app (e.g., `com.yourcompany.appattest-demo`). This can be anything you own — it just needs to be unique in the Apple Developer portal.
+
+### 3. Create an App ID with App Attest enabled
+
+This is the single most important step. Without it, attestation will fail with `RP_ID_MISMATCH` and there is no workaround.
+
+1. Go to [Certificates, Identifiers & Profiles > Identifiers](https://developer.apple.com/account/resources/identifiers)
+2. Click **+** to register a new App ID (or select an existing one)
+3. Set the **Bundle ID** to match the identifier you chose in step 2
+4. Under **Capabilities**, check **App Attest** — it must be explicitly enabled, not just present
+5. Click **Save**
+
+> After enabling App Attest, Apple regenerates the provisioning profile for this App ID. In Xcode, go to **Signing & Capabilities** and re-download the updated profile (or let Xcode manage it automatically).
+
+### 4. Configure the Expo client
+
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local`:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=http://<your-lan-ip>:54321
+EXPO_PUBLIC_TEAM_ID=ABC123DEF4
+EXPO_PUBLIC_BUNDLE_IDENTIFIER=com.yourcompany.appattest-demo
+```
+
+Find your LAN IP via `ipconfig getifaddr en0` (macOS). Do not use `127.0.0.1` or `localhost` — the iPhone can't reach those on the host machine.
+
+### 5. Configure the Supabase edge functions
+
+```bash
+cp supabase/.env.local.example supabase/.env.local
+```
+
+Edit `supabase/.env.local`:
+
+```
+APP_ID=ABC123DEF4.com.yourcompany.appattest-demo
+```
+
+The format is `TEAMID.bundleIdentifier` — the same values from steps 1 and 2, dot-separated. This must match exactly what the Expo client derives, or App Attest verification will reject with `RP_ID_MISMATCH`.
+
+### 6. Start the backend
+
+```bash
+npx supabase start
+npx supabase db reset
+```
+
+### 7. Build and run on iPhone
+
+```bash
+npx expo run:ios --device
+```
+
+This creates a native development build on the connected iPhone. The first build takes several minutes. Subsequent rebuilds are incremental.
+
+> `expo start --ios` (Expo Go) will **not** work — `@expo/app-integrity` requires native modules that Expo Go doesn't include. Always use `expo run:ios`.
+
+### 8. Verify the flow
+
+1. **Status strip** shows "Not attested" with your Supabase URL
+2. Tap **Call unprotected** — timing bar and DB inspector should populate
+3. Tap **Attest this device** — generates a key, gets a challenge, attests with Apple, verifies on your server
+4. **Status strip** updates to "Attested" with your keyId and signCount: 0
+5. Tap **Call protected** — timing bars show all three comparisons, signCount increments
+
+If attestation fails, check:
+
+- **`RP_ID_MISMATCH`**: APP_ID in `supabase/.env.local` doesn't match `TEAMID.bundleIdentifier` from steps 1+2
+- **`CHALLENGE_INVALID`**: challenge expired (>60s between issuance and use) — try again
+- **`NETWORK_ERROR`**: iPhone can't reach the host — check LAN IP and that `supabase start` is running
+- **`INVALID_CERTIFICATE_CHAIN`**: App Attest capability not enabled on the App ID (step 3)
+
+## Project structure
+
+```
+demo/supabase-expo-demo/
+├── src/                    # Expo client app
+│   ├── config.ts           # SUPABASE_URL + APP_ID from env/constants
+│   ├── api.ts              # Typed fetch wrappers for edge functions
+│   ├── hooks/
+│   │   └── useAttestation.ts   # Attestation state machine
+│   └── components/         # UI sections (StatusStrip, TimingBars, etc.)
+├── supabase/
+│   ├── functions/          # Edge functions (challenge, verify-attestation, etc.)
+│   │   └── _shared/        # Shared helpers (integrity.ts, timing.ts)
+│   ├── migrations/         # Database schema (app_attest_devices, etc.)
+│   └── tests/              # Integration test (runs without iPhone)
+├── app.config.ts           # Expo config (reads env vars for Team ID + bundle ID)
+└── .env.example            # Template for client-side env vars
+```
+
+## Running the integration test (no iPhone needed)
+
+The integration test exercises all five edge functions using synthetic assertions:
+
+```bash
+npx supabase start
+npx supabase db reset
+cd supabase
+deno run --allow-net --allow-env tests/integration.test.ts
+```
+
+This works without an iPhone or Apple Developer account — it uses the fallback `APP_ID` value for both sides.
