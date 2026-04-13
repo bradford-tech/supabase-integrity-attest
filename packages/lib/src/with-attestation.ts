@@ -187,6 +187,11 @@ export function withAttestation(
       timings.extractMs = performance.now() - extractStart;
       deviceId = extracted.deviceId;
 
+      // Consume the challenge BEFORE verification to prevent a TOCTOU race:
+      // two concurrent requests with the same challenge could both pass
+      // verifyAttestation before either consumes. The trade-off is that a
+      // verification failure (malformed attestation, cert-chain error) burns
+      // the challenge, requiring the client to request a new one.
       const consumeStart = performance.now();
       let challengeOk: boolean;
       try {
