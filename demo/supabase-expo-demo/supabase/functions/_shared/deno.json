@@ -1,7 +1,7 @@
 {
   "imports": {
     "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.103.0",
-    "@bradford-tech/supabase-integrity-attest": "jsr:@bradford-tech/supabase-integrity-attest@^0.5.0",
+    "@bradford-tech/supabase-integrity-attest": "jsr:@bradford-tech/supabase-integrity-attest@^0.7.0",
     "@std/encoding": "jsr:@std/encoding@^1.0.10"
   }
 }

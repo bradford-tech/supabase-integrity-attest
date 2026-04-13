@@ -1,17 +1,18 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@bradford-tech/supabase-integrity-attest@0.5": "0.5.0",
+    "jsr:@bradford-tech/supabase-integrity-attest@0.7": "0.7.0",
     "jsr:@std/encoding@1.0.10": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
+    "jsr:@supabase/functions-js@^2.102.0": "2.102.0",
     "npm:@noble/curves@^2.0.1": "2.2.0",
     "npm:@supabase/supabase-js@^2.103.0": "2.103.0",
     "npm:asn1js@^3.0.7": "3.0.7",
     "npm:cborg@^4.5.8": "4.5.8"
   },
   "jsr": {
-    "@bradford-tech/supabase-integrity-attest@0.5.0": {
-      "integrity": "06f992fcb908b8b03233407d1822f664270cc10f9e2df75ad52af0cd4d8a01dd",
+    "@bradford-tech/supabase-integrity-attest@0.7.0": {
+      "integrity": "9cc73b37ad3f35a60610fb63e7858165c763e4390050d0974fe9659e760a28bd",
       "dependencies": [
         "jsr:@std/encoding@1.0.10",
         "npm:@noble/curves",
@@ -21,6 +22,9 @@
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    },
+    "@supabase/functions-js@2.102.0": {
+      "integrity": "f184eb14b7f4bd8ce8c8a0f5321bae59dc2721c5948fe9f3a7450f395a27c87c"
     }
   },
   "npm": {
@@ -127,14 +131,14 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@bradford-tech/supabase-integrity-attest@0.5",
+      "jsr:@bradford-tech/supabase-integrity-attest@0.7",
       "jsr:@std/encoding@^1.0.10",
       "npm:@supabase/supabase-js@^2.103.0"
     ],
     "members": {
       "_shared": {
         "dependencies": [
-          "jsr:@bradford-tech/supabase-integrity-attest@0.5",
+          "jsr:@bradford-tech/supabase-integrity-attest@0.7",
           "jsr:@std/encoding@^1.0.10",
           "npm:@supabase/supabase-js@^2.103.0"
         ]
