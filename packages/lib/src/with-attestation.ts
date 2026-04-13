@@ -216,11 +216,21 @@ export function withAttestation(
         );
       }
 
+      // Hash the raw challenge to produce clientDataHash. Client SDKs
+      // (Expo's attestKeyAsync, native DCAppAttestService wrappers) hash
+      // the challenge with SHA-256 before passing to Apple's attestKey
+      // API, so the attestation certificate's nonce is computed over the
+      // hash, not the raw bytes. verifyAttestation expects clientDataHash
+      // (the hash), not the raw challenge.
+      const clientDataHash = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", extracted.challenge),
+      );
+
       const verifyStart = performance.now();
       const result = await verifyAttestation(
         appInfo,
         deviceId,
-        extracted.challenge,
+        clientDataHash,
         extracted.attestation,
       );
       timings.verifyMs = performance.now() - verifyStart;
