@@ -6,7 +6,7 @@
 // App.tsx is a layout shell.
 import { useCallback, useRef, useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import type { ErrorResponse } from "./src/api";
 import { ActionButtons } from "./src/components/ActionButtons";
 import { DbInspector } from "./src/components/DbInspector";
@@ -126,45 +126,50 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        <Text style={styles.header}>App Attest Demo</Text>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" />
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Text style={styles.header}>App Attest Demo</Text>
 
-        <StatusStrip
-          state={attestation.state}
-          isSupported={attestation.isSupported}
-          keyId={attestation.keyId}
-          signCount={attestation.signCount}
-          loading={attestation.loading}
-          onReset={handleReset}
-        />
+          <StatusStrip
+            state={attestation.state}
+            isSupported={attestation.isSupported}
+            keyId={attestation.keyId}
+            signCount={attestation.signCount}
+            loading={attestation.loading}
+            onReset={handleReset}
+          />
 
-        {!attestation.isSupported && <UnsupportedBanner />}
+          {!attestation.isSupported && <UnsupportedBanner />}
 
-        <ActionButtons
-          state={attestation.state}
-          isSupported={attestation.isSupported}
-          loading={attestation.loading}
-          onCallUnprotected={handleUnprotected}
-          onCallProtected={handleProtected}
-          onAttest={handleAttest}
-        />
+          <ActionButtons
+            state={attestation.state}
+            isSupported={attestation.isSupported}
+            loading={attestation.loading}
+            onCallUnprotected={handleUnprotected}
+            onCallProtected={handleProtected}
+            onAttest={handleAttest}
+          />
 
-        <ErrorSurface error={lastApiError} hookError={attestation.lastError} />
+          <ErrorSurface
+            error={lastApiError}
+            hookError={attestation.lastError}
+          />
 
-        <TimingBars
-          unprotected={unprotectedTiming}
-          protectedFirst={protectedFirstTiming}
-          protectedSteady={protectedSteadyTiming}
-        />
+          <TimingBars
+            unprotected={unprotectedTiming}
+            protectedFirst={protectedFirstTiming}
+            protectedSteady={protectedSteadyTiming}
+          />
 
-        <DbInspector device={lastDevice} event={lastEvent} />
-      </ScrollView>
-    </SafeAreaView>
+          <DbInspector device={lastDevice} event={lastEvent} />
+        </ScrollView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
