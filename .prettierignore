@@ -1,13 +1,3 @@
-# Deno lib uses deno fmt
-packages/lib/
-
-# Docs app handles its own prettier (has tailwind plugin)
-docs/
-
-# Demo Supabase edge functions + tests use deno fmt (workspace deno.json)
-demo/supabase-expo-demo/supabase/functions/
-demo/supabase-expo-demo/supabase/tests/
-
 # Generated
 deno.lock
 package-lock.json

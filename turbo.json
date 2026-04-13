@@ -11,6 +11,9 @@
       "dependsOn": ["^check"],
       "inputs": ["$TURBO_DEFAULT$", "!README.md", "!CHANGELOG.md"]
     },
+    "format": {
+      "cache": false
+    },
     "fix": {
       "cache": false
     },
