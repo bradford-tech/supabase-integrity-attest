@@ -5,13 +5,8 @@
 // attestation state, and each section component owns its own rendering.
 // App.tsx is a layout shell.
 import { useCallback, useRef, useState } from "react";
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { ScrollView, StatusBar, StyleSheet, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { ErrorResponse } from "./src/api";
 import { ActionButtons } from "./src/components/ActionButtons";
 import { DbInspector } from "./src/components/DbInspector";
