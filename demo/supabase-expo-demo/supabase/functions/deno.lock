@@ -1,7 +1,7 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@bradford-tech/supabase-integrity-attest@~0.4.1": "0.4.1",
+    "jsr:@bradford-tech/supabase-integrity-attest@0.5": "0.5.0",
     "jsr:@std/encoding@1.0.10": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@supabase/functions-js@^2.102.0": "2.102.0",
@@ -12,8 +12,8 @@
     "npm:openai@^4.52.5": "4.104.0"
   },
   "jsr": {
-    "@bradford-tech/supabase-integrity-attest@0.4.1": {
-      "integrity": "d56d94d99320e1535c3af964515e7ecb964b1b276b8b362a96add71db1efcd89",
+    "@bradford-tech/supabase-integrity-attest@0.5.0": {
+      "integrity": "06f992fcb908b8b03233407d1822f664270cc10f9e2df75ad52af0cd4d8a01dd",
       "dependencies": [
         "jsr:@std/encoding@1.0.10",
         "npm:@noble/curves",
@@ -335,14 +335,14 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@bradford-tech/supabase-integrity-attest@~0.4.1",
+      "jsr:@bradford-tech/supabase-integrity-attest@0.5",
       "jsr:@std/encoding@^1.0.10",
       "npm:@supabase/supabase-js@^2.103.0"
     ],
     "members": {
       "_shared": {
         "dependencies": [
-          "jsr:@bradford-tech/supabase-integrity-attest@~0.4.1",
+          "jsr:@bradford-tech/supabase-integrity-attest@0.5",
           "jsr:@std/encoding@^1.0.10",
           "npm:@supabase/supabase-js@^2.103.0"
         ]
