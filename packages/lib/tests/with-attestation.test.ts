@@ -291,6 +291,54 @@ Deno.test("withAttestation: custom onError overrides default response", async ()
   assertEquals(json.code, AttestationErrorCode.CHALLENGE_INVALID);
 });
 
+Deno.test("withAttestation: throwing onError falls back to default response", async () => {
+  const handler = withAttestation(
+    {
+      appId: TEST_APP_ID,
+      consumeChallenge: () => Promise.resolve(false),
+      storeDeviceKey: () => Promise.resolve(),
+      onError: () => {
+        throw new Error("onError callback bug");
+      },
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(
+    buildReq({
+      keyId: "anything",
+      challenge: encodeBase64(new Uint8Array([1, 2, 3])),
+      attestation: encodeBase64(new Uint8Array([4, 5, 6])),
+    }),
+  );
+  assertEquals(res.status, 401);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.CHALLENGE_INVALID);
+});
+
+Deno.test("withAttestation: async-rejecting onError falls back to default response", async () => {
+  const handler = withAttestation(
+    {
+      appId: TEST_APP_ID,
+      consumeChallenge: () => Promise.resolve(false),
+      storeDeviceKey: () => Promise.resolve(),
+      onError: () => Promise.reject(new Error("async onError bug")),
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(
+    buildReq({
+      keyId: "anything",
+      challenge: encodeBase64(new Uint8Array([1, 2, 3])),
+      attestation: encodeBase64(new Uint8Array([4, 5, 6])),
+    }),
+  );
+  assertEquals(res.status, 401);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.CHALLENGE_INVALID);
+});
+
 // --- Error types are real ---
 
 Deno.test("withAttestation: onError receives AttestationError instance", async () => {

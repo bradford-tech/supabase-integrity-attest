@@ -223,7 +223,12 @@ export function withAssertion(
           cause: err,
         },
       );
-      return options.onError?.(error, req) ?? defaultErrorResponse(error);
+      try {
+        return await options.onError?.(error, req) ??
+          defaultErrorResponse(error);
+      } catch {
+        return defaultErrorResponse(error);
+      }
     }
 
     // Step 5: handler — outside try/catch, errors bubble up

@@ -338,6 +338,54 @@ Deno.test("withAssertion: custom onError overrides default response", async () =
   assertEquals(json.code, AssertionErrorCode.DEVICE_NOT_FOUND);
 });
 
+Deno.test("withAssertion: throwing onError falls back to default response", async () => {
+  const { req } = await buildAttestedRequest(
+    "http://localhost/test",
+    { text: "hello" },
+    { appId: TEST_APP_ID, signCount: 1 },
+  );
+
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: () => Promise.resolve(null),
+      commitSignCount: () => Promise.resolve(true),
+      onError: () => {
+        throw new Error("onError callback bug");
+      },
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(req);
+  assertEquals(res.status, 401);
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.DEVICE_NOT_FOUND);
+});
+
+Deno.test("withAssertion: async-rejecting onError falls back to default response", async () => {
+  const { req } = await buildAttestedRequest(
+    "http://localhost/test",
+    { text: "hello" },
+    { appId: TEST_APP_ID, signCount: 1 },
+  );
+
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: () => Promise.resolve(null),
+      commitSignCount: () => Promise.resolve(true),
+      onError: () => Promise.reject(new Error("async onError bug")),
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(req);
+  assertEquals(res.status, 401);
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.DEVICE_NOT_FOUND);
+});
+
 // --- Custom Extractor ---
 
 Deno.test("withAssertion: custom extractAssertion is used", async () => {

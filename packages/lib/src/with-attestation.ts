@@ -292,7 +292,12 @@ export function withAttestation(
           "Internal error",
           { cause: err },
         );
-      return options.onError?.(error, req) ?? defaultErrorResponse(error);
+      try {
+        return await options.onError?.(error, req) ??
+          defaultErrorResponse(error);
+      } catch {
+        return defaultErrorResponse(error);
+      }
     }
 
     return await handler(req, {
