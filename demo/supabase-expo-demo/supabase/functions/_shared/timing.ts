@@ -104,8 +104,10 @@ export function newTimingBuilder(): TimingBuilder {
         const safeName = s.name.replace(/[^a-zA-Z0-9_-]/g, '_');
         let part = `${safeName};dur=${s.dur.toFixed(2)}`;
         if (s.desc) {
-          // Escape quotes in descriptions.
-          part += `;desc="${s.desc.replace(/"/g, '\\"')}"`;
+          // Escape backslashes and quotes in descriptions.
+          part += `;desc="${
+            s.desc.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+          }"`;
         }
         headerParts.push(part);
         spansJson[safeName] = Number(s.dur.toFixed(2));
