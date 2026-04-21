@@ -24,7 +24,6 @@ const supabase = createClient(
 const handler = withAssertion(
   {
     appId: Deno.env.get('APP_ID')!,
-    developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
 
     getDeviceKey: async (deviceId) => {
       const { data } = await supabase

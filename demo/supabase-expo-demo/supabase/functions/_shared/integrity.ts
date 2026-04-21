@@ -266,7 +266,6 @@ export function protect(
   return withAssertion(
     {
       appId: APP_INFO.appId,
-      developmentEnv: APP_INFO.developmentEnv,
       getDeviceKey,
       commitSignCount,
     },

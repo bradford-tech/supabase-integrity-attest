@@ -22,7 +22,6 @@ import {
 
 const appInfo = {
   appId: Deno.env.get('APP_ID')!,
-  developmentEnv: Deno.env.get('ENVIRONMENT') !== 'production',
 }
 
 Deno.serve(async (req: Request) => {

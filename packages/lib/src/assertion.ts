@@ -15,8 +15,6 @@ import {
 export interface AppInfo {
   /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
-  /** Set to `true` when verifying assertions from the development environment. */
-  developmentEnv?: boolean;
 }
 
 /** Successful assertion verification result. */

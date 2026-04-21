@@ -55,8 +55,6 @@ export type ExtractAssertionFn = (req: Request) => Promise<{
 export type WithAssertionOptions = {
   /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
-  /** Set to `true` for development environment attestations. */
-  developmentEnv?: boolean;
   /** Retrieve the stored device key for a given device ID. Return `null` if not found. */
   getDeviceKey: (deviceId: string) => Promise<DeviceKey | null>;
   /**
@@ -138,10 +136,7 @@ export function withAssertion(
     context: AssertionContext,
   ) => Response | Promise<Response>,
 ): (req: Request) => Promise<Response> {
-  const appInfo: AppInfo = {
-    appId: options.appId,
-    developmentEnv: options.developmentEnv ?? false,
-  };
+  const appInfo: AppInfo = { appId: options.appId };
   const extract = options.extractAssertion ?? defaultExtractAssertion;
 
   return async (req: Request): Promise<Response> => {

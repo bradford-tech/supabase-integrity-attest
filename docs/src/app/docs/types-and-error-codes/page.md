@@ -17,11 +17,11 @@ Every type and error code exported by the library. {% .lead %}
 ```ts
 interface AppInfo {
   appId: string // Team ID + bundle ID, e.g. "TEAMID1234.com.example.app"
-  developmentEnv?: boolean // Default false. true = development AAGUID.
+  developmentEnv?: boolean // Default false. true = development AAGUID (attestation only).
 }
 ```
 
-Used by `verifyAttestation()`, `verifyAssertion()`, `withAttestation()`, and `withAssertion()`.
+Used by `verifyAttestation()`, `verifyAssertion()`, `withAttestation()`, and `withAssertion()`. The `developmentEnv` field only affects attestation verification (AAGUID selection); assertions ignore it.
 
 ### AttestationResult
 
@@ -95,7 +95,6 @@ Passed to your `withAssertion()` handler.
 ```ts
 type WithAssertionOptions = {
   appId: string
-  developmentEnv?: boolean
   getDeviceKey: (deviceId: string) => Promise<DeviceKey | null>
   commitSignCount: (deviceId: string, newSignCount: number) => Promise<boolean>
   extractAssertion?: ExtractAssertionFn
