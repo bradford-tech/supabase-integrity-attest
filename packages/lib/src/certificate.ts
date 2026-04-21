@@ -110,125 +110,136 @@ function parseCertificate(der: Uint8Array): ParsedCertificate {
     );
   }
 
-  const certSeq = asn1.result as asn1js.Sequence;
-  const certChildren = certSeq.valueBlock.value;
+  try {
+    const certSeq = asn1.result as asn1js.Sequence;
+    const certChildren = certSeq.valueBlock.value;
 
-  // certChildren: [tbsCertificate, signatureAlgorithm, signatureValue]
-  const tbsElement = certChildren[0] as asn1js.Sequence;
-  const sigAlgElement = certChildren[1] as asn1js.Sequence;
-  const sigValueElement = certChildren[2] as asn1js.BitString;
+    // certChildren: [tbsCertificate, signatureAlgorithm, signatureValue]
+    const tbsElement = certChildren[0] as asn1js.Sequence;
+    const sigAlgElement = certChildren[1] as asn1js.Sequence;
+    const sigValueElement = certChildren[2] as asn1js.BitString;
 
-  // TBS bytes — slice from the element's full encoding (tag + length + value)
-  const tbsView =
-    (tbsElement as unknown as { valueBeforeDecodeView: Uint8Array })
-      .valueBeforeDecodeView;
-  const tbsCertificateDer = sliceFromView(tbsView);
+    // TBS bytes — slice from the element's full encoding (tag + length + value)
+    const tbsView =
+      (tbsElement as unknown as { valueBeforeDecodeView: Uint8Array })
+        .valueBeforeDecodeView;
+    const tbsCertificateDer = sliceFromView(tbsView);
 
-  // Signature algorithm OID
-  const sigAlgOid =
-    (sigAlgElement.valueBlock.value[0] as asn1js.ObjectIdentifier).valueBlock
-      .toString();
+    // Signature algorithm OID
+    const sigAlgOid =
+      (sigAlgElement.valueBlock.value[0] as asn1js.ObjectIdentifier).valueBlock
+        .toString();
 
-  // Signature value — unused-bits byte already stripped by asn1js
-  const signatureValue = new Uint8Array(
-    sigValueElement.valueBlock.valueHexView,
-  );
+    // Signature value — unused-bits byte already stripped by asn1js
+    const signatureValue = new Uint8Array(
+      sigValueElement.valueBlock.valueHexView,
+    );
 
-  // TBS children — check for v3 version tag
-  const tbsChildren = tbsElement.valueBlock.value;
-  let offset = 0;
+    // TBS children — check for v3 version tag
+    const tbsChildren = tbsElement.valueBlock.value;
+    let offset = 0;
 
-  // First child is explicit [0] version tag for v3 certs
-  const firstChild = tbsChildren[0];
-  if (
-    firstChild.idBlock.tagClass === 3 && // CONTEXT-SPECIFIC
-    firstChild.idBlock.tagNumber === 0
-  ) {
-    offset = 1; // Version tag present, shift all indices
-  }
-
-  // TBS layout (with offset): serial, sigAlg, issuer, validity, subject, SPKI, [extensions]
-  // [offset+0]=serial, [offset+1]=sigAlg, [offset+2]=issuer, [offset+3]=validity,
-  // [offset+4]=subject, [offset+5]=SPKI
-
-  const issuerElement = tbsChildren[offset + 2];
-  const issuerView =
-    (issuerElement as unknown as { valueBeforeDecodeView: Uint8Array })
-      .valueBeforeDecodeView;
-  const issuer = sliceFromView(issuerView);
-
-  const validityElement = tbsChildren[offset + 3] as asn1js.Sequence;
-  const validityChildren = validityElement.valueBlock.value;
-  const validityNotBefore = parseAsn1Date(validityChildren[0]);
-  const validityNotAfter = parseAsn1Date(validityChildren[1]);
-
-  const subjectElement = tbsChildren[offset + 4];
-  const subjectView =
-    (subjectElement as unknown as { valueBeforeDecodeView: Uint8Array })
-      .valueBeforeDecodeView;
-  const subject = sliceFromView(subjectView);
-
-  const spkiElement = tbsChildren[offset + 5];
-  const spkiView =
-    (spkiElement as unknown as { valueBeforeDecodeView: Uint8Array })
-      .valueBeforeDecodeView;
-  const subjectPublicKeyInfoDer = sliceFromView(spkiView);
-
-  // Extract curve OID from SPKI's AlgorithmIdentifier
-  const spkiSeq = spkiElement as asn1js.Sequence;
-  const spkiAlgId = spkiSeq.valueBlock.value[0] as asn1js.Sequence;
-  const curveOidElement = spkiAlgId.valueBlock
-    .value[1] as asn1js.ObjectIdentifier;
-  const publicKeyCurveOid = curveOidElement.valueBlock.toString();
-
-  // Extensions — found in explicit [3] tag within TBS
-  const extensions: CertExtension[] = [];
-  for (let i = offset + 6; i < tbsChildren.length; i++) {
-    const child = tbsChildren[i];
+    // First child is explicit [0] version tag for v3 certs
+    const firstChild = tbsChildren[0];
     if (
-      child.idBlock.tagClass === 3 && // CONTEXT-SPECIFIC
-      child.idBlock.tagNumber === 3
+      firstChild.idBlock.tagClass === 3 && // CONTEXT-SPECIFIC
+      firstChild.idBlock.tagNumber === 0
     ) {
-      // This is the extensions wrapper: explicit [3] containing a SEQUENCE of extensions
-      const extWrapper = child as asn1js.Constructed;
-      const extSeqOfSeq = extWrapper.valueBlock.value[0] as asn1js.Sequence;
-      for (const extSeq of extSeqOfSeq.valueBlock.value) {
-        const extChildren = (extSeq as asn1js.Sequence).valueBlock.value;
-        const oid = (extChildren[0] as asn1js.ObjectIdentifier).valueBlock
-          .toString();
-
-        let critical = false;
-        let valueElement: asn1js.OctetString;
-
-        if (extChildren[1] instanceof asn1js.Boolean) {
-          critical = extChildren[1].getValue();
-          valueElement = extChildren[2] as asn1js.OctetString;
-        } else {
-          valueElement = extChildren[1] as asn1js.OctetString;
-        }
-
-        extensions.push({
-          oid,
-          critical,
-          value: new Uint8Array(valueElement.valueBlock.valueHexView),
-        });
-      }
-      break;
+      offset = 1; // Version tag present, shift all indices
     }
-  }
 
-  return {
-    tbsCertificateDer,
-    signatureAlgorithmOid: sigAlgOid,
-    signatureValue,
-    issuer,
-    subject,
-    validityNotBefore,
-    validityNotAfter,
-    subjectPublicKeyInfoDer,
-    publicKeyCurveOid,
-    extensions,
-  };
+    // TBS layout (with offset): serial, sigAlg, issuer, validity, subject, SPKI, [extensions]
+    // [offset+0]=serial, [offset+1]=sigAlg, [offset+2]=issuer, [offset+3]=validity,
+    // [offset+4]=subject, [offset+5]=SPKI
+
+    const issuerElement = tbsChildren[offset + 2];
+    const issuerView =
+      (issuerElement as unknown as { valueBeforeDecodeView: Uint8Array })
+        .valueBeforeDecodeView;
+    const issuer = sliceFromView(issuerView);
+
+    const validityElement = tbsChildren[offset + 3] as asn1js.Sequence;
+    const validityChildren = validityElement.valueBlock.value;
+    const validityNotBefore = parseAsn1Date(validityChildren[0]);
+    const validityNotAfter = parseAsn1Date(validityChildren[1]);
+
+    const subjectElement = tbsChildren[offset + 4];
+    const subjectView =
+      (subjectElement as unknown as { valueBeforeDecodeView: Uint8Array })
+        .valueBeforeDecodeView;
+    const subject = sliceFromView(subjectView);
+
+    const spkiElement = tbsChildren[offset + 5];
+    const spkiView =
+      (spkiElement as unknown as { valueBeforeDecodeView: Uint8Array })
+        .valueBeforeDecodeView;
+    const subjectPublicKeyInfoDer = sliceFromView(spkiView);
+
+    // Extract curve OID from SPKI's AlgorithmIdentifier
+    const spkiSeq = spkiElement as asn1js.Sequence;
+    const spkiAlgId = spkiSeq.valueBlock.value[0] as asn1js.Sequence;
+    const curveOidElement = spkiAlgId.valueBlock
+      .value[1] as asn1js.ObjectIdentifier;
+    const publicKeyCurveOid = curveOidElement.valueBlock.toString();
+
+    // Extensions — found in explicit [3] tag within TBS
+    const extensions: CertExtension[] = [];
+    for (let i = offset + 6; i < tbsChildren.length; i++) {
+      const child = tbsChildren[i];
+      if (
+        child.idBlock.tagClass === 3 && // CONTEXT-SPECIFIC
+        child.idBlock.tagNumber === 3
+      ) {
+        // This is the extensions wrapper: explicit [3] containing a SEQUENCE of extensions
+        const extWrapper = child as asn1js.Constructed;
+        const extSeqOfSeq = extWrapper.valueBlock.value[0] as asn1js.Sequence;
+        for (const extSeq of extSeqOfSeq.valueBlock.value) {
+          const extChildren = (extSeq as asn1js.Sequence).valueBlock.value;
+          const oid = (extChildren[0] as asn1js.ObjectIdentifier).valueBlock
+            .toString();
+
+          let critical = false;
+          let valueElement: asn1js.OctetString;
+
+          if (extChildren[1] instanceof asn1js.Boolean) {
+            critical = extChildren[1].getValue();
+            valueElement = extChildren[2] as asn1js.OctetString;
+          } else {
+            valueElement = extChildren[1] as asn1js.OctetString;
+          }
+
+          extensions.push({
+            oid,
+            critical,
+            value: new Uint8Array(valueElement.valueBlock.valueHexView),
+          });
+        }
+        break;
+      }
+    }
+
+    return {
+      tbsCertificateDer,
+      signatureAlgorithmOid: sigAlgOid,
+      signatureValue,
+      issuer,
+      subject,
+      validityNotBefore,
+      validityNotAfter,
+      subjectPublicKeyInfoDer,
+      publicKeyCurveOid,
+      extensions,
+    };
+  } catch (e) {
+    if (e instanceof AttestationError) throw e;
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_FORMAT,
+      `Invalid X.509 certificate structure: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+      { cause: e },
+    );
+  }
 }
 
 // ── extractRawPublicKeyFromSpki ─────────────────────────────────────
@@ -246,9 +257,18 @@ function extractRawPublicKeyFromSpki(spkiDer: Uint8Array): Uint8Array {
       "Failed to parse SPKI DER",
     );
   }
-  const spkiSeq = asn1.result as asn1js.Sequence;
-  const publicKeyBitString = spkiSeq.valueBlock.value[1] as asn1js.BitString;
-  return new Uint8Array(publicKeyBitString.valueBlock.valueHexView);
+  try {
+    const spkiSeq = asn1.result as asn1js.Sequence;
+    const publicKeyBitString = spkiSeq.valueBlock.value[1] as asn1js.BitString;
+    return new Uint8Array(publicKeyBitString.valueBlock.valueHexView);
+  } catch (e) {
+    if (e instanceof AttestationError) throw e;
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_CERTIFICATE_CHAIN,
+      `Invalid SPKI structure: ${e instanceof Error ? e.message : String(e)}`,
+      { cause: e },
+    );
+  }
 }
 
 // ── verifySignature ─────────────────────────────────────────────────
@@ -443,11 +463,22 @@ export function extractNonceFromCert(certDer: Uint8Array): Uint8Array {
   }
 
   // Navigate: SEQUENCE -> tagged [1] -> OCTET STRING
-  const sequence = extAsn1.result as asn1js.Sequence;
-  const tagged = sequence.valueBlock.value[0] as asn1js.Constructed;
-  const octetString = tagged.valueBlock.value[0] as asn1js.OctetString;
+  try {
+    const sequence = extAsn1.result as asn1js.Sequence;
+    const tagged = sequence.valueBlock.value[0] as asn1js.Constructed;
+    const octetString = tagged.valueBlock.value[0] as asn1js.OctetString;
 
-  return new Uint8Array(octetString.valueBlock.valueHexView);
+    return new Uint8Array(octetString.valueBlock.valueHexView);
+  } catch (e) {
+    if (e instanceof AttestationError) throw e;
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_FORMAT,
+      `Invalid nonce extension structure: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+      { cause: e },
+    );
+  }
 }
 
 /**

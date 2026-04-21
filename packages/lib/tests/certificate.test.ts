@@ -6,6 +6,7 @@ import {
   extractPublicKeyFromCert,
   verifyCertificateChain,
 } from "../src/certificate.ts";
+import { AttestationError, AttestationErrorCode } from "../src/errors.ts";
 
 // Pre-extracted DER certificates from the Apple attestation test vector.
 // Leaf cert (index 0) — expires April 20, 2024.
@@ -38,6 +39,16 @@ Deno.test("verifyCertificateChain rejects empty certificate array", async () => 
     () => verifyCertificateChain([], CHECK_DATE),
     Error,
   );
+});
+
+Deno.test("verifyCertificateChain rejects valid DER that is not X.509", async () => {
+  // DER SEQUENCE containing a single INTEGER — valid DER but not X.509
+  const notX509 = new Uint8Array([0x30, 0x03, 0x02, 0x01, 0x01]);
+  const err = await assertRejects(
+    () => verifyCertificateChain([notX509, notX509], CHECK_DATE),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_FORMAT);
 });
 
 Deno.test("extractNonceFromCert returns the expected nonce", () => {
