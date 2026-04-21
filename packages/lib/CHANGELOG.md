@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.8.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.7.0...v0.8.0) (2026-04-21)
+
+
+### ⚠ BREAKING CHANGES
+
+* **assertion:** developmentEnv is removed from the assertion-side AppInfo interface and WithAssertionOptions. Consumers passing it in object literals to verifyAssertion() or withAssertion() will get a TypeScript excess-property error. Fix: remove the property — it never had any effect on assertion verification.
+
+### Bug Fixes
+
+* **assertion:** wrap base64 decode error as AssertionError ([2a59120](https://github.com/bradford-tech/supabase-integrity-attest/commit/2a59120819779f2edc3ba71f81e7ca3af9f21d37))
+* **certificate:** wrap ASN.1 structural casts as AttestationError ([cc450e3](https://github.com/bradford-tech/supabase-integrity-attest/commit/cc450e3f72c141fbe4ddd5b9c7f82d2069f1e3ce))
+* **middleware:** guard onError callback against throws ([a28e310](https://github.com/bradford-tech/supabase-integrity-attest/commit/a28e3106e785107fa5e5a950fa9e7535b3d9b891))
+
+
+### Code Refactoring
+
+* **assertion:** remove unused developmentEnv from API ([e61bc86](https://github.com/bradford-tech/supabase-integrity-attest/commit/e61bc86afb048309064bd4fa5a998aa3f0599162))
+
 ## [0.7.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.6.0...v0.7.0) (2026-04-13)
 
 
