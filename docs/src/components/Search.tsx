@@ -53,23 +53,25 @@ function useAutocomplete({
     AutocompleteState<Result> | EmptyObject
   >({})
 
-  function navigate({ itemUrl }: { itemUrl?: string }) {
-    if (!itemUrl) {
-      return
+  let [autocomplete] = useState<Autocomplete>(() => {
+    let ac!: Autocomplete
+
+    function navigate({ itemUrl }: { itemUrl?: string }) {
+      if (!itemUrl) {
+        return
+      }
+
+      router.push(itemUrl)
+
+      if (
+        itemUrl ===
+        window.location.pathname + window.location.search + window.location.hash
+      ) {
+        close(ac)
+      }
     }
 
-    router.push(itemUrl)
-
-    if (
-      itemUrl ===
-      window.location.pathname + window.location.search + window.location.hash
-    ) {
-      close(autocomplete)
-    }
-  }
-
-  let [autocomplete] = useState<Autocomplete>(() =>
-    createAutocomplete<
+    ac = createAutocomplete<
       Result,
       React.SyntheticEvent,
       React.MouseEvent,
@@ -103,8 +105,9 @@ function useAutocomplete({
           ]
         })
       },
-    }),
-  )
+    })
+    return ac
+  })
 
   return { autocomplete, autocompleteState }
 }
