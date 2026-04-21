@@ -15,6 +15,23 @@ updates:
       # .ncurc.cjs: typescript → minor only
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
+      # docs/.ncurc.cjs: @types/node, eslint → minor only
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # docs/.ncurc.cjs + demo/.ncurc.cjs: reject react
+      - dependency-name: 'react'
+      # docs/.ncurc.cjs: reject react-dom
+      - dependency-name: 'react-dom'
+      # demo/.ncurc.cjs: Expo-managed — handled by expo-install-fix.yml
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      - dependency-name: '@expo/*'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-safe-area-context'
+      - dependency-name: '@types/react'
+      - dependency-name: 'eslint-config-expo'
     groups:
       all:
         patterns: ['*']
