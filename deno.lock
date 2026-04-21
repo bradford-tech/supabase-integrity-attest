@@ -16,8 +16,10 @@
     "npm:@noble/curves@^2.0.1": "2.0.1",
     "npm:@noble/curves@^2.2.0": "2.2.0",
     "npm:@supabase/supabase-js@2.103.0": "2.103.0",
+    "npm:asn1js@^3.0.10": "3.0.10",
     "npm:asn1js@^3.0.7": "3.0.7",
-    "npm:cborg@^4.5.8": "4.5.8"
+    "npm:cborg@^4.5.8": "4.5.8",
+    "npm:cborg@^5.1.0": "5.1.0"
   },
   "jsr": {
     "@bradford-tech/supabase-integrity-attest@0.4.1": {
@@ -25,8 +27,8 @@
       "dependencies": [
         "jsr:@std/encoding",
         "npm:@noble/curves@^2.0.1",
-        "npm:asn1js",
-        "npm:cborg"
+        "npm:asn1js@^3.0.7",
+        "npm:cborg@^4.5.8"
       ]
     },
     "@david/code-block-writer@13.0.3": {
@@ -162,6 +164,14 @@
         "@types/node"
       ]
     },
+    "asn1js@3.0.10": {
+      "integrity": "sha512-S2s3aOytiKdFRdulw2qPE51MzjzVOisppcVv7jVFR+Kw0kxwvFrDcYA0h7Ndqbmj0HkMIXYWaoj7fli8kgx1eg==",
+      "dependencies": [
+        "pvtsutils",
+        "pvutils",
+        "tslib"
+      ]
+    },
     "asn1js@3.0.7": {
       "integrity": "sha512-uLvq6KJu04qoQM6gvBfKFjlh6Gl0vOKQuR5cJMDHQkmwfMOQeN3F3SHCv9SNYSL+CRoHvOGFfllDlVz03GQjvQ==",
       "dependencies": [
@@ -172,6 +182,9 @@
     },
     "cborg@4.5.8": {
       "integrity": "sha512-6/viltD51JklRhq4L7jC3zgy6gryuG5xfZ3kzpE+PravtyeQLeQmCYLREhQH7pWENg5pY4Yu/XCd6a7dKScVlw=="
+    },
+    "cborg@5.1.0": {
+      "integrity": "sha512-OwailRORD5pIyxaLKKVdGHQ2OXWmYW7YsjDXnl64cIwWdQiyXRffVFsL34JR5c+BEeeSOHADM3cy/QNERH1SUw=="
     },
     "iceberg-js@0.8.1": {
       "integrity": "sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA=="
@@ -203,8 +216,8 @@
           "jsr:@std/assert@1.0.19",
           "jsr:@std/encoding@1.0.10",
           "npm:@noble/curves@^2.2.0",
-          "npm:asn1js@^3.0.7",
-          "npm:cborg@^4.5.8"
+          "npm:asn1js@^3.0.10",
+          "npm:cborg@^5.1.0"
         ]
       }
     }
