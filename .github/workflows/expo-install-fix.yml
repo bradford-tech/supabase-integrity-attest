@@ -1,0 +1,52 @@
+name: Expo Dependency Updates
+
+on:
+  schedule:
+    - cron: '0 8 * * 1' # Weekly on Monday at 8am UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    name: Check for updates
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: demo/supabase-expo-demo
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: lts/*
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Fix Expo-managed dependency versions
+        run: npx expo install --fix
+
+      - name: Check for file changes
+        id: check
+        working-directory: .
+        run: git diff --quiet && echo "has_updates=false" >> "$GITHUB_OUTPUT" || echo "has_updates=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create pull request
+        if: steps.check.outputs.has_updates == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: chore/expo-dependency-updates
+          commit-message: 'chore(deps): update Expo-managed dependencies'
+          title: 'chore(deps): update Expo-managed dependencies'
+          body: |
+            Automated update of Expo-managed dependencies via `npx expo install --fix`.
+          labels: dependencies
+          delete-branch: true

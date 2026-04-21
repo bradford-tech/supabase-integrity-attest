@@ -5,10 +5,13 @@ module.exports = {
     return "latest";
   },
   reject: [
+    // Expo-managed — use `npx expo install --fix`
+    /^expo-/,
+    /^@expo\//,
     "@types/react",
+    "eslint-config-expo",
     "react",
     "react-native",
-    "expo-status-bar",
     "react-native-safe-area-context",
   ],
 };

@@ -12,13 +12,9 @@ updates:
     schedule:
       interval: daily
     ignore:
-      - dependency-name: '*'
+      # .ncurc.cjs: typescript → minor only
+      - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
-      # Expo deps are a coordinated set — use `npx expo install --check`
-      - dependency-name: 'expo'
-      - dependency-name: 'expo-*'
-      - dependency-name: 'react-native'
-      - dependency-name: 'react'
     groups:
       all:
         patterns: ['*']
@@ -27,11 +23,32 @@ updates:
     schedule:
       interval: daily
     ignore:
-      - dependency-name: '*'
+      # docs/.ncurc.cjs: @types/node → minor only
+      - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
-      # React version is coordinated with Expo SDK — keep in sync with demo/supabase-expo-demo
+      # docs/.ncurc.cjs: eslint → minor only
+      - dependency-name: 'eslint'
+        update-types: ['version-update:semver-major']
+      # docs/.ncurc.cjs: reject react, react-dom
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
+    groups:
+      all:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /demo/supabase-expo-demo
+    schedule:
+      interval: daily
+    ignore:
+      # Expo-managed — handled by expo-install-fix.yml
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      - dependency-name: '@expo/*'
+      - dependency-name: 'react'
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-safe-area-context'
+      - dependency-name: '@types/react'
+      - dependency-name: 'eslint-config-expo'
     groups:
       all:
         patterns: ['*']
