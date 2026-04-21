@@ -4,5 +4,11 @@ module.exports = {
     if (name === "expo") return "minor";
     return "latest";
   },
-  reject: ["@types/react", "react", "react-native", "expo-status-bar"],
+  reject: [
+    "@types/react",
+    "react",
+    "react-native",
+    "expo-status-bar",
+    "react-native-safe-area-context",
+  ],
 };
