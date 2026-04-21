@@ -4,11 +4,9 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", "!README.md", "!CHANGELOG.md"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "inputs": ["$TURBO_DEFAULT$", "!README.md", "!CHANGELOG.md"]
     },
     "check": {
-      "dependsOn": ["^check"],
       "inputs": ["$TURBO_DEFAULT$", "!README.md", "!CHANGELOG.md"]
     },
     "format": {

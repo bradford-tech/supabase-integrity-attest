@@ -32,18 +32,24 @@ jobs:
         env:
           DENO_NO_PACKAGE_JSON: 1
 
-  check-docs:
+  check-node:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
         with:
           node-version: lts/*
           cache: 'npm'
 
+      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
+        with:
+          deno-version-file: .deno-version
+
       - run: npm ci
 
-      - run: npx turbo run check build --filter=docs
+      - run: npx turbo run check build --affected --filter=!@bradford-tech/supabase-integrity-attest
         env:
           DO_NOT_TRACK: 1
