@@ -163,6 +163,26 @@ Deno.test("verifyAssertion rejects malformed CBOR", async () => {
   assertEquals(err.code, AssertionErrorCode.INVALID_FORMAT);
 });
 
+Deno.test("verifyAssertion rejects invalid base64 string", async () => {
+  const fixture = await generateSyntheticAssertion({
+    appId: TEST_APP_ID,
+    clientData: TEST_CLIENT_DATA,
+    signCount: 1,
+  });
+  const err = await assertRejects(
+    () =>
+      verifyAssertion(
+        { appId: TEST_APP_ID },
+        "not-valid-base64!!!",
+        fixture.clientData,
+        fixture.publicKeyPem,
+        0,
+      ),
+    AssertionError,
+  );
+  assertEquals(err.code, AssertionErrorCode.INVALID_FORMAT);
+});
+
 Deno.test("verifyAssertion accepts base64 string inputs", async () => {
   const { encodeBase64 } = await import("@std/encoding/base64");
   const fixture = await generateSyntheticAssertion({

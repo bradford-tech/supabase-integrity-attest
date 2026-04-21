@@ -41,7 +41,15 @@ export async function verifyAssertion(
   publicKeyPem: string,
   previousSignCount: number,
 ): Promise<AssertionResult> {
-  const assertionBytes = decodeBase64Bytes(assertion);
+  let assertionBytes: Uint8Array;
+  try {
+    assertionBytes = decodeBase64Bytes(assertion);
+  } catch {
+    throw new AssertionError(
+      AssertionErrorCode.INVALID_FORMAT,
+      "Invalid base64-encoded assertion",
+    );
+  }
   const clientDataBytes = toBytes(clientData);
 
   // Step 1: CBOR decode
