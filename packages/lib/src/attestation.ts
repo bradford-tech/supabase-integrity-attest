@@ -8,7 +8,10 @@ import {
 } from "./certificate.ts";
 import { AAGUID_DEVELOPMENT, AAGUID_PRODUCTION } from "./constants.ts";
 import { AttestationError, AttestationErrorCode } from "./errors.ts";
-import { parseAttestationAuthData } from "./authdata.ts";
+import {
+  type AttestationAuthData,
+  parseAttestationAuthData,
+} from "./authdata.ts";
 import { concat, constantTimeEqual, exportKeyToPem, toBytes } from "./utils.ts";
 
 /** Identifies the app being attested. */
@@ -342,7 +345,17 @@ export async function verifyAttestation(
   }
 
   // Step 11: Parse authData
-  const parsedAuthData = parseAttestationAuthData(authData);
+  let parsedAuthData: AttestationAuthData;
+  try {
+    parsedAuthData = parseAttestationAuthData(authData);
+  } catch (e) {
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_FORMAT,
+      `Invalid authenticatorData: ${
+        e instanceof Error ? e.message : String(e)
+      }`,
+    );
+  }
 
   // Step 12: Verify rpIdHash === SHA-256(appId)
   const appIdHash = new Uint8Array(

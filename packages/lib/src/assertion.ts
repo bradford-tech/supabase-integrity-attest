@@ -1,6 +1,6 @@
 // src/assertion.ts
 import { decode } from "cborg";
-import { parseAssertionAuthData } from "./authdata.ts";
+import { type AssertionAuthData, parseAssertionAuthData } from "./authdata.ts";
 import { derToRaw } from "./der.ts";
 import { AssertionError, AssertionErrorCode } from "./errors.ts";
 import {
@@ -67,7 +67,7 @@ export async function verifyAssertion(
   }
 
   // Step 2: Parse authenticatorData
-  let authData;
+  let authData: AssertionAuthData;
   try {
     authData = parseAssertionAuthData(decoded.authenticatorData);
   } catch (e) {
