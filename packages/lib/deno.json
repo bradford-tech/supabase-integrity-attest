@@ -1,6 +1,6 @@
 {
   "name": "@bradford-tech/supabase-integrity-attest",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Verify Apple App Attest attestations and assertions using WebCrypto. Designed for Supabase Edge Functions and other edge runtimes.",
   "exports": {
     ".": "./mod.ts",
