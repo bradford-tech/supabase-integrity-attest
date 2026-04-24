@@ -2,6 +2,8 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    assignees:
+      - sbs44
     schedule:
       interval: daily
     groups:
@@ -9,6 +11,8 @@ updates:
         patterns: ['*']
   - package-ecosystem: npm
     directory: /
+    assignees:
+      - sbs44
     schedule:
       interval: daily
     ignore:
@@ -37,6 +41,8 @@ updates:
         patterns: ['*']
   - package-ecosystem: npm
     directory: /docs
+    assignees:
+      - sbs44
     schedule:
       interval: daily
     ignore:
@@ -54,6 +60,8 @@ updates:
         patterns: ['*']
   - package-ecosystem: npm
     directory: /demo/supabase-expo-demo
+    assignees:
+      - sbs44
     schedule:
       interval: daily
     ignore:
