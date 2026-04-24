@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.8.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.0...v0.8.1) (2026-04-24)
+
+
+### Bug Fixes
+
+* **attestation:** wrap authdata parse error as AttestationError ([d7933db](https://github.com/bradford-tech/supabase-integrity-attest/commit/d7933db64337a26be0263273a68d99b18cebc7bc))
+* **attestation:** wrap CBOR decoder errors as AttestationError ([e3b8197](https://github.com/bradford-tech/supabase-integrity-attest/commit/e3b8197719bfc7162837f8325c5a6a90a97ff75f))
+* **middleware:** return 409 for SIGN_COUNT_STALE instead of 401 ([2c1fcbf](https://github.com/bradford-tech/supabase-integrity-attest/commit/2c1fcbf67a4972768517865bbc7005718ab65b0e))
+
 ## [0.8.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.7.0...v0.8.0) (2026-04-21)
 
 
