@@ -13,6 +13,9 @@
     "lint": "turbo run lint",
     "test": "turbo run test"
   },
+  "overrides": {
+    "uuid": "^14.0.0"
+  },
   "devDependencies": {
     "prettier": "^3.8.3",
     "prettier-plugin-organize-imports": "^4.3.0",
@@ -20,7 +23,7 @@
     "turbo": "^2.9.6",
     "typescript": "5.9.3"
   },
-  "packageManager": "npm@11.12.1",
+  "packageManager": "npm@11.13.0",
   "engines": {
     "node": ">=20"
   }
