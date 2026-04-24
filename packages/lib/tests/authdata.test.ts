@@ -37,9 +37,7 @@ function buildTestAttestationAuthData(): Uint8Array {
   ]);
   const credIdLen = new Uint8Array([0x00, 0x20]);
   const credId = EXPECTED_CREDENTIAL_ID;
-  const coseKey = new Uint8Array([0xa5]);
-
-  const total = 32 + 1 + 4 + 16 + 2 + 32 + coseKey.length;
+  const total = 32 + 1 + 4 + 16 + 2 + 32;
   const result = new Uint8Array(total);
   let offset = 0;
   result.set(rpIdHash, offset);
@@ -53,8 +51,6 @@ function buildTestAttestationAuthData(): Uint8Array {
   result.set(credIdLen, offset);
   offset += 2;
   result.set(credId, offset);
-  offset += 32;
-  result.set(coseKey, offset);
   return result;
 }
 
@@ -67,7 +63,6 @@ Deno.test("parseAttestationAuthData extracts all fields correctly", () => {
   assertEquals(parsed.signCount, 0);
   assertEquals(parsed.aaguid.length, 16);
   assertEquals(parsed.credentialId, EXPECTED_CREDENTIAL_ID);
-  assertEquals(parsed.coseKeyBytes.length > 0, true);
 });
 
 Deno.test("parseAttestationAuthData rejects truncated data", () => {

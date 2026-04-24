@@ -9,7 +9,6 @@ export interface AssertionAuthData {
 export interface AttestationAuthData extends AssertionAuthData {
   aaguid: Uint8Array;
   credentialId: Uint8Array;
-  coseKeyBytes: Uint8Array;
 }
 
 export function parseAssertionAuthData(data: Uint8Array): AssertionAuthData {
@@ -57,12 +56,10 @@ export function parseAttestationAuthData(
   }
 
   const credentialId = data.slice(55, 55 + credentialIdLength);
-  const coseKeyBytes = data.slice(55 + credentialIdLength);
 
   return {
     ...base,
     aaguid,
     credentialId,
-    coseKeyBytes,
   };
 }
