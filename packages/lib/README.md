@@ -1,9 +1,8 @@
 # supabase-integrity-attest
 
-Server-side TypeScript library for verifying Apple App Attest attestations and
-assertions using the WebCrypto API. Built for Deno and Supabase Edge Functions.
+Apple App Attest server-side verification for edge runtimes, using only WebCrypto.
 
-## Installation
+## Install
 
 ```bash
 # Deno
@@ -13,51 +12,94 @@ deno add jsr:@bradford-tech/supabase-integrity-attest
 npm install @bradford-tech/supabase-integrity-attest
 ```
 
-## Subpath imports
+## Quick start
 
-If you only need assertion verification, import from the lighter entry point:
+Verify a device attestation and extract its public key:
 
-```typescript
-// Full library (attestation + assertion)
-import { verifyAttestation, verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
-
-// Assertion only — skips asn1js and @noble/curves
-import { verifyAssertion } from "@bradford-tech/supabase-integrity-attest/assertion";
-
-// Attestation only
-import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
-```
-
-## Usage
-
-### Attestation (one-time per device)
-
-```typescript
+```ts
 import { verifyAttestation } from "@bradford-tech/supabase-integrity-attest";
 
-const result = await verifyAttestation(
-  { appId: "TEAMID.com.your.bundleid" },
-  keyId, // base64 from client
-  challenge, // the challenge you issued
-  attestation, // base64 CBOR from client
+const clientDataHash = new Uint8Array(
+  await crypto.subtle.digest("SHA-256", new TextEncoder().encode(challenge)),
 );
 
-// Store result.publicKeyPem and signCount (0) for this device
+const { publicKeyPem, signCount } = await verifyAttestation(
+  { appId: "TEAMID.com.example.app" },
+  keyId,          // base64 key identifier from client
+  clientDataHash, // SHA-256 of the challenge you issued
+  attestation,    // base64 CBOR attestation from client
+);
+// publicKeyPem: "-----BEGIN PUBLIC KEY-----\nMFkw..."
+// signCount: 0
 ```
 
-### Protecting edge functions with `withAssertion`
+Store `publicKeyPem` and `signCount` for this device. Use them to verify future assertions.
 
-`withAssertion` wraps a request handler so that assertion verification,
-device lookup, and sign count updates happen before your business logic runs.
+## Why this library
 
-```typescript
+Existing App Attest verification libraries depend on `node:crypto` or packages that crash in edge runtimes. `appattest-checker-node` uses `X509Certificate.verify()`, which throws `ERR_NOT_IMPLEMENTED` in Deno. `pkijs` crashes at module load in Supabase Edge Functions because `self.crypto.name` is undefined. `@peculiar/x509` pulls in `tsyringe` and `reflect-metadata`, which rely on global side effects during module initialization.
+
+This library uses only `crypto.subtle` for cryptographic operations, with `asn1js` for X.509 parsing and `@noble/curves` for one operation Deno's WebCrypto doesn't support (P-384 signature verification on Apple's intermediate certificate).
+
+## Middleware
+
+Both middleware wrappers below use a Supabase service-role client for database access:
+
+```ts
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { withAssertion } from "@bradford-tech/supabase-integrity-attest";
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
+```
+
+### `withAttestation` -- device registration
+
+`withAttestation` wraps a one-time device registration endpoint with automatic challenge consumption, attestation verification, and device key storage:
+
+```ts
+import { withAttestation } from "@bradford-tech/supabase-integrity-attest";
+
+Deno.serve(withAttestation({
+  appId: Deno.env.get("APP_ATTEST_APP_ID")!,
+  consumeChallenge: async (challenge) => {
+    const id = new TextDecoder().decode(challenge);
+    const { data } = await supabase
+      .from("attestation_challenges")
+      .delete()
+      .eq("id", id)
+      .select("id");
+    return (data?.length ?? 0) > 0;
+  },
+  storeDeviceKey: async ({ deviceId, publicKeyPem, signCount }) => {
+    await supabase
+      .from("device_attestations")
+      .upsert({ key_id: deviceId, public_key_pem: publicKeyPem, sign_count: signCount });
+  },
+}, (_req, ctx) => {
+  // ctx.deviceId, ctx.publicKeyPem, ctx.signCount, ctx.receipt, ctx.timings
+  return Response.json({ deviceId: ctx.deviceId });
+}));
+```
+
+`consumeChallenge` must be atomic: return `true` if the challenge was valid, unused, and unexpired (and is now consumed), `false` otherwise. Use `DELETE ... RETURNING` to guarantee single-use semantics.
+
+The default extractor reads a JSON body:
+
+```
+POST /functions/v1/attest
+Content-Type: application/json
+
+{"keyId": "<base64>", "challenge": "<base64>", "attestation": "<base64>"}
+```
+
+### `withAssertion` -- protected requests
+
+`withAssertion` wraps any protected endpoint with automatic assertion verification, device key lookup, and sign count commit:
+
+```ts
+import { withAssertion } from "@bradford-tech/supabase-integrity-attest";
 
 Deno.serve(withAssertion({
   appId: Deno.env.get("APP_ATTEST_APP_ID")!,
@@ -71,107 +113,171 @@ Deno.serve(withAssertion({
       ? { publicKeyPem: data.public_key_pem, signCount: data.sign_count }
       : null;
   },
-  updateSignCount: async (deviceId, newSignCount) => {
-    await supabase
+  commitSignCount: async (deviceId, newSignCount) => {
+    const { data } = await supabase
       .from("device_attestations")
       .update({ sign_count: newSignCount })
-      .eq("key_id", deviceId);
+      .eq("key_id", deviceId)
+      .lt("sign_count", newSignCount)
+      .select("key_id");
+    return (data?.length ?? 0) > 0;
   },
 }, async (_req, { rawBody }) => {
-  const { text, voice } = JSON.parse(new TextDecoder().decode(rawBody));
-  // business logic
-  return new Response(JSON.stringify({ audio: "..." }), {
-    headers: { "Content-Type": "application/json" },
-  });
+  const payload = JSON.parse(new TextDecoder().decode(rawBody));
+  return Response.json({ ok: true });
 }));
 ```
 
-The client sends the assertion and device ID in headers. The request body
-is the client data that was signed:
+The client sends the assertion and device ID in headers. The request body is the signed client data:
 
 ```
 POST /functions/v1/your-endpoint
-Headers:
-  Content-Type: application/json
-  X-App-Attest-Assertion: <base64-encoded assertion>
-  X-App-Attest-Device-Id: <base64-encoded keyId>
-Body:
-  {"text": "Hello world", "voice": "en-US"}
+X-App-Attest-Assertion: <base64-encoded assertion>
+X-App-Attest-Device-Id: <base64-encoded keyId>
+Content-Type: application/json
+
+{"text": "Hello world", "voice": "en-US"}
 ```
 
-Once you have multiple protected functions, extract the shared options into
-a helper:
+### Sign count atomicity
 
-```typescript
+`commitSignCount` **must** use compare-and-swap: only update the stored count if the current value is strictly less than `newSignCount`. An unconditional `UPDATE ... SET sign_count = $1` silently breaks replay protection when two requests arrive concurrently.
+
+```sql
+UPDATE device_attestations
+   SET sign_count = $1, last_seen_at = now()
+ WHERE key_id = $2 AND sign_count < $1
+```
+
+Return `true` if the row was updated. The library converts `false` into `AssertionError(SIGN_COUNT_STALE)`.
+
+### Shared options
+
+Once you have multiple protected functions, extract the shared options:
+
+```ts
 // supabase/functions/_shared/attest.ts
 import type { WithAssertionOptions } from "@bradford-tech/supabase-integrity-attest";
 
-export const attestOptions: WithAssertionOptions = {
+export const assertionOptions: WithAssertionOptions = {
   appId: Deno.env.get("APP_ATTEST_APP_ID")!,
-  // ... getDeviceKey, updateSignCount as above
+  // ... getDeviceKey, commitSignCount as above
 };
 ```
 
-```typescript
+```ts
 // supabase/functions/text-to-speech/index.ts
 import { withAssertion } from "@bradford-tech/supabase-integrity-attest";
-import { attestOptions } from "../_shared/attest.ts";
+import { assertionOptions } from "../_shared/attest.ts";
 
-Deno.serve(withAssertion(attestOptions, async (_req, { rawBody }) => {
+Deno.serve(withAssertion(assertionOptions, async (_req, { rawBody }) => {
   const { text, voice } = JSON.parse(new TextDecoder().decode(rawBody));
-  return new Response(JSON.stringify({ audio: "..." }));
+  return Response.json({ audio: "..." });
 }));
 ```
 
-### Assertion (low-level)
+## Low-level API
 
-For full control over the verification flow, use `verifyAssertion` directly:
+For full control over the verification flow, use `verifyAttestation` and `verifyAssertion` directly.
 
-```typescript
+The quick start above shows `verifyAttestation`. Note that `clientDataHash` must be SHA-256 of the challenge, not the raw challenge. Client SDKs (Expo's `attestKeyAsync`, native `DCAppAttestService.attestKey`) hash the challenge internally before passing to Apple; you must produce the same hash server-side. The `withAttestation` middleware handles this automatically.
+
+### Assertion
+
+```ts
 import { verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
 
-const result = await verifyAssertion(
-  { appId: "TEAMID.com.your.bundleid" },
-  assertion, // base64 CBOR from client
-  clientData, // the request payload that was signed
-  storedPublicKeyPem, // from attestation
-  storedSignCount, // last known counter
+const { signCount } = await verifyAssertion(
+  { appId: "TEAMID.com.example.app" },
+  assertion,         // base64 CBOR from client
+  clientData,        // the request payload that was signed
+  storedPublicKeyPem,
+  storedSignCount,
 );
-
-// Update stored signCount to result.signCount
+// Update stored signCount to signCount
 ```
 
-### Error handling
+## Subpath imports
 
-```typescript
+Import only what you need to reduce bundle size:
+
+```ts
+// Full library (attestation + assertion)
+import { verifyAttestation, verifyAssertion } from "@bradford-tech/supabase-integrity-attest";
+
+// Assertion only -- skips asn1js and @noble/curves
+import { verifyAssertion, withAssertion } from "@bradford-tech/supabase-integrity-attest/assertion";
+
+// Attestation only
+import { verifyAttestation, withAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
+```
+
+## Error handling
+
+```ts
 import {
   AttestationError,
-  AttestationErrorCode,
   AssertionError,
-  AssertionErrorCode,
 } from "@bradford-tech/supabase-integrity-attest";
 
 try {
-  await verifyAttestation(appInfo, keyId, challenge, attestation);
+  await verifyAttestation(appInfo, keyId, clientDataHash, attestation);
 } catch (e) {
   if (e instanceof AttestationError) {
-    console.log(e.code); // e.g. "NONCE_MISMATCH", "INVALID_CERTIFICATE_CHAIN"
+    console.log(e.code);
+    // => "NONCE_MISMATCH"
   }
 }
 ```
 
+### Attestation error codes
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_FORMAT` | CBOR decoding or structural validation failed |
+| `INVALID_CERTIFICATE_CHAIN` | X.509 certificate chain verification failed |
+| `NONCE_MISMATCH` | Computed nonce does not match the certificate nonce |
+| `RP_ID_MISMATCH` | RP ID hash does not match SHA-256 of the app ID |
+| `KEY_ID_MISMATCH` | Public key hash does not match the provided key ID |
+| `INVALID_COUNTER` | Sign count is not zero (required for attestation) |
+| `INVALID_AAGUID` | AAGUID does not match the expected environment |
+| `CHALLENGE_INVALID` | Challenge missing, expired, or already consumed (`withAttestation` only) |
+| `INTERNAL_ERROR` | Storage callback or internal error (`withAttestation` only) |
+
+### Assertion error codes
+
+| Code | Meaning |
+| --- | --- |
+| `INVALID_FORMAT` | CBOR decoding or structural validation failed |
+| `RP_ID_MISMATCH` | RP ID hash does not match SHA-256 of the app ID |
+| `COUNTER_NOT_INCREMENTED` | Sign count was not greater than the stored value |
+| `SIGNATURE_INVALID` | ECDSA signature verification failed |
+| `DEVICE_NOT_FOUND` | No device key for the given device ID (`withAssertion` only) |
+| `INTERNAL_ERROR` | Storage callback or internal error (`withAssertion` only) |
+| `SIGN_COUNT_STALE` | Concurrent request already advanced the counter (`withAssertion` only) |
+
 ## Development environment
 
-For apps using Apple's development App Attest environment:
+For apps using Apple's development App Attest environment, pass `developmentEnv: true`:
 
-```typescript
+```ts
 await verifyAttestation(
-  { appId: "TEAMID.com.your.bundleid", developmentEnv: true },
+  { appId: "TEAMID.com.example.app", developmentEnv: true },
   keyId,
-  challenge,
+  clientDataHash,
   attestation,
 );
 ```
+
+`withAttestation` also accepts `developmentEnv` in its options.
+
+## Documentation
+
+Full documentation at [integrity-attest.bradford.tech](https://integrity-attest.bradford.tech).
+
+## Contributing
+
+Issues and pull requests are welcome on [GitHub](https://github.com/bradford-tech/supabase-integrity-attest).
 
 ## Security
 
