@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.1...v0.8.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* **docs:** correct API examples and add missing middleware docs ([ba411f4](https://github.com/bradford-tech/supabase-integrity-attest/commit/ba411f46c964103dd72d16defd0e2a1928d4215f))
+
 ## [0.8.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.0...v0.8.1) (2026-04-24)
 
 
