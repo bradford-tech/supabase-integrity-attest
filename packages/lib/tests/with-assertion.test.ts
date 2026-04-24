@@ -504,7 +504,7 @@ Deno.test("withAssertion: appInfo constructed once, reused across calls", async 
 
 // --- TOCTOU fix: commitSignCount CAS semantics ---
 
-Deno.test("withAssertion: commitSignCount returns false → 401 SIGN_COUNT_STALE", async () => {
+Deno.test("withAssertion: commitSignCount returns false → 409 SIGN_COUNT_STALE", async () => {
   const { req, fixture } = await buildAttestedRequest(
     "http://localhost/test",
     { text: "hello" },
@@ -525,7 +525,7 @@ Deno.test("withAssertion: commitSignCount returns false → 401 SIGN_COUNT_STALE
   );
 
   const res = await handler(req);
-  assertEquals(res.status, 401);
+  assertEquals(res.status, 409);
   const json = await res.json();
   assertEquals(json.code, AssertionErrorCode.SIGN_COUNT_STALE);
 });

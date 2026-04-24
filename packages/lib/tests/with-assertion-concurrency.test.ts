@@ -135,13 +135,13 @@ Deno.test(
       for (const res of responses) {
         if (res.status === 200) {
           okCount++;
-        } else if (res.status === 401) {
+        } else if (res.status === 409) {
           const json = await res.json();
           if (json.code === AssertionErrorCode.SIGN_COUNT_STALE) {
             staleCount++;
           } else {
             throw new Error(
-              `Unexpected 401 code: ${json.code} — expected SIGN_COUNT_STALE`,
+              `Unexpected 409 code: ${json.code} — expected SIGN_COUNT_STALE`,
             );
           }
         } else {

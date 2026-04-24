@@ -109,6 +109,8 @@ function defaultErrorResponse(error: AssertionError): Response {
     ? 500
     : error.code === AssertionErrorCode.INVALID_FORMAT
     ? 400
+    : error.code === AssertionErrorCode.SIGN_COUNT_STALE
+    ? 409
     : 401;
 
   return new Response(
