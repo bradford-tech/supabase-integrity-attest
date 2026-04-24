@@ -97,7 +97,7 @@ When verification fails and no `onError` is provided:
 | `RP_ID_MISMATCH`          | 401         | `{ "error": "...", "code": "RP_ID_MISMATCH" }`                |
 | `COUNTER_NOT_INCREMENTED` | 401         | `{ "error": "...", "code": "COUNTER_NOT_INCREMENTED" }`       |
 | `SIGNATURE_INVALID`       | 401         | `{ "error": "...", "code": "SIGNATURE_INVALID" }`             |
-| `SIGN_COUNT_STALE`        | 401         | `{ "error": "...", "code": "SIGN_COUNT_STALE" }`              |
+| `SIGN_COUNT_STALE`        | 409         | `{ "error": "...", "code": "SIGN_COUNT_STALE" }`              |
 | `INTERNAL_ERROR`          | 500         | `{ "error": "...", "code": "INTERNAL_ERROR" }`                |
 
 ---

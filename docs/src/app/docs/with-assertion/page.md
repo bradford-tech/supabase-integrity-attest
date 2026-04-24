@@ -74,7 +74,7 @@ Deno.serve(handler)
 4. **Atomically commits** the new counter via your `commitSignCount` compare-and-swap callback. If the CAS returns `false`, the wrapper throws `AssertionError(SIGN_COUNT_STALE)` and your handler never runs.
 5. **Calls** your handler with the verified context, including library-internal timing spans.
 
-If any step fails, it returns an appropriate error response (400 for bad format, 401 for invalid or stale assertions, 500 for storage errors) without calling your handler.
+If any step fails, it returns an appropriate error response (400 for bad format, 401 for invalid assertions, 409 for stale sign counts, 500 for storage errors) without calling your handler.
 
 ---
 

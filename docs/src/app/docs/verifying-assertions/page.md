@@ -81,7 +81,7 @@ Deno.serve(async (req: Request) => {
           error: 'Sign count is stale',
           code: 'SIGN_COUNT_STALE',
         }),
-        { status: 401 },
+        { status: 409 },
       )
     }
 
