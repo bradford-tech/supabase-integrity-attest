@@ -32,6 +32,6 @@
     "eslint-config-expo": "~55.0.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
-    "supabase": "^2.95.5"
+    "supabase": "^2.98.0"
   }
 }
