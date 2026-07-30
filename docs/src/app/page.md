@@ -43,23 +43,24 @@ import { withAssertion } from '@bradford-tech/supabase-integrity-attest/assertio
 
 Deno.serve(
   withAssertion(
-    async (req, ctx) => {
-      // ctx.deviceKey is verified — the request is from a genuine device
-      return new Response('OK')
-    },
     {
-      getDeviceKey: async (keyId) => {
-        /* look up public key + sign count from your database */
+      appId: 'TEAMID.com.example.app',
+      getDeviceKey: async (deviceId) => {
+        /* look up { publicKeyPem, signCount } from your database */
       },
-      updateSignCount: async (keyId, counter) => {
-        /* persist the new counter value */
+      commitSignCount: async (deviceId, newSignCount) => {
+        /* compare-and-swap the stored counter; return true if it advanced */
       },
+    },
+    async (req, ctx) => {
+      // ctx.deviceId is verified — the request is from a genuine device
+      return new Response('OK')
     },
   ),
 )
 ```
 
-`withAssertion()` extracts the assertion from the request, verifies the signature against the stored public key, checks the counter to prevent replay attacks, and hands you a verified `ctx.deviceKey`. See the [assertion verification guide](/docs/verify-assertion) and [API reference](/docs/with-assertion) for the full details.
+`withAssertion()` extracts the assertion from the request, verifies the signature against the stored public key, checks the counter to prevent replay attacks, and hands your handler a verified `ctx.deviceId` and updated `ctx.signCount`. See the [assertion verification guide](/docs/verify-assertion) and [API reference](/docs/with-assertion) for the full details.
 
 ---
 

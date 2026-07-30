@@ -36,7 +36,7 @@ The attestation object contains an X.509 certificate chain (`x5c`). The library 
 
 ### Nonce
 
-The library computes `SHA-256(authData || challenge)` and compares it to a nonce embedded in the leaf certificate. **Why:** This binds the attestation to the specific challenge your server issued. An attacker can't reuse an attestation from a different session because the nonce won't match.
+The library computes `SHA-256(authData || clientDataHash)` — where `clientDataHash` is `SHA-256(challenge)` — and compares it to a nonce embedded in the leaf certificate. **Why:** This binds the attestation to the specific challenge your server issued. An attacker can't reuse an attestation from a different session because the nonce won't match.
 
 ### AAGUID
 

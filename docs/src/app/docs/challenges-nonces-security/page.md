@@ -30,10 +30,11 @@ The nonce is a computed value that binds the attestation or assertion to the spe
 ### Attestation nonce
 
 ```text
-nonce = SHA-256(authData || challenge)
+clientDataHash = SHA-256(challenge)
+nonce = SHA-256(authData || clientDataHash)
 ```
 
-The library computes this from the raw authenticator data and the challenge you pass to `verifyAttestation()`. It then compares the result to the nonce embedded in the leaf certificate. If they don't match, the [attestation](/docs/attestation) was created with a different challenge.
+The library computes this from the raw authenticator data and the `clientDataHash` you pass to `verifyAttestation()` (the `withAttestation()` middleware derives it from the challenge for you). It then compares the result to the nonce embedded in the leaf certificate. If they don't match, the [attestation](/docs/attestation) was created with a different challenge.
 
 ### Assertion signature
 

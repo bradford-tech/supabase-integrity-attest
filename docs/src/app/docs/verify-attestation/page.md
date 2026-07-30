@@ -16,7 +16,7 @@ Verifies an Apple App Attest attestation object and extracts the device's public
 function verifyAttestation(
   appInfo: AppInfo,
   keyId: string,
-  challenge: Uint8Array | string,
+  clientDataHash: Uint8Array | string,
   attestation: Uint8Array | string,
   options?: VerifyAttestationOptions,
 ): Promise<AttestationResult>
@@ -26,13 +26,13 @@ function verifyAttestation(
 
 ## Parameters
 
-| Parameter     | Type                       | Description                                                                               |
-| ------------- | -------------------------- | ----------------------------------------------------------------------------------------- |
-| `appInfo`     | `AppInfo`                  | Your app's bundle ID and environment. See [AppInfo](/docs/types-and-error-codes#appinfo). |
-| `keyId`       | `string`                   | Base64-encoded SHA-256 hash of the public key, from `DCAppAttestService.generateKey()`.   |
-| `challenge`   | `Uint8Array \| string`     | The original challenge your server generated. If a string, treated as UTF-8 bytes.        |
-| `attestation` | `Uint8Array \| string`     | The CBOR-encoded attestation object. If a string, decoded as base64.                      |
-| `options`     | `VerifyAttestationOptions` | Optional. See below.                                                                      |
+| Parameter        | Type                       | Description                                                                                                                                                                                                                                  |
+| ---------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appInfo`        | `AppInfo`                  | Your app's bundle ID and environment. See [AppInfo](/docs/types-and-error-codes#appinfo).                                                                                                                                                    |
+| `keyId`          | `string`                   | Base64-encoded SHA-256 hash of the public key, from `DCAppAttestService.generateKey()`.                                                                                                                                                      |
+| `clientDataHash` | `Uint8Array \| string`     | `SHA-256(challenge)` — the same value the client passed to `DCAppAttestService.attestKey(_:clientDataHash:)`. **Not** the raw challenge. If a string, treated as UTF-8 bytes. The `withAttestation()` middleware computes this hash for you. |
+| `attestation`    | `Uint8Array \| string`     | The CBOR-encoded attestation object. If a string, decoded as base64.                                                                                                                                                                         |
+| `options`        | `VerifyAttestationOptions` | Optional. See below.                                                                                                                                                                                                                         |
 
 ### VerifyAttestationOptions
 
@@ -66,7 +66,7 @@ Throws `AttestationError` with one of these codes (not exhaustive):
 | --------------------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
 | `INVALID_FORMAT`            | CBOR decoding failed, or `fmt` is not `"apple-appattest"`.   | Check that the client is sending the raw attestation object, not a wrapper.                   |
 | `INVALID_CERTIFICATE_CHAIN` | Certificate chain failed validation against Apple's root CA. | Verify the device is using a genuine Apple attestation service. Check `checkDate` if testing. |
-| `NONCE_MISMATCH`            | Computed nonce doesn't match the certificate nonce.          | Ensure you're passing the same challenge that was used during attestation.                    |
+| `NONCE_MISMATCH`            | Computed nonce doesn't match the certificate nonce.          | Ensure you're passing `SHA-256(challenge)` as `clientDataHash`, not the raw challenge.        |
 
 See [Types & error codes](/docs/types-and-error-codes) for the full list.
 

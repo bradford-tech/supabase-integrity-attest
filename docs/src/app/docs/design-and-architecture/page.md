@@ -24,18 +24,18 @@ How the library is structured and why certain design decisions were made. {% .le
 
 The library is 10 focused source files under `packages/lib/src/`:
 
-| Module              | Responsibility                                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `attestation.ts`    | [`verifyAttestation()`](/docs/verify-attestation) + custom CBOR decoder for Apple's malformed receipt headers                    |
-| `assertion.ts`      | [`verifyAssertion()`](/docs/verify-assertion) — lightweight path using `cborg` for CBOR                                          |
-| `certificate.ts`    | X.509 certificate chain verification, nonce extraction, public key extraction via `asn1js` + `@noble/curves` (P-384) + WebCrypto |
-| `authdata.ts`       | Binary parser for authenticator data (rpIdHash, flags, signCount, AAGUID, credentialId)                                          |
-| `cose.ts`           | COSE EC2 key → raw 65-byte uncompressed point / CryptoKey                                                                        |
-| `der.ts`            | DER ↔ raw `r\|\|s` signature conversion (WebCrypto requires raw format)                                                          |
-| `constants.ts`      | Apple root CA PEM, production/development AAGUIDs, nonce extension OID                                                           |
-| `errors.ts`         | `AttestationError` / `AssertionError` with typed error codes                                                                     |
-| `utils.ts`          | Byte helpers (concat, constant-time compare), base64/UTF-8 coercion, PEM import/export                                           |
-| `with-assertion.ts` | `withAssertion()` middleware wrapper                                                                                             |
+| Module                | Responsibility                                                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `attestation.ts`      | [`verifyAttestation()`](/docs/verify-attestation) + custom CBOR decoder for Apple's malformed receipt headers                    |
+| `assertion.ts`        | [`verifyAssertion()`](/docs/verify-assertion) — lightweight path using `cborg` for CBOR                                          |
+| `certificate.ts`      | X.509 certificate chain verification, nonce extraction, public key extraction via `asn1js` + `@noble/curves` (P-384) + WebCrypto |
+| `authdata.ts`         | Binary parser for authenticator data (rpIdHash, flags, signCount, AAGUID, credentialId)                                          |
+| `der.ts`              | DER ↔ raw `r\|\|s` signature conversion (WebCrypto requires raw format)                                                          |
+| `constants.ts`        | Apple root CA PEM, production/development AAGUIDs, nonce extension OID                                                           |
+| `errors.ts`           | `AttestationError` / `AssertionError` with typed error codes                                                                     |
+| `utils.ts`            | Byte helpers (concat, constant-time compare), base64/UTF-8 coercion, PEM import/export                                           |
+| `with-attestation.ts` | `withAttestation()` middleware wrapper                                                                                           |
+| `with-assertion.ts`   | `withAssertion()` middleware wrapper                                                                                             |
 
 ---
 
