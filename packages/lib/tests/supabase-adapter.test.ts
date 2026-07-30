@@ -147,3 +147,61 @@ Deno.test("consumeChallenge rejects an unknown challenge", async () => {
   const adapter = createSupabaseAdapter(client);
   assertEquals(await adapter.consumeChallenge(new Uint8Array(32)), false);
 });
+
+Deno.test("storeDeviceKey upserts and getDeviceKey round-trips", async () => {
+  const { client, tables } = createFakeClient();
+  const adapter = createSupabaseAdapter(client);
+  await adapter.storeDeviceKey({
+    deviceId: "dev-1",
+    publicKeyPem: "-----BEGIN PUBLIC KEY-----\nabc\n-----END PUBLIC KEY-----",
+    signCount: 0,
+    receipt: new Uint8Array([0xde, 0xad]),
+  });
+  // Re-attest same device: upsert, not duplicate.
+  await adapter.storeDeviceKey({
+    deviceId: "dev-1",
+    publicKeyPem: "-----BEGIN PUBLIC KEY-----\nxyz\n-----END PUBLIC KEY-----",
+    signCount: 0,
+    receipt: new Uint8Array([0xbe, 0xef]),
+  });
+  assertEquals(tables.get("app_attest_devices")!.length, 1);
+  assertEquals(tables.get("app_attest_devices")![0].receipt, "\\xbeef");
+
+  const key = await adapter.getDeviceKey("dev-1");
+  assertEquals(key?.signCount, 0);
+  assertEquals(key?.publicKeyPem.includes("xyz"), true);
+  assertEquals(await adapter.getDeviceKey("nope"), null);
+});
+
+Deno.test("commitSignCount advances only when strictly greater", async () => {
+  const { client } = createFakeClient();
+  const adapter = createSupabaseAdapter(client);
+  await adapter.storeDeviceKey({
+    deviceId: "dev-1",
+    publicKeyPem: "pem",
+    signCount: 5,
+    receipt: new Uint8Array(0),
+  });
+  assertEquals(await adapter.commitSignCount("dev-1", 6), true);
+  assertEquals((await adapter.getDeviceKey("dev-1"))?.signCount, 6);
+  // Stale: stored value (6) is not < 6.
+  assertEquals(await adapter.commitSignCount("dev-1", 6), false);
+  assertEquals(await adapter.commitSignCount("dev-1", 4), false);
+});
+
+Deno.test("table name overrides are respected", async () => {
+  const { client, tables } = createFakeClient();
+  const adapter = createSupabaseAdapter(client, {
+    devicesTable: "my_devices",
+    challengesTable: "my_challenges",
+  });
+  await adapter.issueChallenge("attestation");
+  await adapter.storeDeviceKey({
+    deviceId: "d",
+    publicKeyPem: "p",
+    signCount: 0,
+    receipt: new Uint8Array(0),
+  });
+  assertEquals(tables.get("my_challenges")!.length, 1);
+  assertEquals(tables.get("my_devices")!.length, 1);
+});
