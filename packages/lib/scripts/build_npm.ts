@@ -45,5 +45,7 @@ await build({
   postBuild() {
     Deno.copyFileSync("LICENSE", "npm/LICENSE");
     Deno.copyFileSync("README.md", "npm/README.md");
+    Deno.mkdirSync("npm/sql", { recursive: true });
+    Deno.copyFileSync("sql/app_attest.sql", "npm/sql/app_attest.sql");
   },
 });
