@@ -18,6 +18,7 @@ A challenge is random bytes your server generates and sends to the client before
 2. **Single-use** — consume the challenge after verification. Never accept the same challenge twice.
 3. **Short-lived** — expire after 30-60 seconds. A challenge that sits around is a replay vector.
 4. **Stored server-side** — the client sends the challenge back, but you verify it against your stored copy.
+5. **Swept periodically** — consumption only deletes challenges that get used. Issued-but-abandoned challenges accumulate forever without a periodic cleanup (e.g. a pg_cron job deleting rows past `expires_at`).
 
 This library does not manage challenges. You generate them, store them, and expire them. The library verifies that the attestation or assertion was created with the correct challenge.
 
