@@ -17,6 +17,9 @@ await build({
   ],
   outDir: "./npm",
   test: false,
+  // Types are checked by `deno task check`; dnt's node-side re-check breaks
+  // on TS >= 5.7 generic Uint8Array vs DOM BufferSource.
+  typeCheck: false,
   shims: {
     deno: { test: "dev" },
   },
