@@ -13,10 +13,6 @@
     "start": "next start"
   },
   "browserslist": "defaults, not ie <= 11",
-  "overrides": {
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3"
-  },
   "dependencies": {
     "@algolia/autocomplete-core": "^1.19.8",
     "@headlessui/react": "^2.2.10",

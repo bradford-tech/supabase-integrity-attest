@@ -10,6 +10,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  useAnimatedValue,
   View,
 } from "react-native";
 
@@ -42,7 +43,7 @@ function SignCountDiff({
   current: number;
   previous: number | null;
 }) {
-  const flashAnim = useRef(new Animated.Value(0)).current;
+  const flashAnim = useAnimatedValue(0);
 
   useEffect(() => {
     if (previous !== null && previous !== current) {

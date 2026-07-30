@@ -21,11 +21,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   orientation: "portrait",
   icon: "./assets/icon.png",
   userInterfaceStyle: "light",
-  splash: {
-    image: "./assets/splash-icon.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
-  },
   ios: {
     supportsTablet: true,
     bundleIdentifier,
@@ -37,7 +32,21 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: "./assets/favicon.png",
   },
-  plugins: ["expo-secure-store"],
+  plugins: [
+    "expo-secure-store",
+    "expo-status-bar",
+    [
+      "expo-splash-screen",
+      {
+        image: "./assets/splash-icon.png",
+        // Plugin default is 100px, which renders far smaller than the old
+        // top-level `splash` block did. 200 matches Expo's own template.
+        imageWidth: 200,
+        resizeMode: "contain",
+        backgroundColor: "#ffffff",
+      },
+    ],
+  ],
   extra: {
     // Derived APP_ID exposed to client code via expo-constants:
     //   import Constants from 'expo-constants'
