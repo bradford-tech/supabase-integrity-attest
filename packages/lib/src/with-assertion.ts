@@ -1,7 +1,14 @@
 // src/with-assertion.ts
 import { verifyAssertion } from "./assertion.ts";
-import type { AppInfo } from "./assertion.ts";
-import { AssertionError, AssertionErrorCode } from "./errors.ts";
+import type { AssertionAppInfo } from "./assertion.ts";
+import {
+  AssertionError,
+  AssertionErrorCode,
+  assertionWireMessage,
+} from "./errors.ts";
+
+/** Default cap on request body size accepted by the default extractor. */
+const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
 
 /** Default HTTP header name for the base64-encoded assertion. */
 export const DEFAULT_ASSERTION_HEADER = "X-App-Attest-Assertion";
@@ -77,6 +84,12 @@ export type WithAssertionOptions = {
   commitSignCount: (deviceId: string, newSignCount: number) => Promise<boolean>;
   /** Override the default header-based assertion extraction. */
   extractAssertion?: ExtractAssertionFn;
+  /**
+   * Maximum request body size in bytes accepted by the default extractor
+   * (default 1 MiB). Oversized bodies are rejected with `INVALID_FORMAT`
+   * before buffering. Ignored when `extractAssertion` is provided.
+   */
+  maxBodyBytes?: number;
   /** Custom error response handler. Defaults to JSON error responses. */
   onError?: (
     error: AssertionError,
@@ -84,7 +97,10 @@ export type WithAssertionOptions = {
   ) => Response | Promise<Response>;
 };
 
-async function defaultExtractAssertion(req: Request): Promise<{
+async function defaultExtractAssertion(
+  req: Request,
+  maxBodyBytes: number,
+): Promise<{
   assertion: string;
   deviceId: string;
   clientData: Uint8Array;
@@ -99,9 +115,34 @@ async function defaultExtractAssertion(req: Request): Promise<{
     );
   }
 
-  const clientData = new Uint8Array(await req.arrayBuffer());
+  const clientData = await readBodyCapped(req, maxBodyBytes);
 
   return { assertion, deviceId, clientData };
+}
+
+/**
+ * Reject oversized request bodies before (via Content-Length) and after
+ * (via actual byte count, for chunked bodies) buffering.
+ */
+async function readBodyCapped(
+  req: Request,
+  maxBodyBytes: number,
+): Promise<Uint8Array> {
+  const contentLength = Number(req.headers.get("Content-Length"));
+  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
+    throw new AssertionError(
+      AssertionErrorCode.INVALID_FORMAT,
+      `Request body exceeds ${maxBodyBytes} bytes`,
+    );
+  }
+  const bytes = new Uint8Array(await req.arrayBuffer());
+  if (bytes.byteLength > maxBodyBytes) {
+    throw new AssertionError(
+      AssertionErrorCode.INVALID_FORMAT,
+      `Request body exceeds ${maxBodyBytes} bytes`,
+    );
+  }
+  return bytes;
 }
 
 function defaultErrorResponse(error: AssertionError): Response {
@@ -113,8 +154,14 @@ function defaultErrorResponse(error: AssertionError): Response {
     ? 409
     : 401;
 
+  // Fixed per-code message — error.message can embed parser internals and
+  // client-supplied input, which must not be reflected to unauthenticated
+  // callers. The full message remains available to custom onError handlers.
   return new Response(
-    JSON.stringify({ error: error.message, code: error.code }),
+    JSON.stringify({
+      error: assertionWireMessage(error.code),
+      code: error.code,
+    }),
     { status, headers: { "Content-Type": "application/json" } },
   );
 }
@@ -138,8 +185,10 @@ export function withAssertion(
     context: AssertionContext,
   ) => Response | Promise<Response>,
 ): (req: Request) => Promise<Response> {
-  const appInfo: AppInfo = { appId: options.appId };
-  const extract = options.extractAssertion ?? defaultExtractAssertion;
+  const appInfo: AssertionAppInfo = { appId: options.appId };
+  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  const extract = options.extractAssertion ??
+    ((req: Request) => defaultExtractAssertion(req, maxBodyBytes));
 
   return async (req: Request): Promise<Response> => {
     let deviceId: string;

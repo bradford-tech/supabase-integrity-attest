@@ -1,8 +1,9 @@
 // tests/with-attestation.test.ts
 import { assertEquals } from "@std/assert";
-import { encodeBase64 } from "@std/encoding/base64";
+import { decodeBase64, encodeBase64 } from "@std/encoding/base64";
 import { withAttestation } from "../src/with-attestation.ts";
 import { AttestationError, AttestationErrorCode } from "../src/errors.ts";
+import { APPLE_TEST_VECTOR } from "./fixtures/apple-attestation.ts";
 
 const TEST_APP_ID = "TEAMID1234.com.example.testapp";
 
@@ -138,8 +139,8 @@ Deno.test("withAttestation: consumeChallenge throws → 500 INTERNAL_ERROR with 
   assertEquals(res.status, 500);
   const json = await res.json();
   assertEquals(json.code, AttestationErrorCode.INTERNAL_ERROR);
-  // Static client-safe message only.
-  assertEquals(json.error, "consumeChallenge callback failed");
+  // Fixed client-safe message only.
+  assertEquals(json.error, "Internal error");
   // The leaky underlying error MUST NOT appear anywhere in the response body.
   const raw = JSON.stringify(json);
   assertEquals(
@@ -368,4 +369,139 @@ Deno.test("withAttestation: onError receives AttestationError instance", async (
   const err = capturedError as AttestationError;
   assertEquals(err instanceof AttestationError, true);
   assertEquals(err.code, AttestationErrorCode.CHALLENGE_INVALID);
+});
+
+// --- Wire message sanitization ---
+
+Deno.test("withAttestation: verify-layer error message is not reflected on the wire", async () => {
+  const handler = withAttestation(
+    {
+      appId: TEST_APP_ID,
+      consumeChallenge: () => Promise.resolve(true),
+      storeDeviceKey: () => Promise.resolve(),
+    },
+    () => new Response("should not run"),
+  );
+
+  // Junk attestation bytes → INVALID_FORMAT thrown by the CBOR decoder,
+  // whose message embeds parser internals ("Failed to decode ...").
+  const res = await handler(
+    buildReq({
+      keyId: "aW52YWxpZC1rZXktaWQ=",
+      challenge: encodeBase64(new Uint8Array(16)),
+      attestation: encodeBase64(new Uint8Array([0xde, 0xad, 0xbe, 0xef])),
+    }),
+  );
+  assertEquals(res.status, 400);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.INVALID_FORMAT);
+  // Fixed per-code message only — no parser internals.
+  assertEquals(json.error, "Malformed request");
+});
+
+// --- Happy path via custom clientDataHash + checkDate passthrough ---
+//
+// Apple's test vector was generated with the raw challenge string used
+// directly as clientDataHash (not hashed), so the middleware's standard
+// SHA-256(challengeAsSent) derivation can never match it. The extractor's
+// optional clientDataHash override exists for exactly this class of
+// non-standard client derivations — and lets this test drive the full
+// middleware success path with a real attestation.
+
+function appleVectorOptions(
+  overrides: Partial<Parameters<typeof withAttestation>[0]> = {},
+): Parameters<typeof withAttestation>[0] {
+  return {
+    appId: APPLE_TEST_VECTOR.appId,
+    checkDate: new Date("2024-04-18T00:00:00Z"),
+    consumeChallenge: () => Promise.resolve(true),
+    storeDeviceKey: () => Promise.resolve(),
+    extractAttestation: () =>
+      Promise.resolve({
+        deviceId: APPLE_TEST_VECTOR.keyId,
+        challenge: new TextEncoder().encode(APPLE_TEST_VECTOR.challenge),
+        challengeAsSent: APPLE_TEST_VECTOR.challenge,
+        clientDataHash: new TextEncoder().encode(APPLE_TEST_VECTOR.challenge),
+        attestation: decodeBase64(APPLE_TEST_VECTOR.attestationBase64),
+      }),
+    ...overrides,
+  };
+}
+
+Deno.test("withAttestation: Apple vector verifies through the middleware success path", async () => {
+  let stored: { deviceId: string; publicKeyPem: string } | null = null;
+  const handler = withAttestation(
+    appleVectorOptions({
+      storeDeviceKey: (row) => {
+        stored = { deviceId: row.deviceId, publicKeyPem: row.publicKeyPem };
+        return Promise.resolve();
+      },
+    }),
+    (_req, ctx) =>
+      new Response(
+        JSON.stringify({
+          deviceId: ctx.deviceId,
+          signCount: ctx.signCount,
+          hasTimings: typeof ctx.timings.verifyMs === "number",
+        }),
+        { status: 200 },
+      ),
+  );
+
+  const res = await handler(
+    new Request("http://localhost/attest", { method: "POST" }),
+  );
+  assertEquals(res.status, 200);
+  const json = await res.json();
+  assertEquals(json.deviceId, APPLE_TEST_VECTOR.keyId);
+  assertEquals(json.signCount, 0);
+  assertEquals(json.hasTimings, true);
+  if (!stored) throw new Error("storeDeviceKey was not called");
+  const row = stored as { deviceId: string; publicKeyPem: string };
+  assertEquals(row.deviceId, APPLE_TEST_VECTOR.keyId);
+  assertEquals(row.publicKeyPem.startsWith("-----BEGIN PUBLIC KEY-----"), true);
+});
+
+Deno.test("withAttestation: storeDeviceKey throws → 500 INTERNAL_ERROR with no leak", async () => {
+  const handler = withAttestation(
+    appleVectorOptions({
+      storeDeviceKey: () =>
+        Promise.reject(new Error('insert failed: constraint "devices_pkey"')),
+    }),
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(
+    new Request("http://localhost/attest", { method: "POST" }),
+  );
+  assertEquals(res.status, 500);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.INTERNAL_ERROR);
+  assertEquals(json.error, "Internal error");
+  assertEquals(JSON.stringify(json).includes("devices_pkey"), false);
+});
+
+// --- Body size cap ---
+
+Deno.test("withAttestation: body over maxBodyBytes → 400 INVALID_FORMAT", async () => {
+  const handler = withAttestation(
+    {
+      appId: TEST_APP_ID,
+      maxBodyBytes: 1024,
+      consumeChallenge: () => Promise.resolve(true),
+      storeDeviceKey: () => Promise.resolve(),
+    },
+    () => new Response("should not run"),
+  );
+
+  const res = await handler(
+    buildReq({
+      keyId: "anything",
+      challenge: encodeBase64(new Uint8Array(16)),
+      attestation: encodeBase64(new Uint8Array(4096)),
+    }),
+  );
+  assertEquals(res.status, 400);
+  const json = await res.json();
+  assertEquals(json.code, AttestationErrorCode.INVALID_FORMAT);
 });

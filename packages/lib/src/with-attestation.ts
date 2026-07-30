@@ -2,7 +2,14 @@
 import { decodeBase64 } from "@std/encoding/base64";
 import { verifyAttestation } from "./attestation.ts";
 import type { AppInfo } from "./attestation.ts";
-import { AttestationError, AttestationErrorCode } from "./errors.ts";
+import {
+  AttestationError,
+  AttestationErrorCode,
+  attestationWireMessage,
+} from "./errors.ts";
+
+/** Default cap on request body size accepted by the default extractor. */
+const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
 
 /**
  * Library-internal timing spans for an attestation verification, in
@@ -48,6 +55,14 @@ export type ExtractAttestationFn = (req: Request) => Promise<{
    * `verifyAttestation`.
    */
   challengeAsSent: string;
+  /**
+   * Optional precomputed clientDataHash. When provided, the middleware
+   * uses it directly instead of deriving `SHA-256(challengeAsSent)`.
+   * Needed only for client SDKs with non-standard clientDataHash
+   * derivations (Expo and native `DCAppAttestService` wrappers use the
+   * standard derivation, which the middleware computes automatically).
+   */
+  clientDataHash?: Uint8Array;
   attestation: Uint8Array;
 }>;
 
@@ -79,6 +94,18 @@ export type WithAttestationOptions = {
   }) => Promise<void>;
   /** Override the default body-based attestation extraction. */
   extractAttestation?: ExtractAttestationFn;
+  /**
+   * Maximum request body size in bytes accepted by the default extractor
+   * (default 1 MiB). Oversized bodies are rejected with `INVALID_FORMAT`
+   * before buffering. Ignored when `extractAttestation` is provided.
+   */
+  maxBodyBytes?: number;
+  /**
+   * Override the date used for certificate validity checks, forwarded to
+   * {@linkcode verifyAttestation}. Only needed when testing with Apple's
+   * expired test fixture — leave unset in production.
+   */
+  checkDate?: Date;
   /** Custom error response handler. Defaults to JSON error responses. */
   onError?: (
     error: AttestationError,
@@ -91,15 +118,19 @@ export type WithAttestationOptions = {
  * `{ keyId: string, challenge: string, attestation: string }` where all
  * three fields are base64-encoded per Apple's standard wire format.
  */
-async function defaultExtractAttestation(req: Request): Promise<{
+async function defaultExtractAttestation(
+  req: Request,
+  maxBodyBytes: number,
+): Promise<{
   deviceId: string;
   challenge: Uint8Array;
   challengeAsSent: string;
   attestation: Uint8Array;
 }> {
+  const bytes = await readBodyCapped(req, maxBodyBytes);
   let body: unknown;
   try {
-    body = await req.json();
+    body = JSON.parse(new TextDecoder().decode(bytes));
   } catch (err) {
     throw new AttestationError(
       AttestationErrorCode.INVALID_FORMAT,
@@ -150,14 +181,45 @@ async function defaultExtractAttestation(req: Request): Promise<{
   };
 }
 
+/**
+ * Reject oversized request bodies before (via Content-Length) and after
+ * (via actual byte count, for chunked bodies) buffering.
+ */
+async function readBodyCapped(
+  req: Request,
+  maxBodyBytes: number,
+): Promise<Uint8Array> {
+  const contentLength = Number(req.headers.get("Content-Length"));
+  if (Number.isFinite(contentLength) && contentLength > maxBodyBytes) {
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_FORMAT,
+      `Request body exceeds ${maxBodyBytes} bytes`,
+    );
+  }
+  const bytes = new Uint8Array(await req.arrayBuffer());
+  if (bytes.byteLength > maxBodyBytes) {
+    throw new AttestationError(
+      AttestationErrorCode.INVALID_FORMAT,
+      `Request body exceeds ${maxBodyBytes} bytes`,
+    );
+  }
+  return bytes;
+}
+
 function defaultErrorResponse(error: AttestationError): Response {
   const status = error.code === AttestationErrorCode.INTERNAL_ERROR
     ? 500
     : error.code === AttestationErrorCode.INVALID_FORMAT
     ? 400
     : 401;
+  // Fixed per-code message — error.message can embed parser internals and
+  // client-supplied input, which must not be reflected to unauthenticated
+  // callers. The full message remains available to custom onError handlers.
   return new Response(
-    JSON.stringify({ error: error.message, code: error.code }),
+    JSON.stringify({
+      error: attestationWireMessage(error.code),
+      code: error.code,
+    }),
     { status, headers: { "Content-Type": "application/json" } },
   );
 }
@@ -185,7 +247,9 @@ export function withAttestation(
     appId: options.appId,
     developmentEnv: options.developmentEnv ?? false,
   };
-  const extract = options.extractAttestation ?? defaultExtractAttestation;
+  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  const extract: ExtractAttestationFn = options.extractAttestation ??
+    ((req: Request) => defaultExtractAttestation(req, maxBodyBytes));
 
   return async (req: Request): Promise<Response> => {
     let deviceId: string;
@@ -246,12 +310,13 @@ export function withAttestation(
       // Attestation has a transport encoding layer (base64 in a JSON
       // body), so the middleware must hash BEFORE decoding to match what
       // the client SDK hashed.
-      const clientDataHash = new Uint8Array(
-        await crypto.subtle.digest(
-          "SHA-256",
-          new TextEncoder().encode(extracted.challengeAsSent),
-        ),
-      );
+      const clientDataHash = extracted.clientDataHash ??
+        new Uint8Array(
+          await crypto.subtle.digest(
+            "SHA-256",
+            new TextEncoder().encode(extracted.challengeAsSent),
+          ),
+        );
 
       const verifyStart = performance.now();
       const result = await verifyAttestation(
@@ -259,6 +324,7 @@ export function withAttestation(
         deviceId,
         clientDataHash,
         extracted.attestation,
+        options.checkDate ? { checkDate: options.checkDate } : undefined,
       );
       timings.verifyMs = performance.now() - verifyStart;
       publicKeyPem = result.publicKeyPem;

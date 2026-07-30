@@ -98,7 +98,7 @@ export type {
   AttestationResult,
   VerifyAttestationOptions,
 } from "./src/attestation.ts";
-export type { AssertionResult } from "./src/assertion.ts";
+export type { AssertionAppInfo, AssertionResult } from "./src/assertion.ts";
 export { verifyAttestation } from "./src/attestation.ts";
 export { verifyAssertion } from "./src/assertion.ts";
 export {

@@ -12,10 +12,17 @@ import {
 } from "./utils.ts";
 
 /** Identifies the app whose assertions are being verified. */
-export interface AppInfo {
+export interface AssertionAppInfo {
   /** Apple App ID in the format `TEAMID.bundleId`. */
   appId: string;
 }
+
+/**
+ * @deprecated Use {@linkcode AssertionAppInfo}. This alias exists because
+ * the attestation entry points export a different `AppInfo` shape (with
+ * `developmentEnv`); the distinct name removes the ambiguity.
+ */
+export type AppInfo = AssertionAppInfo;
 
 /** Successful assertion verification result. */
 export interface AssertionResult {
@@ -33,7 +40,7 @@ export interface AssertionResult {
  * @throws {AssertionError} If any verification step fails.
  */
 export async function verifyAssertion(
-  appInfo: AppInfo,
+  appInfo: AssertionAppInfo,
   assertion: Uint8Array | string,
   clientData: Uint8Array | string,
   publicKeyPem: string,

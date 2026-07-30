@@ -600,3 +600,78 @@ Deno.test("withAssertion: ctx.timings has all four spans populated", async () =>
   assertEquals(t.verifyMs >= 0, true);
   assertEquals(t.commitMs >= 0, true);
 });
+
+// --- Wire message sanitization ---
+
+Deno.test("withAssertion: decode-layer error message is not reflected on the wire", async () => {
+  const fixture = await generateSyntheticAssertion({
+    appId: TEST_APP_ID,
+    clientData: new TextEncoder().encode("{}"),
+    signCount: 5,
+  });
+  const storage = createMockStorage(fixture);
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      getDeviceKey: storage.getDeviceKey,
+      commitSignCount: storage.commitSignCount,
+    },
+    () => new Response("should not run"),
+  );
+
+  // Junk assertion bytes → INVALID_FORMAT from the CBOR decode, whose
+  // message embeds parser internals ("Failed to decode assertion: ...").
+  const req = new Request("http://localhost/protected", {
+    method: "POST",
+    headers: {
+      [DEFAULT_ASSERTION_HEADER]: encodeBase64(new Uint8Array([1, 2, 3])),
+      [DEFAULT_DEVICE_ID_HEADER]: "test-device-123",
+    },
+    body: "{}",
+  });
+  const res = await handler(req);
+  assertEquals(res.status, 400);
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.INVALID_FORMAT);
+  // Fixed per-code message only — no parser internals.
+  assertEquals(json.error, "Malformed request");
+});
+
+// --- Body size cap ---
+
+Deno.test("withAssertion: body over maxBodyBytes → 400 INVALID_FORMAT", async () => {
+  const bigBody = new Uint8Array(4096);
+  const fixture = await generateSyntheticAssertion({
+    appId: TEST_APP_ID,
+    clientData: bigBody,
+    signCount: 5,
+  });
+  const storage = createMockStorage(fixture);
+  let handlerRan = false;
+  const handler = withAssertion(
+    {
+      appId: TEST_APP_ID,
+      maxBodyBytes: 1024,
+      getDeviceKey: storage.getDeviceKey,
+      commitSignCount: storage.commitSignCount,
+    },
+    () => {
+      handlerRan = true;
+      return new Response("should not run");
+    },
+  );
+
+  const req = new Request("http://localhost/protected", {
+    method: "POST",
+    headers: {
+      [DEFAULT_ASSERTION_HEADER]: encodeBase64(fixture.assertion),
+      [DEFAULT_DEVICE_ID_HEADER]: "test-device-123",
+    },
+    body: bigBody,
+  });
+  const res = await handler(req);
+  assertEquals(res.status, 400);
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.INVALID_FORMAT);
+  assertEquals(handlerRan, false);
+});

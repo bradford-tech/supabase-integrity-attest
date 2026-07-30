@@ -26,14 +26,16 @@ function withAttestation(
 
 ## Options
 
-| Field                | Type                                                                       | Required | Description                                                                                                                                     |
-| -------------------- | -------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `appId`              | `string`                                                                   | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                                |
-| `developmentEnv`     | `boolean`                                                                  | No       | Default `false`. Set `true` for development AAGUID.                                                                                             |
-| `consumeChallenge`   | `(challenge: Uint8Array) => Promise<boolean>`                              | Yes      | **Atomic single-use consume.** Return `true` if the challenge was valid, unused, and unexpired (and is now consumed). Return `false` otherwise. |
-| `storeDeviceKey`     | `(row: { deviceId, publicKeyPem, signCount, receipt }) => Promise<void>`   | Yes      | Persist the verified key. Caller chooses INSERT vs UPSERT — upsert is usually correct.                                                          |
-| `extractAttestation` | `ExtractAttestationFn`                                                     | No       | Custom extraction logic. Default reads a JSON body of `{ keyId, challenge, attestation }` with base64-encoded values.                           |
-| `onError`            | `(error: AttestationError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                  |
+| Field                | Type                                                                       | Required | Description                                                                                                                                                                                                                                                |
+| -------------------- | -------------------------------------------------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `appId`              | `string`                                                                   | Yes      | Your Team ID + bundle ID (e.g., `"TEAMID1234.com.example.app"`).                                                                                                                                                                                           |
+| `developmentEnv`     | `boolean`                                                                  | No       | Default `false`. Set `true` for development AAGUID.                                                                                                                                                                                                        |
+| `consumeChallenge`   | `(challenge: Uint8Array) => Promise<boolean>`                              | Yes      | **Atomic single-use consume.** Return `true` if the challenge was valid, unused, and unexpired (and is now consumed). Return `false` otherwise.                                                                                                            |
+| `storeDeviceKey`     | `(row: { deviceId, publicKeyPem, signCount, receipt }) => Promise<void>`   | Yes      | Persist the verified key. Caller chooses INSERT vs UPSERT — upsert is usually correct.                                                                                                                                                                     |
+| `extractAttestation` | `ExtractAttestationFn`                                                     | No       | Custom extraction logic. Default reads a JSON body of `{ keyId, challenge, attestation }` with base64-encoded values. May return an optional `clientDataHash` to override the standard `SHA-256(challengeAsSent)` derivation for non-standard client SDKs. |
+| `maxBodyBytes`       | `number`                                                                   | No       | Default `1048576` (1 MiB). Request bodies over this size are rejected with `INVALID_FORMAT` by the default extractor.                                                                                                                                      |
+| `checkDate`          | `Date`                                                                     | No       | Certificate-validity date override forwarded to `verifyAttestation()`. Only for testing with expired fixtures — leave unset in production.                                                                                                                 |
+| `onError`            | `(error: AttestationError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                                                                                                                             |
 
 ---
 
@@ -73,6 +75,7 @@ type ExtractAttestationFn = (req: Request) => Promise<{
   deviceId: string
   challenge: Uint8Array // raw bytes for consumeChallenge DB lookup
   challengeAsSent: string // original string the client SDK hashed
+  clientDataHash?: Uint8Array // optional override for non-standard derivations
   attestation: Uint8Array
 }>
 ```
@@ -87,7 +90,7 @@ This asymmetry does not exist on the assertion side: there, the string passed to
 
 ## Default error responses
 
-When verification fails and no `onError` is provided:
+When verification fails and no `onError` is provided. The `error` field is a fixed, per-code message — the underlying `error.message` (which can contain parser detail and client input) never reaches the wire; use `onError` to log it server-side.
 
 | Error code                  | HTTP status | Response body                                             |
 | --------------------------- | ----------- | --------------------------------------------------------- |

@@ -68,6 +68,42 @@ export enum AssertionErrorCode {
   SIGN_COUNT_STALE = "SIGN_COUNT_STALE",
 }
 
+/**
+ * Fixed, wire-safe message for an attestation error code. Used by the
+ * default {@linkcode withAttestation} error response so parser/crypto
+ * detail in `error.message` (which can embed client-supplied input)
+ * never reaches unauthenticated callers. The full message stays
+ * available server-side via the error object passed to `onError`.
+ */
+export function attestationWireMessage(code: AttestationErrorCode): string {
+  switch (code) {
+    case AttestationErrorCode.INVALID_FORMAT:
+      return "Malformed request";
+    case AttestationErrorCode.CHALLENGE_INVALID:
+      return "Challenge invalid or expired";
+    case AttestationErrorCode.INTERNAL_ERROR:
+      return "Internal error";
+    default:
+      return "Attestation verification failed";
+  }
+}
+
+/** Fixed, wire-safe message for an assertion error code. See {@linkcode attestationWireMessage}. */
+export function assertionWireMessage(code: AssertionErrorCode): string {
+  switch (code) {
+    case AssertionErrorCode.INVALID_FORMAT:
+      return "Malformed request";
+    case AssertionErrorCode.DEVICE_NOT_FOUND:
+      return "Device not found";
+    case AssertionErrorCode.SIGN_COUNT_STALE:
+      return "Sign count stale";
+    case AssertionErrorCode.INTERNAL_ERROR:
+      return "Internal error";
+    default:
+      return "Assertion verification failed";
+  }
+}
+
 /** Thrown when assertion verification fails. */
 export class AssertionError extends Error {
   /** Discriminant for `instanceof` checks in catch blocks. Always `"AssertionError"`. */

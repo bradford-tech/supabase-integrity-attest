@@ -32,6 +32,7 @@ function withAssertion(
 | `getDeviceKey`     | `(deviceId: string) => Promise<DeviceKey \| null>`                       | Yes      | Fetch the device's stored public key and counter. Return `null` if not found.                                                                                             |
 | `commitSignCount`  | `(deviceId: string, newSignCount: number) => Promise<boolean>`           | Yes      | **Atomic compare-and-swap.** Update the stored counter only if the current stored value is strictly less than `newSignCount`. Return `true` if updated, `false` if stale. |
 | `extractAssertion` | `ExtractAssertionFn`                                                     | No       | Custom extraction logic. Default reads from standard headers.                                                                                                             |
+| `maxBodyBytes`     | `number`                                                                 | No       | Default `1048576` (1 MiB). Request bodies over this size are rejected with `INVALID_FORMAT` by the default extractor.                                                     |
 | `onError`          | `(error: AssertionError, req: Request) => Response \| Promise<Response>` | No       | Custom error response handler.                                                                                                                                            |
 
 ---
@@ -88,7 +89,7 @@ The default extractor reads the assertion from `X-App-Attest-Assertion` and the 
 
 ## Default error responses
 
-When verification fails and no `onError` is provided:
+When verification fails and no `onError` is provided. The `error` field is a fixed, per-code message — the underlying `error.message` (which can contain parser detail and client input) never reaches the wire; use `onError` to log it server-side.
 
 | Error code                | HTTP status | Response body                                                 |
 | ------------------------- | ----------- | ------------------------------------------------------------- |
