@@ -39,25 +39,10 @@ updates:
     groups:
       all:
         patterns: ['*']
-  - package-ecosystem: npm
-    directory: /docs
-    assignees:
-      - sbs44
-    schedule:
-      interval: daily
-    ignore:
-      # docs/.ncurc.cjs: @types/node → minor only
-      - dependency-name: '@types/node'
-        update-types: ['version-update:semver-major']
-      # docs/.ncurc.cjs: eslint → minor only
-      - dependency-name: 'eslint'
-        update-types: ['version-update:semver-major']
-      # docs/.ncurc.cjs: reject react, react-dom
-      - dependency-name: 'react'
-      - dependency-name: 'react-dom'
-    groups:
-      all:
-        patterns: ['*']
+  # NOTE: no /docs entry — docs is an npm workspace sharing the root
+  # package-lock.json, so a directory-scoped dependabot entry produces PRs
+  # that desync the root lockfile and always fail `npm ci`. The root npm
+  # entry above covers docs dependencies.
   - package-ecosystem: npm
     directory: /demo/supabase-expo-demo
     assignees:
