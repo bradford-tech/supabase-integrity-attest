@@ -65,7 +65,7 @@ const appInfo = {
 
 ## Database schema
 
-Two tables — one for verified devices, one for the short-lived challenge nonces. The `app_attest_` prefix keeps them from colliding with any existing `devices` or `challenges` tables in your project.
+Two tables — one for verified devices, one for the short-lived challenge nonces. The canonical migration (including RLS and a pg_cron sweep of expired challenges) ships with the package as [`sql/app_attest.sql`](https://github.com/bradford-tech/supabase-integrity-attest/blob/main/packages/lib/sql/app_attest.sql), and the [Supabase adapter](/docs/supabase-adapter) provides ready-made callbacks for exactly this schema. The `app_attest_` prefix keeps them from colliding with any existing `devices` or `challenges` tables in your project.
 
 ```sql
 create table app_attest_devices (
@@ -117,4 +117,10 @@ Deno.serve(protect(async (_req, ctx) => {
 }))
 ```
 
-The [`withAssertion` guide](/docs/with-assertion) shows the full `protect` helper, and the [`withAttestation` guide](/docs/with-attestation) shows the attestation-side equivalent.
+The [`withAssertion` guide](/docs/with-assertion) shows the full `protect` helper, and the [`withAttestation` guide](/docs/with-attestation) shows the attestation-side equivalent. On Supabase you can skip writing the storage callbacks entirely — the [Supabase adapter](/docs/supabase-adapter) supplies all of them from one factory call.
+
+---
+
+## Works with any auth
+
+App Attest proves _device integrity_ — that the request came from your unmodified app on a genuine Apple device. It says nothing about _user identity_, and this library deliberately stays out of that lane. The middleware composes alongside whatever auth you already use: Supabase Auth, AWS Cognito, Firebase Auth, or any bearer JWT. Verify the assertion and the auth token independently on the same request — one guards the _what_ (a legitimate client binary), the other the _who_.
