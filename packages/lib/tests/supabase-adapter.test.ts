@@ -116,3 +116,34 @@ Deno.test("issueChallenge inserts a 32-byte challenge with TTL and returns it", 
   assertEquals((stored[0].challenge as string).startsWith("\\x"), true);
   assertEquals((stored[0].challenge as string).length, 2 + 64);
 });
+
+Deno.test("consumeChallenge consumes exactly once", async () => {
+  const { client } = createFakeClient();
+  const adapter = createSupabaseAdapter(client);
+  const { challenge } = await adapter.issueChallenge("attestation");
+  assertEquals(await adapter.consumeChallenge(challenge), true);
+  assertEquals(await adapter.consumeChallenge(challenge), false);
+});
+
+Deno.test("consumeChallenge rejects purpose mismatch", async () => {
+  const { client } = createFakeClient();
+  const adapter = createSupabaseAdapter(client);
+  const { challenge } = await adapter.issueChallenge("assertion");
+  // Default purpose is "attestation" — an assertion challenge must not satisfy it.
+  assertEquals(await adapter.consumeChallenge(challenge), false);
+  // Explicit purpose works.
+  assertEquals(await adapter.consumeChallenge(challenge, "assertion"), true);
+});
+
+Deno.test("consumeChallenge rejects expired challenges", async () => {
+  const { client } = createFakeClient();
+  const adapter = createSupabaseAdapter(client, { challengeTtlSeconds: -1 });
+  const { challenge } = await adapter.issueChallenge("attestation");
+  assertEquals(await adapter.consumeChallenge(challenge), false);
+});
+
+Deno.test("consumeChallenge rejects an unknown challenge", async () => {
+  const { client } = createFakeClient();
+  const adapter = createSupabaseAdapter(client);
+  assertEquals(await adapter.consumeChallenge(new Uint8Array(32)), false);
+});
