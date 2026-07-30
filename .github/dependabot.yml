@@ -24,6 +24,10 @@ updates:
         update-types: ['version-update:semver-major']
       - dependency-name: 'eslint'
         update-types: ['version-update:semver-major']
+      # docs/.ncurc.cjs: js-yaml → minor only (@markdoc/next.js loader
+      # emits `import yaml from 'js-yaml'`; v5 removed the default export)
+      - dependency-name: 'js-yaml'
+        update-types: ['version-update:semver-major']
       # docs/.ncurc.cjs + demo/.ncurc.cjs: reject react
       - dependency-name: 'react'
       # docs/.ncurc.cjs: reject react-dom
