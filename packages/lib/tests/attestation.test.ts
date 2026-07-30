@@ -148,3 +148,55 @@ Deno.test("verifyAttestation rejects malformed CBOR", async () => {
   );
   assertEquals(err.code, AttestationErrorCode.INVALID_FORMAT);
 });
+
+// --- Structural rejection of crafted attestation CBOR ---
+//
+// cborg produces well-formed canonical CBOR that the custom decoder can
+// walk, letting these tests exercise verification branches that Apple's
+// single test vector cannot reach.
+
+Deno.test("verifyAttestation rejects fmt !== apple-appattest", async () => {
+  const { encode } = await import("cborg");
+  const crafted = encode({
+    fmt: "packed",
+    attStmt: {
+      x5c: [new Uint8Array(8), new Uint8Array(8)],
+      receipt: new Uint8Array(4),
+    },
+    authData: new Uint8Array(37),
+  });
+  const err = await assertRejects(
+    () =>
+      verifyAttestation(
+        { appId: APPLE_TEST_VECTOR.appId },
+        APPLE_TEST_VECTOR.keyId,
+        APPLE_TEST_VECTOR.challenge,
+        crafted,
+      ),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_FORMAT);
+});
+
+Deno.test("verifyAttestation rejects x5c with fewer than 2 certificates", async () => {
+  const { encode } = await import("cborg");
+  const crafted = encode({
+    fmt: "apple-appattest",
+    attStmt: {
+      x5c: [new Uint8Array(8)],
+      receipt: new Uint8Array(4),
+    },
+    authData: new Uint8Array(37),
+  });
+  const err = await assertRejects(
+    () =>
+      verifyAttestation(
+        { appId: APPLE_TEST_VECTOR.appId },
+        APPLE_TEST_VECTOR.keyId,
+        APPLE_TEST_VECTOR.challenge,
+        crafted,
+      ),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_CERTIFICATE_CHAIN);
+});

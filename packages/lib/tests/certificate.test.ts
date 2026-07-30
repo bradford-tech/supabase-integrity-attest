@@ -74,3 +74,45 @@ Deno.test("SHA-256 of extracted public key matches credentialId derivation", asy
   const expectedBase64 = "bSrEhF8TIzIvWSPwvZ0i2+UOBre4ASH84rK15m6emNY=";
   assertEquals(encodeBase64(hash), expectedBase64);
 });
+
+// --- Chain failure modes ---
+
+Deno.test("verifyCertificateChain rejects when checkDate is after leaf expiry", async () => {
+  // Leaf expired April 20, 2024.
+  const err = await assertRejects(
+    () => verifyCertificateChain(getX5c(), new Date("2024-04-21T00:00:00Z")),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_CERTIFICATE_CHAIN);
+});
+
+Deno.test("verifyCertificateChain rejects expired certs with default (current) date", async () => {
+  // No checkDate → defaults to now, which is long past the 2024 expiry.
+  const err = await assertRejects(
+    () => verifyCertificateChain(getX5c()),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_CERTIFICATE_CHAIN);
+});
+
+Deno.test("verifyCertificateChain rejects a tampered leaf signature", async () => {
+  const x5c = getX5c();
+  // Flip the final byte of the leaf DER — inside the outer signature
+  // BIT STRING, so the structure still parses but the signature is bad.
+  const tampered = new Uint8Array(x5c[0]);
+  tampered[tampered.length - 1] ^= 0xff;
+  const err = await assertRejects(
+    () => verifyCertificateChain([tampered, x5c[1]], CHECK_DATE),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_CERTIFICATE_CHAIN);
+});
+
+Deno.test("verifyCertificateChain rejects a swapped chain order", async () => {
+  const x5c = getX5c();
+  const err = await assertRejects(
+    () => verifyCertificateChain([x5c[1], x5c[0]], CHECK_DATE),
+    AttestationError,
+  );
+  assertEquals(err.code, AttestationErrorCode.INVALID_CERTIFICATE_CHAIN);
+});

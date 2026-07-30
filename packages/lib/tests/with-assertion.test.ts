@@ -224,6 +224,9 @@ Deno.test("withAssertion: invalid assertion signature → 401", async () => {
 
   const res = await handler(req);
   assertEquals(res.status, 401);
+  // Assert the specific code — a bare 401 could also be DEVICE_NOT_FOUND.
+  const json = await res.json();
+  assertEquals(json.code, AssertionErrorCode.SIGNATURE_INVALID);
 });
 
 // --- Callback Errors → INTERNAL_ERROR ---
