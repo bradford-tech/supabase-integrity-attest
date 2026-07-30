@@ -5,7 +5,8 @@
   "exports": {
     ".": "./mod.ts",
     "./assertion": "./assertion.ts",
-    "./attestation": "./attestation.ts"
+    "./attestation": "./attestation.ts",
+    "./supabase": "./supabase.ts"
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.43.1",

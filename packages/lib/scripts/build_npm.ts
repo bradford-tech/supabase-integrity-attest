@@ -13,6 +13,7 @@ await build({
     "./mod.ts",
     { name: "./assertion", path: "./assertion.ts" },
     { name: "./attestation", path: "./attestation.ts" },
+    { name: "./supabase", path: "./supabase.ts" },
   ],
   outDir: "./npm",
   test: false,
