@@ -22,12 +22,12 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
           ref: ${{ steps.release.outputs['packages/lib--tag_name'] }}
 
-      - uses: denoland/setup-deno@667a34cdef165d8d2b2e98dde39547c9daac7282 # v2.0.4
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
           deno-version-file: .deno-version
@@ -46,7 +46,7 @@ jobs:
         env:
           DENO_NO_PACKAGE_JSON: 1
 
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         if: ${{ steps.release.outputs['packages/lib--release_created'] }}
         with:
           node-version: lts/*
