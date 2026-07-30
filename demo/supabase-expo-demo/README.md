@@ -85,6 +85,7 @@ If attestation fails, check:
 - **`CHALLENGE_INVALID`**: challenge expired (>60s between issuance and use) — try again
 - **`NETWORK_ERROR`**: iPhone can't reach the host — check LAN IP and that `supabase start` is running
 - **`INVALID_CERTIFICATE_CHAIN`**: App Attest capability not enabled on the App ID (step 3)
+- **`SIGN_COUNT_STALE`** (409): a concurrent request from the same device advanced the counter first — transient, retry
 
 ## Project structure
 

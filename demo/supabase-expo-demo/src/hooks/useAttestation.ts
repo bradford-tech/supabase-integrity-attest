@@ -6,6 +6,7 @@
 import * as AppIntegrity from "@expo/app-integrity";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Platform } from "react-native";
 import {
   type ApiResult,
   type ProtectedEventResponse,
@@ -55,7 +56,15 @@ export function useAttestation(): UseAttestationReturn {
   const [signCount, setSignCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  const [isSupported] = useState(() => AppIntegrity.isSupported);
+  // Platform guard: App Attest is iOS-only, and @expo/app-integrity has no
+  // web implementation — reading isSupported off-iOS can throw at startup.
+  const [isSupported] = useState(() => {
+    try {
+      return Platform.OS === "ios" && AppIntegrity.isSupported;
+    } catch {
+      return false;
+    }
+  });
 
   // Ref to avoid stale closures in async operations.
   const keyIdRef = useRef<string | null>(null);
@@ -219,6 +228,10 @@ export function useAttestation(): UseAttestationReturn {
           setSignCount(0);
           setState("idle");
           setLastError("Device not found on server — re-attest required");
+        } else if (!result.ok && result.error?.code === "SIGN_COUNT_STALE") {
+          // 409 since lib 0.8.1: a concurrent request from this device
+          // advanced the counter first. Transient — stay attested, retry.
+          setLastError("Concurrent request advanced the sign counter — retry");
         } else if (!result.ok) {
           setLastError(result.error?.error ?? `HTTP ${result.status}`);
         }
