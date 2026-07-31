@@ -118,7 +118,7 @@ function createSupabaseAdapter(
 
 ## Semantics
 
-- **Challenges** are 32 random bytes (`crypto.getRandomValues`), stored as bytea with a TTL. Consumption is a single atomic `DELETE ... RETURNING` filtered on purpose and `expires_at` — a challenge can never be used twice, even under concurrent requests.
+- **Challenges** are 32 random bytes (`crypto.getRandomValues`), stored as bytea with a TTL. Consumption is a single atomic `DELETE ... RETURNING` filtered on purpose and `expires_at` — a challenge can never be used twice, even under concurrent requests. Expiry is stamped and evaluated against the edge function's clock (PostgREST filters can't call `now()`), so a few seconds of clock skew between isolates shifts the effective window; the pg_cron sweep uses the database clock.
 - **`storeDeviceKey`** is an UPSERT keyed on `device_id`, so re-attesting a device replaces its key row instead of failing.
 - **`commitSignCount`** is a compare-and-swap: `UPDATE ... WHERE device_id = $1 AND sign_count < $2`. It returns `false` when a concurrent request already advanced the counter, which the middleware surfaces as `SIGN_COUNT_STALE` (HTTP 409).
 - **Errors** from Postgres are thrown as-is; the middleware wraps them as `INTERNAL_ERROR` and keeps details off the wire.
