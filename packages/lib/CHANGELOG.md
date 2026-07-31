@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.2...v0.9.0) (2026-07-31)
+
+
+### Features
+
+* **lib:** sanitize wire errors, add body cap and extractor options ([b005421](https://github.com/bradford-tech/supabase-integrity-attest/commit/b0054217ca3ca0bed1a0452bc7e1f8a30dc4b70c))
+* **lib:** supabase adapter (/supabase subpath) ([#126](https://github.com/bradford-tech/supabase-integrity-attest/issues/126)) ([5b59866](https://github.com/bradford-tech/supabase-integrity-attest/commit/5b598661640391f4d667cbc85e6f0b223b6bbe54))
+
 ## [0.8.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.1...v0.8.2) (2026-04-24)
 
 
