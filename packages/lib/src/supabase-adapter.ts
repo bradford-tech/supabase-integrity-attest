@@ -17,14 +17,19 @@ interface QueryChain extends PromiseLike<PgResult> {
  * Structural subset of `SupabaseClient` used by the adapter. Any real
  * `@supabase/supabase-js` client satisfies this — the dependency itself
  * is deliberately never imported.
+ *
+ * The builder-returning methods are typed `unknown` on purpose: comparing
+ * structurally against supabase-js's deeply generic PostgrestFilterBuilder
+ * blows TypeScript's instantiation depth (TS2589). The implementation
+ * casts to the internal {@linkcode QueryChain} shape instead.
  */
 export interface SupabaseLikeClient {
   from(table: string): {
     insert(row: Record<string, unknown>): PromiseLike<PgResult>;
     upsert(row: Record<string, unknown>): PromiseLike<PgResult>;
-    delete(): QueryChain;
-    select(columns?: string): QueryChain;
-    update(values: Record<string, unknown>): QueryChain;
+    delete(): unknown;
+    select(columns?: string): unknown;
+    update(values: Record<string, unknown>): unknown;
   };
 }
 
@@ -45,6 +50,15 @@ export type SupabaseAdapter = {
     challengeBase64: string;
     expiresAt: Date;
   }>;
+  /**
+   * Atomically consume a challenge (single-use `DELETE ... RETURNING`).
+   *
+   * `purpose` defaults to `"attestation"` — the shape `withAttestation`
+   * expects when the adapter is spread into its options. A challenge whose
+   * stored purpose differs from the requested one is NOT consumed and this
+   * resolves `false`, exactly like an unknown or expired challenge. Pass
+   * `"assertion"` explicitly to consume assertion-freshness challenges.
+   */
   consumeChallenge(
     challenge: Uint8Array,
     purpose?: "attestation" | "assertion",
@@ -101,9 +115,9 @@ export function createSupabaseAdapter(
     },
 
     async consumeChallenge(challenge, purpose = "attestation") {
-      const { data, error } = await client
+      const { data, error } = await (client
         .from(challengesTable)
-        .delete()
+        .delete() as QueryChain)
         .eq("challenge", toPgBytea(challenge))
         .eq("purpose", purpose)
         .gt("expires_at", new Date().toISOString())
@@ -129,9 +143,9 @@ export function createSupabaseAdapter(
     },
 
     async getDeviceKey(deviceId) {
-      const { data, error } = await client
+      const { data, error } = await (client
         .from(devicesTable)
-        .select("public_key_pem, sign_count")
+        .select("public_key_pem, sign_count") as QueryChain)
         .eq("device_id", deviceId)
         .maybeSingle();
       if (error) throw new Error(`Failed to get device key: ${error.message}`);
@@ -141,12 +155,12 @@ export function createSupabaseAdapter(
     },
 
     async commitSignCount(deviceId, newSignCount) {
-      const { data, error } = await client
+      const { data, error } = await (client
         .from(devicesTable)
         .update({
           sign_count: newSignCount,
           last_seen_at: new Date().toISOString(),
-        })
+        }) as QueryChain)
         .eq("device_id", deviceId)
         .lt("sign_count", newSignCount)
         .select();
