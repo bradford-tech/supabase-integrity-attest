@@ -176,6 +176,33 @@ Deno.serve(withAssertion(assertionOptions, async (_req, { rawBody }) => {
 }));
 ```
 
+## Supabase adapter
+
+On Supabase, skip writing the callbacks entirely. The `/supabase` subpath ships `createSupabaseAdapter()`, which provides all four storage callbacks plus `issueChallenge()`, backed by two Postgres tables:
+
+```ts
+import { withAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
+import { createSupabaseAdapter } from "@bradford-tech/supabase-integrity-attest/supabase";
+
+const adapter = createSupabaseAdapter(supabase); // service-role client
+
+// Challenge endpoint
+const { challengeBase64, expiresAt } = await adapter.issueChallenge("attestation");
+
+// Registration endpoint -- adapter supplies consumeChallenge + storeDeviceKey
+Deno.serve(withAttestation(
+  { appId: Deno.env.get("APP_ATTEST_APP_ID")!, ...adapter },
+  (_req, ctx) => Response.json({ deviceId: ctx.deviceId }),
+));
+
+// Protected endpoints -- adapter supplies getDeviceKey + commitSignCount
+// withAssertion({ appId, ...adapter }, handler)
+```
+
+The schema ships with the package as [`sql/app_attest.sql`](./sql/app_attest.sql) (both tables, RLS locked to service role, expiry index, pg_cron sweep of expired challenges). Table names and challenge TTL are configurable via the options argument. `@supabase/supabase-js` is not a dependency — the client is typed structurally, so any recent client works.
+
+App Attest proves device integrity, not user identity: the adapter and middleware compose alongside Supabase Auth, AWS Cognito, or any bearer JWT.
+
 ## Low-level API
 
 For full control over the verification flow, use `verifyAttestation` and `verifyAssertion` directly.
@@ -210,6 +237,9 @@ import { verifyAssertion, withAssertion } from "@bradford-tech/supabase-integrit
 
 // Attestation only
 import { verifyAttestation, withAttestation } from "@bradford-tech/supabase-integrity-attest/attestation";
+
+// Supabase storage adapter
+import { createSupabaseAdapter } from "@bradford-tech/supabase-integrity-attest/supabase";
 ```
 
 ## Error handling

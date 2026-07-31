@@ -37,6 +37,7 @@ export const navigation = [
       },
       { title: 'The withAttestation wrapper', href: '/docs/with-attestation' },
       { title: 'The withAssertion wrapper', href: '/docs/with-assertion' },
+      { title: 'Supabase adapter', href: '/docs/supabase-adapter' },
     ],
   },
   {
