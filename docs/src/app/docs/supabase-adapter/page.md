@@ -42,7 +42,7 @@ The canonical migration ships with the package at [`sql/app_attest.sql`](https:/
 - **`app_attest_devices`** — verified device keys: `device_id` (Apple's keyId, primary key), `public_key_pem`, `sign_count`, `receipt`, timestamps.
 - **`app_attest_challenges`** — short-lived single-use nonces: `challenge` (bytea, primary key), `purpose` (`attestation` or `assertion`), `expires_at` (indexed).
 
-Both tables have row-level security enabled with **no policies** — only the service-role key can touch them. The migration also schedules a pg_cron sweep that deletes expired, never-consumed challenges every 10 minutes.
+Both tables have row-level security enabled with **no policies** — only the service-role key can touch them — plus explicit `GRANT` statements for the service role, which newer Supabase stacks require (their default privileges no longer include DML for tables created by migrations). The migration also schedules a pg_cron sweep that deletes expired, never-consumed challenges every 10 minutes.
 
 ## Quickstart
 

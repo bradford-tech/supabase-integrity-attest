@@ -1,6 +1,9 @@
 -- Core App Attest schema.
--- Copy this migration into your own Supabase project to adopt the
--- @bradford-tech/supabase-integrity-attest library.
+-- To adopt the library in your own project, copy the canonical
+-- sql/app_attest.sql that ships with @bradford-tech/supabase-integrity-attest
+-- instead of this file — the demo's schema is split across three
+-- migrations for historical reasons (this one lacks the service-role
+-- grants and the pg_cron challenge sweep added later).
 
 create table app_attest_devices (
   device_id      text primary key,
