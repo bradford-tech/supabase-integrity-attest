@@ -19,6 +19,11 @@ comment on table app_attest_devices is
 -- exclusively through the verified attestation flow.
 alter table app_attest_devices enable row level security;
 
+-- Explicit DML grant: newer Supabase stacks no longer include DML in the
+-- default privileges for tables created by migrations, so without this
+-- even the service role gets "permission denied".
+grant select, insert, update, delete on app_attest_devices to service_role;
+
 create table app_attest_challenges (
   challenge   bytea primary key,
   purpose     text not null check (purpose in ('attestation', 'assertion')),
@@ -30,6 +35,8 @@ comment on table app_attest_challenges is
   'Short-lived single-use challenge nonces. Consumed via DELETE ... RETURNING.';
 
 alter table app_attest_challenges enable row level security;
+
+grant select, insert, update, delete on app_attest_challenges to service_role;
 
 create index app_attest_challenges_expires_at_idx
   on app_attest_challenges (expires_at);
