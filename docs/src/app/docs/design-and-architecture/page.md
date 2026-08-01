@@ -71,13 +71,52 @@ All nonce, hash, and key comparisons use constant-time byte comparison (`constan
 
 ### Subpath exports
 
-The library exports three entry points:
+The library exports four entry points:
 
 - `.` — everything
 - `./attestation` — attestation verification + types
 - `./assertion` — assertion verification + `withAssertion` + types
+- `./supabase` — [`createSupabaseAdapter()`](/docs/supabase-adapter) storage callbacks
 
 The assertion subpath avoids importing `asn1js` and `@noble/curves`, keeping the bundle minimal for edge functions that only verify assertions (the hot path).
+
+---
+
+## Performance
+
+Three measurements, all reproducible — the first two on an Apple M2 Max (Deno 2.1.5), the third on a physical iPhone (August 2026):
+
+**Compute cost** — `cd packages/lib && deno task bench` runs `Deno.bench` over the verification paths with no network:
+
+| Operation               | Cost    | When it runs            |
+| ----------------------- | ------- | ----------------------- |
+| `verifyAssertion`       | ~116 µs | Every protected request |
+| `verifyAttestation`     | ~6.1 ms | Once per device, ever   |
+| `decodeAttestationCbor` | ~6.5 µs | Inside each attestation |
+
+Attestation is ~50× more expensive than assertion, and it doesn't matter: it runs exactly once per device registration. The per-request cost is the assertion path.
+
+**End-to-end overhead** — the demo ships an A/B benchmark (`demo/supabase-expo-demo/supabase/tests/bench-ab.ts`) hitting two edge functions that perform the identical `demo_events` insert, one plain and one wrapped in `withAssertion`, against a local `supabase start` stack (N=100 alternating sequential requests after warmup):
+
+| Endpoint        | Median | p95     |
+| --------------- | ------ | ------- |
+| Plain           | 3.5 ms | 4.5 ms  |
+| `withAssertion` | 8.9 ms | 12.1 ms |
+
+Span-level breakdown of the ~5.4 ms median delta: device-key read 0.8 ms, sign-count CAS write 2.2 ms, ECDSA verification 0.3 ms, header extraction 0.02 ms — plus ~2.0 ms for the demo's optional in-handler assertion-challenge consume, which plain `withAssertion` users don't pay. Storage round-trips dominate; crypto is noise. The numbers come from a local Docker stack; hosted Supabase adds network latency to every span equally, so the _relative_ story holds while absolute numbers grow.
+
+**On-device** — the demo app's Benchmark button runs the same A/B from a physical iPhone (iPhone 17 Pro, iOS 26.6, LAN Wi-Fi, N=50) and adds the client-side costs the server can't see:
+
+| Metric                                                      | Value         |
+| ----------------------------------------------------------- | ------------- |
+| `generateAssertionAsync` (Secure Enclave sign)              | ~18 ms median |
+| Protected vs unprotected request, round-trip delta          | ~16 ms median |
+| Full protected flow (challenge + sign + request)            | ~75 ms median |
+| `generateKeyAsync` (once per device)                        | ~15–20 ms     |
+| `attestKeyAsync` (Apple server round-trip, once per device) | ~0.7–1.1 s    |
+| `verify-attestation` round-trip (once per device)           | ~50–150 ms    |
+
+The user-perceived cost of protecting a request is ~16 ms of round-trip delta plus ~18 ms of Secure Enclave signing. The demo's full flow adds a ~20 ms challenge fetch, which apps can avoid by pre-fetching challenges or relying on the sign counter alone. Apple's `attestKeyAsync` is the only slow operation and runs once per device at registration — keep it out of hot paths and UX-critical moments.
 
 ---
 

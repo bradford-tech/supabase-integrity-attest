@@ -10,6 +10,8 @@ End-to-end demo of [@bradford-tech/supabase-integrity-attest](https://integrity-
 
 Go to [Apple Developer Account > Membership](https://developer.apple.com/account) and copy your **Team ID** (10-character alphanumeric string, e.g., `ABC123DEF4`).
 
+> **Must be a paid Apple Developer Program team.** Personal (free) teams cannot hold the App Attest entitlement — the build fails with "Personal development teams … do not support the App Attest capability."
+
 ### 2. Choose a bundle identifier
 
 Pick a reverse-DNS bundle identifier for the demo app. This can be anything you own — it just needs to be unique in the Apple Developer portal.
@@ -34,7 +36,7 @@ The convention is your reversed domain name followed by a project-specific suffi
 
 > **App Attest must be explicitly checked.** Simply having an App ID is not sufficient — the App Attest capability must be ticked on. If you skip this, the attestation flow will fail with `RP_ID_MISMATCH` at runtime and there is no workaround other than going back and enabling it.
 
-> Expo's `expo run:ios` handles code signing and provisioning profiles automatically — you do not need to open Xcode manually. On first build, Expo will prompt you to select your Apple team and will configure signing for you.
+> Expo's `expo run:ios` handles code signing and provisioning profiles automatically — you do not need to open Xcode manually. Signing uses the team from `EXPO_PUBLIC_TEAM_ID` in `.env.local` (baked into the Xcode project as `DEVELOPMENT_TEAM` via `appleTeamId` in `app.config.ts`).
 
 ### 4. Configure the Expo client
 
@@ -107,6 +109,8 @@ demo/supabase-expo-demo/
 ```
 
 `_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.bradford.tech/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
+
+A companion benchmark, `supabase/tests/bench-ab.ts`, measures the latency delta between `unprotected-event` and `protected-event` (run it the same way as the integration test below). For the on-device numbers — Secure Enclave signing, Apple's attestation round-trip, and full protected-call latency from a real iPhone — attest the device in the app and tap **Benchmark**; the report prints to the Metro console.
 
 ## Running the integration test (no iPhone needed)
 
