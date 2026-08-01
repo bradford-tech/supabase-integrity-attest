@@ -108,7 +108,7 @@ demo/supabase-expo-demo/
 
 `_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.bradford.tech/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
 
-A companion benchmark, `supabase/tests/bench-ab.ts`, measures the latency delta between `unprotected-event` and `protected-event` (run it the same way as the integration test below).
+A companion benchmark, `supabase/tests/bench-ab.ts`, measures the latency delta between `unprotected-event` and `protected-event` (run it the same way as the integration test below). For the on-device numbers — Secure Enclave signing, Apple's attestation round-trip, and full protected-call latency from a real iPhone — attest the device in the app and tap **Benchmark**; the report prints to the Metro console.
 
 ## Running the integration test (no iPhone needed)
 

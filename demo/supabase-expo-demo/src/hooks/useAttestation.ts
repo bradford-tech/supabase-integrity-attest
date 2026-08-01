@@ -18,6 +18,7 @@ import {
   resetDevice,
   verifyAttestation,
 } from "../api";
+import { runDeviceBenchmark } from "../benchmark";
 
 const KEYID_STORAGE_KEY = "app_attest_key_id";
 
@@ -48,6 +49,8 @@ export type UseAttestationReturn = {
   callUnprotected: () => Promise<ApiResult<UnprotectedEventResponse> | null>;
   /** Reset device state. */
   reset: (mode: ResetMode) => Promise<void>;
+  /** Run the on-device latency benchmark (report goes to the Metro console). */
+  benchmark: () => Promise<void>;
 };
 
 export function useAttestation(): UseAttestationReturn {
@@ -311,6 +314,30 @@ export function useAttestation(): UseAttestationReturn {
     }
   }, []);
 
+  const benchmark = useCallback(async () => {
+    if (busyRef.current) return;
+    const currentKeyId = keyIdRef.current;
+    if (!currentKeyId) {
+      setLastError("No keyId — attest first");
+      return;
+    }
+    if (!isSupported) {
+      setLastError("App Attest is not supported on this device");
+      return;
+    }
+    busyRef.current = true;
+    setLoading(true);
+    setLastError(null);
+    try {
+      await runDeviceBenchmark(currentKeyId);
+    } catch (err) {
+      setLastError(err instanceof Error ? err.message : String(err));
+    } finally {
+      busyRef.current = false;
+      setLoading(false);
+    }
+  }, [isSupported]);
+
   return {
     state,
     isSupported,
@@ -322,5 +349,6 @@ export function useAttestation(): UseAttestationReturn {
     callProtected,
     callUnprotected,
     reset,
+    benchmark,
   };
 }
