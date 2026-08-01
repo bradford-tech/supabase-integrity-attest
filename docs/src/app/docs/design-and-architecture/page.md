@@ -57,7 +57,7 @@ Apple's intermediate certificate uses a P-384 key to sign with SHA-256. Deno's W
 
 ### Custom CBOR decoder for attestation
 
-Apple's CBOR encoding of the attestation receipt field has incorrect length headers (overstated by ~21 bytes). Standard CBOR libraries like `cborg` fail to decode this. The attestation module includes a lightweight structure-aware parser that locates known map keys by scanning for their CBOR text-string encoding, bypassing the length fields entirely.
+Apple's CBOR encoding of the attestation receipt field has incorrect length headers (overstated by ~21 bytes). Standard CBOR libraries like `cborg` fail to decode this. The attestation module includes a strict structural parser: it walks the maps entry by entry with bounds-checked headers, accepts keys in any order, and rejects duplicate keys, unknown keys, indefinite lengths, and trailing bytes. The one tolerated malformation is the overstated receipt length, repaired in a single documented code path that scans backward from the declared end for the next expected key.
 
 The assertion path uses `cborg` normally — Apple's assertion CBOR encoding is well-formed.
 
