@@ -41,6 +41,37 @@ Existing App Attest verification libraries depend on `node:crypto` or packages t
 
 This library uses only `crypto.subtle` for cryptographic operations, with `asn1js` for X.509 parsing and `@noble/curves` for one operation Deno's WebCrypto doesn't support (P-384 signature verification on Apple's intermediate certificate).
 
+## Performance
+
+Three measurements, August 2026: compute cost and end-to-end overhead on an Apple M2 Max (Deno 2.1.5, reproduce with the commands shown), plus on-device numbers from a physical iPhone (reproduce with the demo app's Benchmark button).
+
+**Compute cost** (`cd packages/lib && deno task bench`):
+
+| Operation | Cost | When it runs |
+| --- | --- | --- |
+| `verifyAssertion` | ~116 µs | Every protected request |
+| `verifyAttestation` | ~6.1 ms | Once per device, ever |
+
+**End-to-end overhead** (local `supabase start` stack; the demo's A/B endpoints perform identical database inserts — run `deno run --allow-net --allow-env tests/bench-ab.ts` from `demo/supabase-expo-demo/supabase/`):
+
+| Endpoint | Median | p95 |
+| --- | --- | --- |
+| Plain edge function | 3.5 ms | 4.5 ms |
+| Same function wrapped in `withAssertion` | 8.9 ms | 12.1 ms |
+
+The ~5.4 ms median delta is dominated by storage, not crypto: device-key read 0.8 ms + sign-count CAS write 2.2 ms + the demo's optional challenge consume 2.0 ms, versus 0.3 ms of signature verification. Numbers are from a local Docker stack — hosted Supabase adds network latency to every span equally.
+
+**On-device** (iPhone 17 Pro, iOS 26.6, LAN Wi-Fi to the same local stack; demo app's Benchmark button, N=50):
+
+| Metric | Value |
+| --- | --- |
+| `generateAssertionAsync` (Secure Enclave sign) | ~18 ms median |
+| Protected vs unprotected request, round-trip delta | ~16 ms median |
+| Full protected flow (challenge + sign + request) | ~75 ms median |
+| `attestKeyAsync` (Apple round-trip, **once per device**) | ~0.7–1.1 s |
+
+End to end, protecting a request costs the user roughly 16 ms of extra round-trip plus ~18 ms of on-device signing — imperceptible next to typical mobile network variance. The one slow operation, Apple's attestation call, happens once per device at registration.
+
 ## Middleware
 
 Both middleware wrappers below use a Supabase service-role client for database access:

@@ -1,6 +1,6 @@
 {
   "name": "@bradford-tech/supabase-integrity-attest",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Verify Apple App Attest attestations and assertions using WebCrypto. Designed for Supabase Edge Functions and other edge runtimes.",
   "exports": {
     ".": "./mod.ts",
@@ -24,7 +24,8 @@
   "tasks": {
     "test": "deno test --allow-net=none --unstable-kv",
     "fix": "deno fmt && deno lint --fix && deno test --allow-net=none --unstable-kv",
-    "check": "deno fmt --check && deno lint && deno test --allow-net=none --unstable-kv",
+    "check": "deno fmt --check && deno lint && deno check bench/ && deno test --allow-net=none --unstable-kv",
+    "bench": "deno bench --allow-net=none bench/",
     "validate": "deno run scripts/validate-attestation.ts"
   }
 }

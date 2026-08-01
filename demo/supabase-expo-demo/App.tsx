@@ -109,6 +109,11 @@ export default function App() {
     }
   }, [attestation]);
 
+  const handleBenchmark = useCallback(async () => {
+    setLastApiError(null);
+    await attestation.benchmark();
+  }, [attestation]);
+
   const handleReset = useCallback(
     async (mode: "server" | "client" | "both") => {
       setLastApiError(null);
@@ -153,6 +158,7 @@ export default function App() {
             onCallUnprotected={handleUnprotected}
             onCallProtected={handleProtected}
             onAttest={handleAttest}
+            onBenchmark={handleBenchmark}
           />
 
           <ErrorSurface

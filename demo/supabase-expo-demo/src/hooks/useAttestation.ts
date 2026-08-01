@@ -18,6 +18,7 @@ import {
   resetDevice,
   verifyAttestation,
 } from "../api";
+import { BenchmarkError, runDeviceBenchmark } from "../benchmark";
 
 const KEYID_STORAGE_KEY = "app_attest_key_id";
 
@@ -48,6 +49,8 @@ export type UseAttestationReturn = {
   callUnprotected: () => Promise<ApiResult<UnprotectedEventResponse> | null>;
   /** Reset device state. */
   reset: (mode: ResetMode) => Promise<void>;
+  /** Run the on-device latency benchmark (report goes to the Metro console). */
+  benchmark: () => Promise<void>;
 };
 
 export function useAttestation(): UseAttestationReturn {
@@ -94,6 +97,17 @@ export function useAttestation(): UseAttestationReturn {
         // Stay in idle — graceful degradation handles this.
       }
     })();
+  }, []);
+
+  // Forget the local device key and return to idle. Used everywhere the
+  // client learns its keyId is gone (client reset, or DEVICE_NOT_FOUND
+  // after a server-side reset happened behind the app's back).
+  const clearLocalKey = useCallback(async () => {
+    await SecureStore.deleteItemAsync(KEYID_STORAGE_KEY);
+    setKeyId(null);
+    keyIdRef.current = null;
+    setSignCount(0);
+    setState("idle");
   }, []);
 
   const attest = useCallback(async () => {
@@ -222,11 +236,7 @@ export function useAttestation(): UseAttestationReturn {
         // This is the "stale client keyId" case that makes the three-mode
         // reset work for developers testing edge cases.
         if (!result.ok && result.error?.code === "DEVICE_NOT_FOUND") {
-          await SecureStore.deleteItemAsync(KEYID_STORAGE_KEY);
-          setKeyId(null);
-          keyIdRef.current = null;
-          setSignCount(0);
-          setState("idle");
+          await clearLocalKey();
           setLastError("Device not found on server — re-attest required");
         } else if (!result.ok && result.error?.code === "SIGN_COUNT_STALE") {
           // 409 since lib 0.8.1: a concurrent request from this device
@@ -246,7 +256,7 @@ export function useAttestation(): UseAttestationReturn {
         setLoading(false);
       }
     },
-    [],
+    [clearLocalKey],
   );
 
   const callUnprotected = useCallback(async () => {
@@ -270,46 +280,76 @@ export function useAttestation(): UseAttestationReturn {
     }
   }, []);
 
-  const reset = useCallback(async (mode: ResetMode) => {
+  const reset = useCallback(
+    async (mode: ResetMode) => {
+      if (busyRef.current) return;
+      busyRef.current = true;
+      setLoading(true);
+      setLastError(null);
+      try {
+        const currentKeyId = keyIdRef.current;
+
+        if ((mode === "server" || mode === "both") && currentKeyId) {
+          const result = await resetDevice(currentKeyId);
+          if (!result.ok) {
+            throw new Error(result.error?.error ?? "Server reset failed");
+          }
+        }
+
+        // Intentional per spec §7.2: reset('server') leaves the client in
+        // attested state with a stale keyId. The next callProtected() will
+        // return DEVICE_NOT_FOUND and auto-recover to idle. Surface this
+        // expected behavior so the developer knows what to expect.
+        if (mode === "server") {
+          setLastError(
+            "Server reset — device will re-attest on next protected call",
+          );
+        }
+
+        if (mode === "client" || mode === "both") {
+          await clearLocalKey();
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        setLastError(msg);
+      } finally {
+        busyRef.current = false;
+        setLoading(false);
+      }
+    },
+    [clearLocalKey],
+  );
+
+  const benchmark = useCallback(async () => {
     if (busyRef.current) return;
+    const currentKeyId = keyIdRef.current;
+    if (!currentKeyId) {
+      setLastError("No keyId — attest first");
+      return;
+    }
+    if (!isSupported) {
+      setLastError("App Attest is not supported on this device");
+      return;
+    }
     busyRef.current = true;
     setLoading(true);
     setLastError(null);
     try {
-      const currentKeyId = keyIdRef.current;
-
-      if ((mode === "server" || mode === "both") && currentKeyId) {
-        const result = await resetDevice(currentKeyId);
-        if (!result.ok) {
-          throw new Error(result.error?.error ?? "Server reset failed");
-        }
-      }
-
-      // Intentional per spec §7.2: reset('server') leaves the client in
-      // attested state with a stale keyId. The next callProtected() will
-      // return DEVICE_NOT_FOUND and auto-recover to idle. Surface this
-      // expected behavior so the developer knows what to expect.
-      if (mode === "server") {
-        setLastError(
-          "Server reset — device will re-attest on next protected call",
-        );
-      }
-
-      if (mode === "client" || mode === "both") {
-        await SecureStore.deleteItemAsync(KEYID_STORAGE_KEY);
-        setKeyId(null);
-        keyIdRef.current = null;
-        setSignCount(0);
-        setState("idle");
-      }
+      await runDeviceBenchmark(currentKeyId);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setLastError(msg);
+      // Same stale-keyId recovery as callProtected(): a DB reset behind
+      // the app's back means the keyId no longer exists server-side.
+      if (err instanceof BenchmarkError && err.code === "DEVICE_NOT_FOUND") {
+        await clearLocalKey();
+        setLastError("Device not found on server — re-attest required");
+      } else {
+        setLastError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
       busyRef.current = false;
       setLoading(false);
     }
-  }, []);
+  }, [clearLocalKey, isSupported]);
 
   return {
     state,
@@ -322,5 +362,6 @@ export function useAttestation(): UseAttestationReturn {
     callProtected,
     callUnprotected,
     reset,
+    benchmark,
   };
 }
