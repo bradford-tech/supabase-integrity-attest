@@ -66,7 +66,7 @@ npm run fix        # auto-format + lint fix + test
 
 ## Contributing
 
-Issues and pull requests are welcome on [GitHub](https://github.com/bradford-tech/supabase-integrity-attest).
+Issues and pull requests are welcome on [GitHub](https://github.com/bradford-tech/supabase-integrity-attest). See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow, and [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
 
 ## License
 
