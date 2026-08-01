@@ -73,7 +73,22 @@ export type SupabaseAdapter = {
   commitSignCount(deviceId: string, newSignCount: number): Promise<boolean>;
 };
 
-/** Encode bytes as a PostgREST bytea hex literal (`\x...`). */
+/**
+ * Encode bytes as a PostgREST bytea hex literal (`\x<hex>`).
+ *
+ * Required because supabase-js v2 serializes a raw Uint8Array via
+ * JSON.stringify, which produces the object form `{"0":byte,"1":byte,...}`
+ * and writes those literal JSON text bytes into a bytea column — NOT the
+ * raw bytes you intended. Worse, the same serialization produces a
+ * *different* string in URL filter parameters, so `.insert()` and `.eq()`
+ * round-trips silently mismatch (every challenge lookup returns nothing).
+ *
+ * Explicitly converting Uint8Array → `\x<hex>` on both sides fixes this:
+ * Postgres parses `\x...` strings as bytea literals at insert time, and
+ * PostgREST passes string filter values through unchanged, so insert and
+ * query agree on the same bytes. Do not replace this with passing the
+ * Uint8Array directly — the failure mode is silent.
+ */
 function toPgBytea(bytes: Uint8Array): string {
   let hex = "";
   for (const b of bytes) hex += b.toString(16).padStart(2, "0");
