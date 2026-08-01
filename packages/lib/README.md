@@ -61,6 +61,17 @@ Measured on an Apple M2 Max, Deno 2.1.5, August 2026. Reproduce with the command
 
 The ~5.4 ms median delta is dominated by storage, not crypto: device-key read 0.8 ms + sign-count CAS write 2.2 ms + the demo's optional challenge consume 2.0 ms, versus 0.3 ms of signature verification. Numbers are from a local Docker stack — hosted Supabase adds network latency to every span equally.
 
+**On-device** (iPhone 17 Pro, iOS 26.6, LAN Wi-Fi to the same local stack; demo app's Benchmark button, N=50):
+
+| Metric | Value |
+| --- | --- |
+| `generateAssertionAsync` (Secure Enclave sign) | ~18 ms median |
+| Protected vs unprotected request, round-trip delta | ~16 ms median |
+| Full protected flow (challenge + sign + request) | ~75 ms median |
+| `attestKeyAsync` (Apple round-trip, **once per device**) | ~0.7–1.1 s |
+
+End to end, protecting a request costs the user roughly 16 ms of extra round-trip plus ~18 ms of on-device signing — imperceptible next to typical mobile network variance. The one slow operation, Apple's attestation call, happens once per device at registration.
+
 ## Middleware
 
 Both middleware wrappers below use a Supabase service-role client for database access:

@@ -105,6 +105,19 @@ Attestation is ~50× more expensive than assertion, and it doesn't matter: it ru
 
 Span-level breakdown of the ~5.4 ms median delta: device-key read 0.8 ms, sign-count CAS write 2.2 ms, ECDSA verification 0.3 ms, header extraction 0.02 ms — plus ~2.0 ms for the demo's optional in-handler assertion-challenge consume, which plain `withAssertion` users don't pay. Storage round-trips dominate; crypto is noise. The numbers come from a local Docker stack; hosted Supabase adds network latency to every span equally, so the _relative_ story holds while absolute numbers grow.
 
+**On-device** — the demo app's Benchmark button runs the same A/B from a physical iPhone (iPhone 17 Pro, iOS 26.6, LAN Wi-Fi, N=50) and adds the client-side costs the server can't see:
+
+| Metric                                                      | Value         |
+| ----------------------------------------------------------- | ------------- |
+| `generateAssertionAsync` (Secure Enclave sign)              | ~18 ms median |
+| Protected vs unprotected request, round-trip delta          | ~16 ms median |
+| Full protected flow (challenge + sign + request)            | ~75 ms median |
+| `generateKeyAsync` (once per device)                        | ~15–20 ms     |
+| `attestKeyAsync` (Apple server round-trip, once per device) | ~0.7–1.1 s    |
+| `verify-attestation` round-trip (once per device)           | ~50–150 ms    |
+
+The user-perceived cost of protecting a request is ~16 ms of round-trip delta plus ~18 ms of Secure Enclave signing. The demo's full flow adds a ~20 ms challenge fetch, which apps can avoid by pre-fetching challenges or relying on the sign counter alone. Apple's `attestKeyAsync` is the only slow operation and runs once per device at registration — keep it out of hot paths and UX-critical moments.
+
 ---
 
 ## Distribution

@@ -18,7 +18,7 @@ import {
   resetDevice,
   verifyAttestation,
 } from "../api";
-import { runDeviceBenchmark } from "../benchmark";
+import { BenchmarkError, runDeviceBenchmark } from "../benchmark";
 
 const KEYID_STORAGE_KEY = "app_attest_key_id";
 
@@ -331,7 +331,18 @@ export function useAttestation(): UseAttestationReturn {
     try {
       await runDeviceBenchmark(currentKeyId);
     } catch (err) {
-      setLastError(err instanceof Error ? err.message : String(err));
+      // Same stale-keyId recovery as callProtected(): a DB reset behind
+      // the app's back means the keyId no longer exists server-side.
+      if (err instanceof BenchmarkError && err.code === "DEVICE_NOT_FOUND") {
+        await SecureStore.deleteItemAsync(KEYID_STORAGE_KEY);
+        setKeyId(null);
+        keyIdRef.current = null;
+        setSignCount(0);
+        setState("idle");
+        setLastError("Device not found on server — re-attest required");
+      } else {
+        setLastError(err instanceof Error ? err.message : String(err));
+      }
     } finally {
       busyRef.current = false;
       setLoading(false);

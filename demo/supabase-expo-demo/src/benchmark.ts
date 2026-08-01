@@ -27,6 +27,17 @@ const N_CALLS = 50;
 const N_WARMUP = 3;
 const N_ATTEST = 3;
 
+/** Error carrying the server's error code so the hook can react to
+ *  DEVICE_NOT_FOUND the same way callProtected() does. */
+export class BenchmarkError extends Error {
+  constructor(
+    message: string,
+    public readonly code?: string,
+  ) {
+    super(message);
+  }
+}
+
 function median(xs: number[]): number {
   const s = [...xs].sort((a, b) => a - b);
   return s[Math.floor(s.length / 2)];
@@ -91,7 +102,10 @@ export async function runDeviceBenchmark(keyId: string): Promise<void> {
 
     const r = await callProtectedEvent(bodyBytes, assertion, keyId);
     if (!r.ok || !r.data) {
-      throw new Error(r.error?.error ?? `protected call failed (${r.status})`);
+      throw new BenchmarkError(
+        r.error?.error ?? `protected call failed (${r.status})`,
+        r.error?.code,
+      );
     }
     if (collect) {
       chal.push(chalMs);
