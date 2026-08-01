@@ -41,6 +41,26 @@ Existing App Attest verification libraries depend on `node:crypto` or packages t
 
 This library uses only `crypto.subtle` for cryptographic operations, with `asn1js` for X.509 parsing and `@noble/curves` for one operation Deno's WebCrypto doesn't support (P-384 signature verification on Apple's intermediate certificate).
 
+## Performance
+
+Measured on an Apple M2 Max, Deno 2.1.5, August 2026. Reproduce with the commands shown.
+
+**Compute cost** (`cd packages/lib && deno task bench`):
+
+| Operation | Cost | When it runs |
+| --- | --- | --- |
+| `verifyAssertion` | ~116 µs | Every protected request |
+| `verifyAttestation` | ~6.1 ms | Once per device, ever |
+
+**End-to-end overhead** (local `supabase start` stack; the demo's A/B endpoints perform identical database inserts — run `deno run --allow-net --allow-env tests/bench-ab.ts` from `demo/supabase-expo-demo/supabase/`):
+
+| Endpoint | Median | p95 |
+| --- | --- | --- |
+| Plain edge function | 3.5 ms | 4.5 ms |
+| Same function wrapped in `withAssertion` | 8.9 ms | 12.1 ms |
+
+The ~5.4 ms median delta is dominated by storage, not crypto: device-key read 0.8 ms + sign-count CAS write 2.2 ms + the demo's optional challenge consume 2.0 ms, versus 0.3 ms of signature verification. Numbers are from a local Docker stack — hosted Supabase adds network latency to every span equally.
+
 ## Middleware
 
 Both middleware wrappers below use a Supabase service-role client for database access:

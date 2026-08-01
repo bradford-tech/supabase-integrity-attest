@@ -108,6 +108,8 @@ demo/supabase-expo-demo/
 
 `_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.bradford.tech/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
 
+A companion benchmark, `supabase/tests/bench-ab.ts`, measures the latency delta between `unprotected-event` and `protected-event` (run it the same way as the integration test below).
+
 ## Running the integration test (no iPhone needed)
 
 The integration test exercises all five edge functions using synthetic assertions:
