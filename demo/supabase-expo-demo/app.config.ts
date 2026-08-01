@@ -24,11 +24,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier,
-    ...(teamId ? { teamId } : {}),
+    // appleTeamId becomes DEVELOPMENT_TEAM in the generated Xcode project.
+    // Must be a paid Apple Developer Program team — personal teams cannot
+    // hold the App Attest entitlement.
+    ...(teamId ? { appleTeamId: teamId } : {}),
     entitlements: {
       "com.apple.developer.devicecheck.appattest-environment": "development",
     },
   },
+  android: {
+    package: "tech.bradford.supabaseintegrityattesttester",
+  },
+
   web: {
     favicon: "./assets/favicon.png",
   },
