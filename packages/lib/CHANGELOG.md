@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.9.0...v0.9.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* **lib:** structural CBOR decoder + parser fuzzing ([#128](https://github.com/bradford-tech/supabase-integrity-attest/issues/128)) ([f0dd9f6](https://github.com/bradford-tech/supabase-integrity-attest/commit/f0dd9f664f7af4c8da9c703bb2deced562e2faa3))
+
 ## [0.9.0](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.8.2...v0.9.0) (2026-07-31)
 
 
