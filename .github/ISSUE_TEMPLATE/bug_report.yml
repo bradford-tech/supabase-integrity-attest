@@ -1,0 +1,35 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Library version
+      placeholder: '0.9.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: runtime
+    attributes:
+      label: Runtime
+      options:
+        - Supabase Edge Functions
+        - Deno (other)
+        - Node.js
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal code + steps. For verification failures, include the error code (e.g. NONCE_MISMATCH) — never post raw attestation/assertion payloads from production devices.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+    validations:
+      required: true

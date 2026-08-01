@@ -1,5 +1,14 @@
 # Security Policy
 
+## Supported versions
+
+| Version          | Supported                          |
+| ---------------- | ---------------------------------- |
+| Latest 0.x minor | Yes                                |
+| Older releases   | No — upgrade to the latest release |
+
+Security fixes are released as patches on the latest minor only.
+
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability in this library, please report it responsibly.
