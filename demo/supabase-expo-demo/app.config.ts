@@ -33,6 +33,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
+    // Required for `expo prebuild` to succeed even though this demo is
+    // iOS-only (App Attest has no Android equivalent) — prebuild refuses
+    // to generate native projects without an Android package name.
     package: "tech.bradford.supabaseintegrityattesttester",
   },
 

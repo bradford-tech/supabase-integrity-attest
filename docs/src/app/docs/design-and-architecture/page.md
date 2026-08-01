@@ -84,7 +84,7 @@ The assertion subpath avoids importing `asn1js` and `@noble/curves`, keeping the
 
 ## Performance
 
-Two measurements, both reproducible (Apple M2 Max, Deno 2.1.5, August 2026):
+Three measurements, all reproducible — the first two on an Apple M2 Max (Deno 2.1.5), the third on a physical iPhone (August 2026):
 
 **Compute cost** — `cd packages/lib && deno task bench` runs `Deno.bench` over the verification paths with no network:
 

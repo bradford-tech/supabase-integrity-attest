@@ -12,7 +12,9 @@
 //     supabase stop
 import { encodeBase64 } from "jsr:@std/encoding@1.0.10/base64";
 import { generateSyntheticAssertion } from "../../../../packages/lib/tests/fixtures/generate-assertion.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+// Pinned exact (not caret) for the same reason as integration.test.ts:
+// benchmark runs should resolve the same versions the edge functions do.
+import { createClient } from "npm:@supabase/supabase-js@2.103.0";
 
 const API_URL = "http://127.0.0.1:54321";
 const FUNCTIONS_URL = `${API_URL}/functions/v1`;

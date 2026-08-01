@@ -43,7 +43,7 @@ This library uses only `crypto.subtle` for cryptographic operations, with `asn1j
 
 ## Performance
 
-Measured on an Apple M2 Max, Deno 2.1.5, August 2026. Reproduce with the commands shown.
+Three measurements, August 2026: compute cost and end-to-end overhead on an Apple M2 Max (Deno 2.1.5, reproduce with the commands shown), plus on-device numbers from a physical iPhone (reproduce with the demo app's Benchmark button).
 
 **Compute cost** (`cd packages/lib && deno task bench`):
 
