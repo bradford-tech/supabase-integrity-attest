@@ -34,8 +34,10 @@ Docs site: `npm run dev:docs` from the root.
 
 ## Commits and pull requests
 
-- Conventional commits, one-line messages, <= 72 characters
-  (commitlint enforces this): `fix(lib): ...`, `docs: ...`, etc.
+- Conventional commits, one-line messages, <= 72 characters:
+  `fix(lib): ...`, `docs: ...`, etc. Not machine-enforced, but
+  release-please derives versions and changelogs from these, so they
+  matter.
 - Before pushing: `npm run check` from the root must be green.
 - If a change alters the public API, update the docs site and the demo.
 
