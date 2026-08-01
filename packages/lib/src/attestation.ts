@@ -43,13 +43,15 @@ export interface VerifyAttestationOptions {
  *
  * Apple's CBOR encoding of the attestation object contains a receipt field whose
  * byte-string length header is sometimes incorrect (overstated by ~21 bytes).
- * Standard CBOR libraries (cborg) fail to decode this. We use a lightweight
- * structure-aware parser that handles the known attestation object layout:
+ * Standard CBOR libraries (cborg) fail to decode this. We use a strict
+ * structural parser for the known attestation object layout:
  *   { "fmt": text, "attStmt": { "x5c": [bstr, ...], "receipt": bstr }, "authData": bstr }
  *
- * The parser locates map keys by scanning for known text-string CBOR keys and
- * extracts values based on their CBOR type headers, which avoids relying on
- * potentially incorrect length fields for opaque byte-string values.
+ * The parser walks the maps entry by entry with bounds-checked headers,
+ * accepting keys in any order and rejecting duplicates, unknown keys,
+ * indefinite lengths, and trailing bytes. The single tolerated
+ * malformation is the overstated receipt length, repaired in one
+ * documented code path ({@linkcode readReceiptWithRepair}).
  */
 export interface AttestationCbor {
   fmt: string;
@@ -60,190 +62,255 @@ export interface AttestationCbor {
   authData: Uint8Array;
 }
 
-/** Read a CBOR unsigned integer (additional info + following bytes). */
-function readCborUint(
-  data: Uint8Array,
-  offset: number,
-): { value: number; end: number } {
-  const additional = data[offset] & 0x1f;
-  if (additional < 24) return { value: additional, end: offset + 1 };
-  if (additional === 24) return { value: data[offset + 1], end: offset + 2 };
-  if (additional === 25) {
-    return {
-      value: (data[offset + 1] << 8) | data[offset + 2],
-      end: offset + 3,
-    };
-  }
-  if (additional === 26) {
-    return {
-      value: ((data[offset + 1] << 24) |
-        (data[offset + 2] << 16) |
-        (data[offset + 3] << 8) |
-        data[offset + 4]) >>> 0,
-      end: offset + 5,
-    };
-  }
-  throw new Error(`Unsupported CBOR additional info: ${additional}`);
+interface CborHead {
+  majorType: number;
+  value: number;
+  end: number;
 }
 
-/** Read a CBOR text string starting at offset. Returns {value, end}. */
+/**
+ * Read any CBOR data-item header with bounds checking. Handles
+ * additional-info 0-27 (8-byte lengths via BigInt, rejected when the value
+ * exceeds Number.MAX_SAFE_INTEGER); rejects indefinite lengths (31) and
+ * reserved values (28-30).
+ */
+function readCborHead(data: Uint8Array, offset: number): CborHead {
+  if (offset >= data.length) {
+    throw new Error("CBOR: offset past end of input");
+  }
+  const initial = data[offset];
+  const majorType = (initial >> 5) & 0x07;
+  const additional = initial & 0x1f;
+  if (additional < 24) {
+    return { majorType, value: additional, end: offset + 1 };
+  }
+  const lengthBytes = additional === 24
+    ? 1
+    : additional === 25
+    ? 2
+    : additional === 26
+    ? 4
+    : additional === 27
+    ? 8
+    : -1;
+  if (lengthBytes === -1) {
+    throw new Error(`CBOR: unsupported additional info ${additional}`);
+  }
+  if (offset + 1 + lengthBytes > data.length) {
+    throw new Error("CBOR: length bytes past end of input");
+  }
+  let value = 0n;
+  for (let i = 0; i < lengthBytes; i++) {
+    value = (value << 8n) | BigInt(data[offset + 1 + i]);
+  }
+  if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+    throw new Error("CBOR: length exceeds safe integer range");
+  }
+  return { majorType, value: Number(value), end: offset + 1 + lengthBytes };
+}
+
+/** Read a CBOR text string at offset, bounds-checked. */
 function readCborText(
   data: Uint8Array,
   offset: number,
 ): { value: string; end: number } {
-  const majorType = (data[offset] >> 5) & 0x07;
-  if (majorType !== 3) {
+  const head = readCborHead(data, offset);
+  if (head.majorType !== 3) {
     throw new Error(
-      `Expected CBOR text string (type 3) at offset ${offset}, got type ${majorType}`,
+      `CBOR: expected text string at offset ${offset}, got major type ${head.majorType}`,
     );
   }
-  const { value: len, end: dataStart } = readCborUint(data, offset);
-  const text = new TextDecoder().decode(data.slice(dataStart, dataStart + len));
-  return { value: text, end: dataStart + len };
+  if (head.end + head.value > data.length) {
+    throw new Error("CBOR: text string overruns input");
+  }
+  return {
+    value: new TextDecoder().decode(
+      data.slice(head.end, head.end + head.value),
+    ),
+    end: head.end + head.value,
+  };
 }
 
-/** Read a CBOR byte string starting at offset. Returns {value, end}. */
+/** Read a CBOR byte string at offset, bounds-checked. */
 function readCborBytes(
   data: Uint8Array,
   offset: number,
 ): { value: Uint8Array; end: number } {
-  const majorType = (data[offset] >> 5) & 0x07;
-  if (majorType !== 2) {
+  const head = readCborHead(data, offset);
+  if (head.majorType !== 2) {
     throw new Error(
-      `Expected CBOR byte string (type 2) at offset ${offset}, got type ${majorType}`,
+      `CBOR: expected byte string at offset ${offset}, got major type ${head.majorType}`,
     );
   }
-  const { value: len, end: dataStart } = readCborUint(data, offset);
+  if (head.end + head.value > data.length) {
+    throw new Error("CBOR: byte string overruns input");
+  }
   return {
-    value: data.slice(dataStart, dataStart + len),
-    end: dataStart + len,
+    value: data.slice(head.end, head.end + head.value),
+    end: head.end + head.value,
   };
 }
 
-/**
- * Find the position of a CBOR text-string key within a byte sequence.
- * Searches for the CBOR encoding of a text string (type 3 header + UTF-8 bytes).
- */
-function findCborTextKey(
-  data: Uint8Array,
-  key: string,
-  startOffset: number,
-): number {
-  const keyBytes = new TextEncoder().encode(key);
-  // Build the expected CBOR encoding: type 3 header + key bytes
-  let header: Uint8Array;
-  if (keyBytes.length < 24) {
-    header = new Uint8Array([0x60 | keyBytes.length]);
-  } else if (keyBytes.length < 256) {
-    header = new Uint8Array([0x78, keyBytes.length]);
-  } else {
-    header = new Uint8Array([
-      0x79,
-      keyBytes.length >> 8,
-      keyBytes.length & 0xff,
-    ]);
-  }
-  const needle = new Uint8Array(header.length + keyBytes.length);
-  needle.set(header);
-  needle.set(keyBytes, header.length);
+/** The canonical CBOR encoding of a short text-string key. */
+function encodeCborTextKey(key: string): Uint8Array {
+  const bytes = new TextEncoder().encode(key);
+  const out = new Uint8Array(1 + bytes.length);
+  out[0] = 0x60 | bytes.length; // all keys used here are < 24 bytes
+  out.set(bytes, 1);
+  return out;
+}
 
-  for (let i = startOffset; i <= data.length - needle.length; i++) {
-    let match = true;
-    for (let j = 0; j < needle.length; j++) {
-      if (data[i + j] !== needle[j]) {
-        match = false;
-        break;
-      }
-    }
-    if (match) return i;
+function bytesStartWith(
+  data: Uint8Array,
+  offset: number,
+  prefix: Uint8Array,
+): boolean {
+  if (offset + prefix.length > data.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (data[offset + i] !== prefix[i]) return false;
   }
-  return -1;
+  return true;
+}
+
+/**
+ * Read the receipt byte string, tolerating Apple's overstated length header.
+ *
+ * Apple's CBOR encoding sometimes overstates the receipt length by ~21
+ * bytes; standard decoders fail on it. Strategy: trust the declared length
+ * when the parse position after it lands exactly on a valid continuation
+ * (the encoding of one of `nextKeys`, or end-of-input when no keys remain).
+ * Otherwise scan BACKWARD from the declared end for the nearest position
+ * where an expected key begins — the smallest correction wins, and scanning
+ * only engages when the declared length is provably wrong, so key bytes
+ * embedded inside an honestly-sized receipt can never truncate it.
+ */
+function readReceiptWithRepair(
+  data: Uint8Array,
+  offset: number,
+  nextKeys: string[],
+): { value: Uint8Array; end: number } {
+  const head = readCborHead(data, offset);
+  if (head.majorType !== 2) {
+    throw new Error("CBOR: receipt is not a byte string");
+  }
+  const declaredEnd = head.end + head.value;
+  const needles = nextKeys.map(encodeCborTextKey);
+  const continuesValidly = (end: number): boolean => {
+    if (end > data.length) return false;
+    if (needles.length === 0) return end === data.length;
+    return needles.some((n) => bytesStartWith(data, end, n));
+  };
+  if (continuesValidly(declaredEnd)) {
+    return { value: data.slice(head.end, declaredEnd), end: declaredEnd };
+  }
+  if (needles.length === 0) {
+    // Receipt is the final item: the rest of the buffer is the receipt.
+    return { value: data.slice(head.end), end: data.length };
+  }
+  const scanStart = Math.min(declaredEnd, data.length);
+  for (let end = scanStart; end >= head.end; end--) {
+    if (needles.some((n) => bytesStartWith(data, end, n))) {
+      return { value: data.slice(head.end, end), end };
+    }
+  }
+  throw new Error("CBOR: cannot locate end of receipt");
+}
+
+/** Read the attStmt map: exactly x5c + receipt, any order. */
+function readAttStmt(
+  data: Uint8Array,
+  offset: number,
+  keysAfterAttStmt: string[],
+): { value: AttestationCbor["attStmt"]; end: number } {
+  const head = readCborHead(data, offset);
+  if (head.majorType !== 5) throw new Error("CBOR: attStmt is not a map");
+  if (head.value !== 2) {
+    throw new Error(`CBOR: attStmt must have 2 entries, has ${head.value}`);
+  }
+  let x5c: Uint8Array[] | undefined;
+  let receipt: Uint8Array | undefined;
+  let pos = head.end;
+  for (let entry = 0; entry < 2; entry++) {
+    const { value: key, end: keyEnd } = readCborText(data, pos);
+    if (key === "x5c") {
+      if (x5c) throw new Error('CBOR: duplicate "x5c" key');
+      const arrHead = readCborHead(data, keyEnd);
+      if (arrHead.majorType !== 4) throw new Error("CBOR: x5c is not an array");
+      const certs: Uint8Array[] = [];
+      let p = arrHead.end;
+      for (let i = 0; i < arrHead.value; i++) {
+        const cert = readCborBytes(data, p);
+        certs.push(cert.value);
+        p = cert.end;
+      }
+      x5c = certs;
+      pos = p;
+    } else if (key === "receipt") {
+      if (receipt) throw new Error('CBOR: duplicate "receipt" key');
+      // What must follow the receipt: the sibling key if it hasn't been
+      // read yet, otherwise whatever top-level keys follow attStmt.
+      const nextKeys = entry === 0 ? ["x5c"] : keysAfterAttStmt;
+      const r = readReceiptWithRepair(data, keyEnd, nextKeys);
+      receipt = r.value;
+      pos = r.end;
+    } else {
+      throw new Error(`CBOR: unexpected attStmt key "${key}"`);
+    }
+  }
+  return { value: { x5c: x5c!, receipt: receipt! }, end: pos };
 }
 
 /**
  * Decode an Apple App Attest attestation object from raw CBOR bytes.
+ *
+ * Strict structural walk: the top-level map must contain exactly
+ * fmt/attStmt/authData (any order) and attStmt exactly x5c/receipt (any
+ * order); duplicate keys, unknown keys, indefinite lengths, and trailing
+ * bytes are rejected. The single tolerated malformation is Apple's
+ * overstated receipt length — see {@linkcode readReceiptWithRepair}.
  *
  * @throws {AttestationError} with code `INVALID_FORMAT` if the data is not
  *   a valid attestation CBOR structure.
  */
 export function decodeAttestationCbor(data: Uint8Array): AttestationCbor {
   try {
-    // Verify top-level is a CBOR map
-    const majorType = (data[0] >> 5) & 0x07;
-    if (majorType !== 5) {
-      throw new Error("Expected CBOR map at top level");
+    const top = readCborHead(data, 0);
+    if (top.majorType !== 5) throw new Error("CBOR: top level is not a map");
+    if (top.value !== 3) {
+      throw new Error(
+        `CBOR: top-level map must have 3 entries, has ${top.value}`,
+      );
     }
-
-    // Find "fmt" key and read its value
-    const fmtKeyPos = findCborTextKey(data, "fmt", 0);
-    if (fmtKeyPos === -1) throw new Error('Missing "fmt" key');
-    const fmtKeyEnd = fmtKeyPos + 1 + 3; // 0x63 + "fmt"
-    const { value: fmt } = readCborText(data, fmtKeyEnd);
-
-    // Find "attStmt" key
-    const attStmtKeyPos = findCborTextKey(data, "attStmt", 0);
-    if (attStmtKeyPos === -1) throw new Error('Missing "attStmt" key');
-    // After "attStmt" key: 0x67 + "attStmt" = 8 bytes
-    const attStmtValuePos = attStmtKeyPos + 8;
-
-    // attStmt value should be a map
-    const attStmtMajor = (data[attStmtValuePos] >> 5) & 0x07;
-    if (attStmtMajor !== 5) throw new Error("attStmt is not a CBOR map");
-
-    // Find "x5c" key within attStmt
-    const x5cKeyPos = findCborTextKey(data, "x5c", attStmtValuePos);
-    if (x5cKeyPos === -1) throw new Error('Missing "x5c" key in attStmt');
-    const x5cValuePos = x5cKeyPos + 4; // 0x63 + "x5c"
-
-    // x5c value is an array
-    const x5cMajor = (data[x5cValuePos] >> 5) & 0x07;
-    if (x5cMajor !== 4) throw new Error("x5c is not a CBOR array");
-    const { value: x5cCount, end: x5cFirstItemPos } = readCborUint(
-      data,
-      x5cValuePos,
-    );
-
-    // Read each certificate byte string
-    const x5c: Uint8Array[] = [];
-    let pos = x5cFirstItemPos;
-    for (let i = 0; i < x5cCount; i++) {
-      const { value: cert, end } = readCborBytes(data, pos);
-      x5c.push(cert);
-      pos = end;
+    let fmt: string | undefined;
+    let attStmt: AttestationCbor["attStmt"] | undefined;
+    let authData: Uint8Array | undefined;
+    const seen = new Set<string>();
+    let pos = top.end;
+    for (let entry = 0; entry < 3; entry++) {
+      const { value: key, end: keyEnd } = readCborText(data, pos);
+      if (seen.has(key)) throw new Error(`CBOR: duplicate key "${key}"`);
+      seen.add(key);
+      if (key === "fmt") {
+        const r = readCborText(data, keyEnd);
+        fmt = r.value;
+        pos = r.end;
+      } else if (key === "authData") {
+        const r = readCborBytes(data, keyEnd);
+        authData = r.value;
+        pos = r.end;
+      } else if (key === "attStmt") {
+        const remaining = ["fmt", "authData"].filter((k) => !seen.has(k));
+        const r = readAttStmt(data, keyEnd, remaining);
+        attStmt = r.value;
+        pos = r.end;
+      } else {
+        throw new Error(`CBOR: unexpected key "${key}"`);
+      }
     }
-
-    // After x5c, find "receipt" key
-    const receiptKeyPos = findCborTextKey(data, "receipt", pos);
-    if (receiptKeyPos === -1) {
-      throw new Error('Missing "receipt" key in attStmt');
+    if (pos !== data.length) {
+      throw new Error("CBOR: trailing bytes after attestation object");
     }
-
-    // Find "authData" key - search from after the receipt key position
-    const authDataKeyPos = findCborTextKey(data, "authData", receiptKeyPos);
-    if (authDataKeyPos === -1) {
-      throw new Error('Missing "authData" key');
-    }
-
-    // The receipt value is the bytes between the receipt key end and the authData key start.
-    // Receipt key: 0x67 + "receipt" = 8 bytes
-    const receiptValueStart = receiptKeyPos + 8;
-    // Read the receipt CBOR header to get the data start offset
-    const receiptMajor = (data[receiptValueStart] >> 5) & 0x07;
-    if (receiptMajor !== 2) {
-      throw new Error("receipt is not a CBOR byte string");
-    }
-    const { end: receiptDataStart } = readCborUint(data, receiptValueStart);
-
-    // The actual receipt data extends to just before the authData key.
-    // This handles the case where Apple's CBOR length header is incorrect.
-    const receipt = data.slice(receiptDataStart, authDataKeyPos);
-
-    // Read authData value
-    // authData key: 0x68 + "authData" = 9 bytes
-    const authDataValuePos = authDataKeyPos + 9;
-    const { value: authData } = readCborBytes(data, authDataValuePos);
-
-    return { fmt, attStmt: { x5c, receipt }, authData };
+    return { fmt: fmt!, attStmt: attStmt!, authData: authData! };
   } catch (e) {
     if (e instanceof AttestationError) throw e;
     throw new AttestationError(
