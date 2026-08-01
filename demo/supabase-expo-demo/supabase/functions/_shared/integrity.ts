@@ -14,12 +14,10 @@
 
 import { createClient } from '@supabase/supabase-js';
 import {
-  type AttestationContext,
-  withAttestation,
-} from '@bradford-tech/supabase-integrity-attest';
-import {
   type AssertionContext,
+  type AttestationContext,
   withAssertion,
+  withAttestation,
 } from '@bradford-tech/supabase-integrity-attest';
 import { createSupabaseAdapter } from '@bradford-tech/supabase-integrity-attest/supabase';
 import { decodeBase64, encodeBase64 } from '@std/encoding/base64';
