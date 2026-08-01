@@ -78,7 +78,7 @@ function fuzzParser(p: Parser, seedBytes: Uint8Array) {
   // 3. Byte stomps: header-corrupting values at 300 seeded positions.
   const stomps = [0x00, 0xff, 0x9f, 0xbf, 0x7f, 0x5b, 0x3b, 0x1b];
   for (let i = 0; i < 300; i++) {
-    const pos = Math.floor(rand() * Math.min(seedBytes.length, 4096));
+    const pos = Math.floor(rand() * seedBytes.length);
     const m = seedBytes.slice();
     m[pos] = stomps[Math.floor(rand() * stomps.length)];
     checkMutant(p, m, `stomp(${pos})`);
