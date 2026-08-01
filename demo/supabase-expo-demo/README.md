@@ -106,6 +106,8 @@ demo/supabase-expo-demo/
 └── .env.example            # Template for client-side env vars
 ```
 
+`_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.bradford.tech/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
+
 ## Running the integration test (no iPhone needed)
 
 The integration test exercises all five edge functions using synthetic assertions:

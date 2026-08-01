@@ -1,31 +1,31 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@bradford-tech/supabase-integrity-attest@~0.8.2": "0.8.2",
-    "jsr:@std/encoding@1.0.10": "1.0.10",
-    "jsr:@std/encoding@^1.0.10": "1.0.10",
-    "jsr:@supabase/functions-js@^2.102.0": "2.102.0",
+    "jsr:@bradford-tech/supabase-integrity-attest@0.9": "0.9.0",
+    "jsr:@std/encoding@^1.0.10": "1.0.11",
+    "jsr:@std/encoding@^1.0.11": "1.0.11",
+    "jsr:@supabase/functions-js@^2.102.0": "2.111.0",
     "npm:@noble/curves@^2.2.0": "2.2.0",
-    "npm:@supabase/supabase-js@^2.103.0": "2.103.0",
+    "npm:@supabase/supabase-js@^2.103.0": "2.111.0",
     "npm:asn1js@^3.0.10": "3.0.10",
-    "npm:cborg@^5.1.0": "5.1.11",
+    "npm:cborg@^6.1.1": "6.1.1",
     "npm:openai@^4.52.5": "4.104.0"
   },
   "jsr": {
-    "@bradford-tech/supabase-integrity-attest@0.8.2": {
-      "integrity": "55990917af240b8ec20efb57c43ba0906b9d966463515ef7dd987861f1010788",
+    "@bradford-tech/supabase-integrity-attest@0.9.0": {
+      "integrity": "2fce403c283a9f91d2bb2105d6ca8d74506e3b606ae6e1d2ed15e7f076d7cc27",
       "dependencies": [
-        "jsr:@std/encoding@1.0.10",
+        "jsr:@std/encoding@^1.0.11",
         "npm:@noble/curves",
         "npm:asn1js",
         "npm:cborg"
       ]
     },
-    "@std/encoding@1.0.10": {
-      "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
+    "@std/encoding@1.0.11": {
+      "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
-    "@supabase/functions-js@2.102.0": {
-      "integrity": "f184eb14b7f4bd8ce8c8a0f5321bae59dc2721c5948fe9f3a7450f395a27c87c",
+    "@supabase/functions-js@2.111.0": {
+      "integrity": "6714657239e73db50c4d6a65cb7e99e36301289b9d180062755e5c081e3b62b5",
       "dependencies": [
         "npm:openai"
       ]
@@ -41,45 +41,43 @@
     "@noble/hashes@2.2.0": {
       "integrity": "sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg=="
     },
-    "@supabase/auth-js@2.103.0": {
-      "integrity": "sha512-6zAanO6c+6gpHOlt5Lb9TlBBkJdZiUWkWCJKAxzkywBDcwaHlLJKXnjQGX6GyVCyKRR1e7sTq4re/yRTH6U/9A==",
+    "@supabase/auth-js@2.111.0": {
+      "integrity": "sha512-hbRLgyQZEX0SDyF4LYXpv94qOIQyFATfpT5SIs2V0SisHnisVRkYgiPQWzv80l4S2mO3qof78rmoH9j5zoFsYQ==",
       "dependencies": [
         "tslib"
       ]
     },
-    "@supabase/functions-js@2.103.0": {
-      "integrity": "sha512-YrneV2NjskUkkmkZ2Jt2n3elBgbWzV4Y1M9MM370z2Zd5ZPFqFbY8KIoPwuNjtAGE9YrpKBxnbZqeF07BiN9Og==",
+    "@supabase/functions-js@2.111.0": {
+      "integrity": "sha512-RW/OCsd6MO592zU8ifzP8/f8XzxxIdpb+Up5XaOtE26Fw+3zTp475WX7+GuuktiD1WF8pFUDe6khUPbMp77RCw==",
       "dependencies": [
         "tslib"
       ]
     },
-    "@supabase/phoenix@0.4.0": {
-      "integrity": "sha512-RHSx8bHS02xwfHdAbX5Lpbo6PXbgyf7lTaXTlwtFDPwOIw64NnVRwFAXGojHhjtVYI+PEPNSWwkL90f4agN3bw=="
+    "@supabase/phoenix@0.4.5": {
+      "integrity": "sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw=="
     },
-    "@supabase/postgrest-js@2.103.0": {
-      "integrity": "sha512-rC3sRxYdPZymkp2CZR1MiNQgbOleD01bGsW8VxEKRR5nMkLZ1NgAS1QTQf78Wh30czFyk505ZYr9Od8/mWT2TA==",
+    "@supabase/postgrest-js@2.111.0": {
+      "integrity": "sha512-pcqeDsnWP0lx9GawduYxNZJHeuTm53O7L0SC8RF8tniV3GWIPY6me6OTdnwzdwNUmNy1dzUVtSyIfE6+OflzPQ==",
       "dependencies": [
         "tslib"
       ]
     },
-    "@supabase/realtime-js@2.103.0": {
-      "integrity": "sha512-gcPtXzZ6izyyBVf2of7K3dEt8CScPJn8VcSlQq6oWL9QoE1kqfQl0oFrOMHd5qrcADewxI7OxxosLB8W4XqtIQ==",
+    "@supabase/realtime-js@2.111.0": {
+      "integrity": "sha512-6oRf/vZyRwg8f8GbFSJkrD2w4HAu/yTvyMViHXHS+H5hNJzdXCrUR7cP5oW7daT3YlRnzRPY9LcGSJKZAmfMSg==",
       "dependencies": [
         "@supabase/phoenix",
-        "@types/ws",
-        "tslib",
-        "ws"
+        "tslib"
       ]
     },
-    "@supabase/storage-js@2.103.0": {
-      "integrity": "sha512-DHmlvdAXwtOmZNbkIZi4lkobPR3XjIzoOgzoz5duMf6G+sDeY015YrzMJCnqdccuYr7X5x4yYuSwF//RoN2dvQ==",
+    "@supabase/storage-js@2.111.0": {
+      "integrity": "sha512-UEViNmTzVOxE8dqUA81wls+n9xgmlvSFfhfwo6QxrO4kQOytCYyw3ciYFoi4XoD4Jl95NJ3jnndHN5iIudWzqw==",
       "dependencies": [
         "iceberg-js",
         "tslib"
       ]
     },
-    "@supabase/supabase-js@2.103.0": {
-      "integrity": "sha512-j/6q5+LtXbR/YOLSLhy7Na74RD1cV2v+KwIIuuqMEjk1JpLEEyu0ynwDHpGoxMncDQl+R5FogaVqZm+85lZvtw==",
+    "@supabase/supabase-js@2.111.0": {
+      "integrity": "sha512-9q0/AULthQnWeiDh1vGyjoJZbSY04bu6qHcWit70pqEYn5Kv/dkCPY62Ja1123jEnJbB9Vd2pjY7Kvk/lK3peA==",
       "dependencies": [
         "@supabase/auth-js",
         "@supabase/functions-js",
@@ -105,12 +103,6 @@
       "integrity": "sha512-FDuKUJQm/ju9fT/SeX/6+gBzoPzlVCzfzmGkwKvRHQVxi4BntVbyIwf6a4Xn62mrvndLiml6z/UBXIdEVjQLXg==",
       "dependencies": [
         "undici-types@6.19.8"
-      ]
-    },
-    "@types/ws@8.18.1": {
-      "integrity": "sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==",
-      "dependencies": [
-        "@types/node@22.5.4"
       ]
     },
     "abort-controller@3.0.0": {
@@ -143,8 +135,8 @@
         "function-bind"
       ]
     },
-    "cborg@5.1.11": {
-      "integrity": "sha512-oc6Pzg/gkTobxHZNgMmny+G99dOeBMbAmnGHcZWMKtolxZBIVwfi0Pj0khxEtNU8HMFdbT5sK0HmtgecDUPP0A=="
+    "cborg@6.1.1": {
+      "integrity": "sha512-Ci8+V1OMFtqea8EXicsATqV+3kEqCGXCicM+5MEzpKTxqy58WMzhJUjtUqAjfWpKPZ0wpG8F+u5mC8Xy/0Zevg=="
     },
     "combined-stream@1.0.8": {
       "integrity": "sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==",
@@ -328,21 +320,18 @@
         "tr46",
         "webidl-conversions"
       ]
-    },
-    "ws@8.20.0": {
-      "integrity": "sha512-sAt8BhgNbzCtgGbt2OxmpuryO63ZoDk/sqaB/znQm94T4fCEsy/yV+7CdC1kJhOU9lboAEU7R3kquuycDoibVA=="
     }
   },
   "workspace": {
     "dependencies": [
-      "jsr:@bradford-tech/supabase-integrity-attest@~0.8.2",
+      "jsr:@bradford-tech/supabase-integrity-attest@0.9",
       "jsr:@std/encoding@^1.0.10",
       "npm:@supabase/supabase-js@^2.103.0"
     ],
     "members": {
       "_shared": {
         "dependencies": [
-          "jsr:@bradford-tech/supabase-integrity-attest@~0.8.2",
+          "jsr:@bradford-tech/supabase-integrity-attest@0.9",
           "jsr:@std/encoding@^1.0.10",
           "npm:@supabase/supabase-js@^2.103.0"
         ]
