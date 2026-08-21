@@ -2,15 +2,14 @@ import type { MetadataRoute } from 'next'
 
 import { navigation } from '@/lib/navigation'
 import pageDates from '@/lib/page-dates.json'
-
-const baseUrl = 'https://integrity-attest.bradford.tech'
+import { SITE_URL } from '@/lib/site'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date()
 
   const pages: MetadataRoute.Sitemap = [
     {
-      url: baseUrl,
+      url: SITE_URL,
       lastModified:
         (pageDates as Record<string, { modified?: string }>)['/']?.modified ??
         now,
@@ -23,7 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         link.href
       ]
       pages.push({
-        url: `${baseUrl}${link.href}`,
+        url: `${SITE_URL}${link.href}`,
         lastModified: dates?.modified ?? now,
       })
     }

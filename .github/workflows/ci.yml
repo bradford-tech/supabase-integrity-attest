@@ -50,6 +50,10 @@ jobs:
 
       - run: npm ci
 
+      # Needs only git and Node, and guards every workspace rather than just
+      # the Node ones, so it runs outside the turbo graph.
+      - run: node scripts/check-domains.mjs
+
       - run: npx turbo run check build --affected --filter=!@bradford-tech/supabase-integrity-attest
         env:
           DO_NOT_TRACK: 1

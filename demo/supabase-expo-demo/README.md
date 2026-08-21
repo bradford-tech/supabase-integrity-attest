@@ -1,6 +1,6 @@
 # App Attest Demo
 
-End-to-end demo of [@bradford-tech/supabase-integrity-attest](https://integrity-attest.bradford.tech) — Apple App Attest verification on Supabase Edge Functions, exercised from an Expo iOS app on a physical iPhone.
+End-to-end demo of [@bradford-tech/supabase-integrity-attest](https://integrity-attest.sargent.dev) — Apple App Attest verification on Supabase Edge Functions, exercised from an Expo iOS app on a physical iPhone.
 
 **Requirements:** macOS, Docker, Xcode, a physical iPhone (App Attest requires Secure Enclave hardware — the iOS simulator cannot be used for the attestation/assertion flows).
 
@@ -108,7 +108,7 @@ demo/supabase-expo-demo/
 └── .env.example            # Template for client-side env vars
 ```
 
-`_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.bradford.tech/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
+`_shared/integrity.ts` gets its storage plumbing (challenge lifecycle, device key upsert/lookup, CAS sign-count commit, bytea encoding) from the library's [`createSupabaseAdapter()`](https://integrity-attest.sargent.dev/docs/supabase-adapter) — the demo only adds env-var wiring and the `attest()`/`protect()` one-liners on top.
 
 A companion benchmark, `supabase/tests/bench-ab.ts`, measures the latency delta between `unprotected-event` and `protected-event` (run it the same way as the integration test below). For the on-device numbers — Secure Enclave signing, Apple's attestation round-trip, and full protected-call latency from a real iPhone — attest the device in the app and tap **Benchmark**; the report prints to the Metro console.
 

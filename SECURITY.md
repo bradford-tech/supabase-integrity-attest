@@ -13,7 +13,7 @@ Security fixes are released as patches on the latest minor only.
 
 If you discover a security vulnerability in this library, please report it responsibly.
 
-**Email:** security@bradford.tech
+**Email:** security@sargent.dev
 
 Please include:
 

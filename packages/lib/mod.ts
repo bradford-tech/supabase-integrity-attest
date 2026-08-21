@@ -88,7 +88,7 @@
  *   (`verifyAssertion`, `withAssertion`). Excludes `asn1js` and
  *   `@noble/curves` to keep the bundle minimal.
  *
- * Full documentation: {@link https://integrity-attest.bradford.tech}
+ * Full documentation: {@link https://integrity-attest.sargent.dev}
  *
  * @module
  */

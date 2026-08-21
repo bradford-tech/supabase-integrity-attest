@@ -7,13 +7,12 @@ import { TableOfContents } from '@/components/TableOfContents'
 import { findPageByTitle } from '@/lib/navigation'
 import pageDates from '@/lib/page-dates.json'
 import { collectSections } from '@/lib/sections'
+import { ORGANIZATION_ID, SITE_URL, WEBSITE_ID } from '@/lib/site'
 
 interface Frontmatter {
   title?: string
   nextjs?: { metadata?: { title?: string; description?: string } }
 }
-
-const BASE_URL = 'https://integrity-attest.bradford.tech'
 
 export function DocsLayout({
   children,
@@ -44,7 +43,7 @@ export function DocsLayout({
             '@type': 'ListItem',
             position: 1,
             name: 'Home',
-            item: `${BASE_URL}/`,
+            item: `${SITE_URL}/`,
           },
           {
             '@type': 'ListItem',
@@ -61,15 +60,15 @@ export function DocsLayout({
         '@type': 'TechArticle',
         headline: title,
         ...(description ? { description } : {}),
-        url: `${BASE_URL}${page.href}`,
+        url: `${SITE_URL}${page.href}`,
         ...(dates
           ? {
               datePublished: dates.published,
               dateModified: dates.modified,
             }
           : {}),
-        publisher: { '@id': 'https://bradford.tech/#organization' },
-        isPartOf: { '@id': `${BASE_URL}/#website` },
+        publisher: { '@id': ORGANIZATION_ID },
+        isPartOf: { '@id': WEBSITE_ID },
       }
     : null
 

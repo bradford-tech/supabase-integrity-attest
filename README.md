@@ -6,11 +6,11 @@ Any mobile app with a backend API faces a fundamental problem: API keys embedded
 
 ## Packages
 
-| Package                                                                | Description                                                                                    |
-| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| [`@bradford-tech/supabase-integrity-attest`](./packages/lib/README.md) | Attestation and assertion verification library                                                 |
-| [Docs](./docs/)                                                        | Documentation site at [integrity-attest.bradford.tech](https://integrity-attest.bradford.tech) |
-| [Demo](./demo/supabase-expo-demo/README.md)                            | Expo starter app with Supabase edge functions                                                  |
+| Package                                                                | Description                                                                                |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [`@bradford-tech/supabase-integrity-attest`](./packages/lib/README.md) | Attestation and assertion verification library                                             |
+| [Docs](./docs/)                                                        | Documentation site at [integrity-attest.sargent.dev](https://integrity-attest.sargent.dev) |
+| [Demo](./demo/supabase-expo-demo/README.md)                            | Expo starter app with Supabase edge functions                                              |
 
 ## Quick start
 

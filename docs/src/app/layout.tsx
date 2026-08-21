@@ -5,6 +5,13 @@ import localFont from 'next/font/local'
 
 import { Providers } from '@/app/providers'
 import { Layout } from '@/components/Layout'
+import {
+  ORGANIZATION_ID,
+  ORGANIZATION_NAME,
+  ORGANIZATION_URL,
+  SITE_URL,
+  WEBSITE_ID,
+} from '@/lib/site'
 
 import { Analytics } from '@vercel/analytics/next'
 
@@ -24,7 +31,7 @@ const lexend = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://integrity-attest.bradford.tech'),
+  metadataBase: new URL(SITE_URL),
   alternates: { canonical: './' },
   title: {
     template: '%s - supabase-integrity-attest',
@@ -51,18 +58,18 @@ const jsonLd = {
   '@graph': [
     {
       '@type': 'WebSite',
-      '@id': 'https://integrity-attest.bradford.tech/#website',
+      '@id': WEBSITE_ID,
       name: 'supabase-integrity-attest',
-      url: 'https://integrity-attest.bradford.tech',
+      url: SITE_URL,
       description:
         'Server-side Apple App Attest verification for Supabase Edge Functions, built entirely on WebCrypto.',
-      publisher: { '@id': 'https://bradford.tech/#organization' },
+      publisher: { '@id': ORGANIZATION_ID },
     },
     {
       '@type': 'Organization',
-      '@id': 'https://bradford.tech/#organization',
-      name: 'Bradford Tech',
-      url: 'https://bradford.tech',
+      '@id': ORGANIZATION_ID,
+      name: ORGANIZATION_NAME,
+      url: ORGANIZATION_URL,
       sameAs: ['https://github.com/bradford-tech'],
     },
     {
@@ -74,7 +81,7 @@ const jsonLd = {
         'https://github.com/bradford-tech/supabase-integrity-attest',
       programmingLanguage: 'TypeScript',
       runtimePlatform: ['Deno', 'Node.js'],
-      author: { '@id': 'https://bradford.tech/#organization' },
+      author: { '@id': ORGANIZATION_ID },
     },
   ],
 }

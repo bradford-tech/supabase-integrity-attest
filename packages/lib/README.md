@@ -334,7 +334,7 @@ await verifyAttestation(
 
 ## Documentation
 
-Full documentation at [integrity-attest.bradford.tech](https://integrity-attest.bradford.tech).
+Full documentation at [integrity-attest.sargent.dev](https://integrity-attest.sargent.dev).
 
 ## Contributing
 
