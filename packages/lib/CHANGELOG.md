@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.9.1...v0.9.2) (2026-08-21)
+
+
+### Bug Fixes
+
+* migrate off decommissioned bradford.tech domain ([58ebac7](https://github.com/bradford-tech/supabase-integrity-attest/commit/58ebac7478546e0cc6757d0a65eaeda57e96292d))
+
 ## [0.9.1](https://github.com/bradford-tech/supabase-integrity-attest/compare/v0.9.0...v0.9.1) (2026-08-01)
 
 
