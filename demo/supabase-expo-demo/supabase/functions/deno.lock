@@ -1,19 +1,19 @@
 {
   "version": "4",
   "specifiers": {
-    "jsr:@bradford-tech/supabase-integrity-attest@0.9": "0.9.0",
+    "jsr:@bradford-tech/supabase-integrity-attest@~0.9.1": "0.9.1",
     "jsr:@std/encoding@^1.0.10": "1.0.11",
     "jsr:@std/encoding@^1.0.11": "1.0.11",
-    "jsr:@supabase/functions-js@^2.102.0": "2.111.0",
-    "npm:@noble/curves@^2.2.0": "2.2.0",
-    "npm:@supabase/supabase-js@^2.103.0": "2.111.0",
+    "jsr:@supabase/functions-js@^2.112.3": "2.112.3",
+    "npm:@noble/curves@^2.2.0": "2.3.0",
+    "npm:@supabase/supabase-js@^2.112.3": "2.112.3",
     "npm:asn1js@^3.0.10": "3.0.10",
     "npm:cborg@^6.1.1": "6.1.1",
     "npm:openai@^4.52.5": "4.104.0"
   },
   "jsr": {
-    "@bradford-tech/supabase-integrity-attest@0.9.0": {
-      "integrity": "2fce403c283a9f91d2bb2105d6ca8d74506e3b606ae6e1d2ed15e7f076d7cc27",
+    "@bradford-tech/supabase-integrity-attest@0.9.1": {
+      "integrity": "59e38e052fe90a5267e3889db5244df4f90085eaa6d5b4bb097793bb7b4419a2",
       "dependencies": [
         "jsr:@std/encoding@^1.0.11",
         "npm:@noble/curves",
@@ -24,31 +24,31 @@
     "@std/encoding@1.0.11": {
       "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
     },
-    "@supabase/functions-js@2.111.0": {
-      "integrity": "6714657239e73db50c4d6a65cb7e99e36301289b9d180062755e5c081e3b62b5",
+    "@supabase/functions-js@2.112.3": {
+      "integrity": "a61957d4fdadccbe858523bf1396c047a30927b3c0eceb1dab049266640286f3",
       "dependencies": [
         "npm:openai"
       ]
     }
   },
   "npm": {
-    "@noble/curves@2.2.0": {
-      "integrity": "sha512-T/BoHgFXirb0ENSPBquzX0rcjXeM6Lo892a2jlYJkqk83LqZx0l1Of7DzlKJ6jkpvMrkHSnAcgb5JegL8SeIkQ==",
+    "@noble/curves@2.3.0": {
+      "integrity": "sha512-v7cY+4oWYPQszRj6ZFGzTVL7uP2TaLo1xMhWHzYC5wj0ZhOXQ5x+sBre8rF3hi8cAoi0bh1qXoovoOkdFtvqEg==",
       "dependencies": [
         "@noble/hashes"
       ]
     },
-    "@noble/hashes@2.2.0": {
-      "integrity": "sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg=="
+    "@noble/hashes@2.3.0": {
+      "integrity": "sha512-oN+QwyX7VSHotibwubG3kpzbwKrfnyR6OOO+3Nk/53ADL7FmgHHz4TgrbaYKvvOw09u6QTx0oiH1cNCIOuN0CQ=="
     },
-    "@supabase/auth-js@2.111.0": {
-      "integrity": "sha512-hbRLgyQZEX0SDyF4LYXpv94qOIQyFATfpT5SIs2V0SisHnisVRkYgiPQWzv80l4S2mO3qof78rmoH9j5zoFsYQ==",
+    "@supabase/auth-js@2.112.3": {
+      "integrity": "sha512-NA0rsgAlWZPvbhw8aUdmgfpHVgUAcd8zK5ov43l++o1bLIPXZhRiAlRobhwF5AatQuovpqxsMH50F4oyyV4XZw==",
       "dependencies": [
         "tslib"
       ]
     },
-    "@supabase/functions-js@2.111.0": {
-      "integrity": "sha512-RW/OCsd6MO592zU8ifzP8/f8XzxxIdpb+Up5XaOtE26Fw+3zTp475WX7+GuuktiD1WF8pFUDe6khUPbMp77RCw==",
+    "@supabase/functions-js@2.112.3": {
+      "integrity": "sha512-gfv481mTOVWtZIJgXupxZpni2V2UWPf6jeF/jOK7HdMHdH+mt6sU0sHHwf0POsPip8ltlulu9OUHgwVzl5ddRw==",
       "dependencies": [
         "tslib"
       ]
@@ -56,28 +56,28 @@
     "@supabase/phoenix@0.4.5": {
       "integrity": "sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw=="
     },
-    "@supabase/postgrest-js@2.111.0": {
-      "integrity": "sha512-pcqeDsnWP0lx9GawduYxNZJHeuTm53O7L0SC8RF8tniV3GWIPY6me6OTdnwzdwNUmNy1dzUVtSyIfE6+OflzPQ==",
+    "@supabase/postgrest-js@2.112.3": {
+      "integrity": "sha512-+Mf6uCpzr00bqxwX8hTK2X2L9eAL/1vuOjdEjx6upz9ulb0RmQT16XeU/JkMUlVHw/B46ZnPa2busY4Kd9YCzw==",
       "dependencies": [
         "tslib"
       ]
     },
-    "@supabase/realtime-js@2.111.0": {
-      "integrity": "sha512-6oRf/vZyRwg8f8GbFSJkrD2w4HAu/yTvyMViHXHS+H5hNJzdXCrUR7cP5oW7daT3YlRnzRPY9LcGSJKZAmfMSg==",
+    "@supabase/realtime-js@2.112.3": {
+      "integrity": "sha512-E6wljXWs7DUOloyIB69i3YFInWE6IyCvgTAbQ0KYxOHv26FdA1KzEXTuzxrYEdf70t406Z9BRwUlGyclGF2FXA==",
       "dependencies": [
         "@supabase/phoenix",
         "tslib"
       ]
     },
-    "@supabase/storage-js@2.111.0": {
-      "integrity": "sha512-UEViNmTzVOxE8dqUA81wls+n9xgmlvSFfhfwo6QxrO4kQOytCYyw3ciYFoi4XoD4Jl95NJ3jnndHN5iIudWzqw==",
+    "@supabase/storage-js@2.112.3": {
+      "integrity": "sha512-oSK61tzlUvg+BWPqpKQCu9qqonsO26btaoAR9D6Gest2aj7xUqToj9rKyaoYOJczkhg9BjqA1REbYy9tPI4bDA==",
       "dependencies": [
         "iceberg-js",
         "tslib"
       ]
     },
-    "@supabase/supabase-js@2.111.0": {
-      "integrity": "sha512-9q0/AULthQnWeiDh1vGyjoJZbSY04bu6qHcWit70pqEYn5Kv/dkCPY62Ja1123jEnJbB9Vd2pjY7Kvk/lK3peA==",
+    "@supabase/supabase-js@2.112.3": {
+      "integrity": "sha512-Jv1bxVQmEJNkjvPEhFaKjPzsh+Ozyew6lWGD+SoYcsclDEP1z7yEvKvfUQfzy0DkxRIQnZNxmmWtAzw5XLTQoA==",
       "dependencies": [
         "@supabase/auth-js",
         "@supabase/functions-js",
@@ -293,8 +293,8 @@
         "tslib"
       ]
     },
-    "pvutils@1.1.5": {
-      "integrity": "sha512-KTqnxsgGiQ6ZAzZCVlJH5eOjSnvlyEgx1m8bkRJfOhmGRqfo5KLvmAlACQkrjEtOQ4B7wF9TdSLIs9O90MX9xA=="
+    "pvutils@1.2.0": {
+      "integrity": "sha512-BbubeCEyTuQjVMakvJQ/Sxbc93F2pwmbsxONT/ZRrwU7Ua38d8unYTwXpTVLAKJ4BDuH9IGztCjQcd/N/39Dvg=="
     },
     "tr46@0.0.3": {
       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw=="
@@ -324,41 +324,41 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@bradford-tech/supabase-integrity-attest@0.9",
+      "jsr:@bradford-tech/supabase-integrity-attest@~0.9.1",
       "jsr:@std/encoding@^1.0.10",
-      "npm:@supabase/supabase-js@^2.103.0"
+      "npm:@supabase/supabase-js@^2.112.3"
     ],
     "members": {
       "_shared": {
         "dependencies": [
-          "jsr:@bradford-tech/supabase-integrity-attest@0.9",
+          "jsr:@bradford-tech/supabase-integrity-attest@~0.9.1",
           "jsr:@std/encoding@^1.0.10",
-          "npm:@supabase/supabase-js@^2.103.0"
+          "npm:@supabase/supabase-js@^2.112.3"
         ]
       },
       "challenge": {
         "dependencies": [
-          "jsr:@supabase/functions-js@^2.102.0"
+          "jsr:@supabase/functions-js@^2.112.3"
         ]
       },
       "protected-event": {
         "dependencies": [
-          "jsr:@supabase/functions-js@^2.102.0"
+          "jsr:@supabase/functions-js@^2.112.3"
         ]
       },
       "reset-device": {
         "dependencies": [
-          "jsr:@supabase/functions-js@^2.102.0"
+          "jsr:@supabase/functions-js@^2.112.3"
         ]
       },
       "unprotected-event": {
         "dependencies": [
-          "jsr:@supabase/functions-js@^2.102.0"
+          "jsr:@supabase/functions-js@^2.112.3"
         ]
       },
       "verify-attestation": {
         "dependencies": [
-          "jsr:@supabase/functions-js@^2.102.0"
+          "jsr:@supabase/functions-js@^2.112.3"
         ]
       }
     }
