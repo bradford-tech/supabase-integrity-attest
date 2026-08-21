@@ -9,6 +9,8 @@
     "build": "turbo run build",
     "check": "node scripts/check-domains.mjs && prettier --check '*.json' '*.md' '.github/**' 'scripts/**' --log-level warn && turbo run check --output-logs=errors-only",
     "check:domains": "node scripts/check-domains.mjs",
+    "deno:update:demo": "cd demo/supabase-expo-demo/supabase/functions && deno outdated --update --recursive && rm deno.lock && deno install",
+    "deno:update:package": "cd packages/lib && deno outdated --update && rm deno.lock && deno install",
     "dev:docs": "turbo run dev --filter=docs",
     "fix": "prettier --write '*.json' '*.md' '.github/**' 'scripts/**' --log-level warn && turbo run fix --output-logs=new-only",
     "lint": "turbo run lint",
