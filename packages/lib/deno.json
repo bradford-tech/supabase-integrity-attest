@@ -10,9 +10,9 @@
   },
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.43.2",
-    "cborg": "npm:cborg@^6.1.1",
-    "@noble/curves": "npm:@noble/curves@^2.3.0",
-    "asn1js": "npm:asn1js@^3.0.10",
+    "cborg": "npm:cborg@^6.1.5",
+    "@noble/curves": "npm:@noble/curves@^2.4.0",
+    "asn1js": "npm:asn1js@^3.1.0",
     "@std/assert": "jsr:@std/assert@1.0.19",
     "@std/encoding": "jsr:@std/encoding@^1.0.11"
   },
